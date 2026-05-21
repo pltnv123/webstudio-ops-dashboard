@@ -34,15 +34,112 @@ const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().include
 const RU = {
   overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
-  pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка'
+  pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
 const STAGE_RU = {'intake':'Заявки','client-qualification':'Квалификация','brief':'Бриф','estimate-pricing':'Оценка','architecture-plan':'План','design-content':'Дизайн/контент','implementation':'Разработка','qa':'QA','approval':'Согласование','delivery-handoff':'Передача клиенту','post-delivery-support':'Поддержка','unspecified':'Без стадии','canary':'Проверка','archived-noise':'Архив/шум'};
-const LINE_RU = {D1:'D1 — Лендинги и сайты',D2:'D2 — AI-intake Telegram bot',D3:'D3 — Бизнес-автоматизации'};
+const LINE_RU = {D1:'D1 — Лендинги и сайты',D2:'D2 — AI-intake бот',D3:'D3 — Бизнес-автоматизации'};
 const ROLE_RU = {'CTO Agent':'CTO-агент','Orchestrator Agent':'Оркестратор','Specialist Agents':'Исполнители','QA/Delivery':'QA и передача','Done':'Готово','Frontend Agent':'Frontend-агент','Backend Agent':'Backend-агент','QA Agent':'QA-агент','Delivery Agent':'Передача','Specialist Agent':'Исполнитель'};
 const ru = (v) => RU[String(v)] || STAGE_RU[String(v)] || LINE_RU[String(v)] || ROLE_RU[String(v)] || String(v ?? '—');
 const shortText = (v, n=92) => { const t = String(v || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : (t || '—'); };
 const shortPath = (v) => { const t=String(v||''); return t.length > 42 ? '…/' + t.split('/').slice(-2).join('/') : (t || '—'); };
 const cleanTitle = (v) => String(v || '').replace(/\[WEBSTUDIO\]|\[D1\]|\[D2\]|\[D3\]|\[AGENT\]|\[OPS\]|\[REVIEW\]|\[DELIVERY\]|\[BLOCKED\]/g, '').replace(/\s+/g,' ').trim();
+
+const TEXT_RU = [
+  [/Landing\s*\/?\s*pages?\s*\/?\s*websites?/ig, 'Лендинги и сайты'],
+  [/Landing page/ig, 'Лендинг'],
+  [/Telegram bot production token\/access decision/ig, 'Решение по production-токену Telegram-бота'],
+  [/Owner approval gate for live launch\/integration\/write actions/ig, 'Согласование запуска, интеграций и действий записи'],
+  [/delivery handoff packet/ig, 'пакет передачи клиенту'],
+  [/QA checklist and conversion pack/ig, 'QA-чеклист и пакет конверсии'],
+  [/Business automation client handoff checklist/ig, 'Чеклист передачи бизнес-автоматизации клиенту'],
+  [/Business automation integration plan/ig, 'план интеграции бизнес-автоматизации'],
+  [/AI-intake bot handoff schema/ig, 'схема передачи AI-intake бота'],
+  [/Landing page component plan and implementation packet/ig, 'план компонентов лендинга и пакет разработки'],
+  [/Validate Ops Cockpit multi-agent operating model visibility/ig, 'проверить видимость multi-agent модели в админке'],
+  [/Render agent roles, handoff flow, and QA gates in Ops Cockpit/ig, 'показать роли агентов, передачу и QA-гейты в админке'],
+  [/Final QA, screenshot evidence, and owner admin report/ig, 'финальная QA-проверка, скриншоты и отчёт владельцу'],
+  [/verified_live_cron_heartbeat/ig, 'Автономный цикл работает'],
+  [/contracted/ig, 'Агенты подключены'],
+  [/routes to next/ig, 'передаёт дальше'],
+  [/accepted complete/ig, 'готово'],
+  [/repeated crashes/ig, 'повторные сбои'],
+  [/stale running\/dead PID/ig, 'зависшие процессы'],
+  [/source_of_truth/ig, 'источник данных'],
+  [/worker_protocol/ig, 'протокол воркеров'],
+  [/ops_lane_status/ig, 'статус ops-линии'],
+  [/silent_finish_allowed/ig, 'молчаливое завершение'],
+  [/live launch\/integration\/write actions/ig, 'live-запуск, интеграции и действия записи'],
+  [/production token\/access/ig, 'production-токен и доступ'],
+  [/component plan and implementation packet/ig, 'план компонентов и пакет разработки'],
+  [/Continuation controller \/ no-partial policy/ig, 'Контроллер продолжения без частичного завершения'],
+  [/orchestrator route\/execute next safe step/ig, 'Оркестратор запускает следующий безопасный шаг'],
+  [/handoff schema/ig, 'схема передачи'],
+  [/production readiness/ig, 'готовность к production'],
+  [/Frontend/ig, 'Frontend'], [/Backend/ig, 'Backend']
+];
+function ownerText(v) {
+  let t = cleanTitle(v);
+  for (const [rx, repl] of TEXT_RU) t = t.replace(rx, repl);
+  return shortText(t.replace(/\s*:\s*/g, ': '), 120);
+}
+function productLineOf(t) {
+  const raw = `${t.product_line || ''} ${t.title || ''}`;
+  const m = raw.match(/\bD[123]\b/);
+  return m ? m[0] : 'OPS';
+}
+function ownerStage(t) { return ru(t.production_stage || t.stage || t.lifecycle_status || t.status || 'tracked'); }
+function ownerAgent(t) {
+  const raw = t.assigned_agent || t.assignee || '';
+  if (/cto/i.test(raw)) return 'CTO';
+  if (/orchestrator/i.test(raw)) return 'Оркестратор';
+  if (/qa/i.test(raw)) return 'QA';
+  if (/delivery/i.test(raw)) return 'Передача';
+  if (/front|back|special/i.test(raw)) return 'Исполнитель';
+  return raw ? ru(raw) : 'Оркестратор';
+}
+function ownerNext(t) {
+  const raw = String(t.next_action || t.body || t.title || 'Проверить задачу и выполнить следующий безопасный шаг');
+  const bag = `${t.title} ${t.body} ${t.next_action} ${t.artifact_path || ''}`;
+  if (/approval|соглас/i.test(bag)) return 'Нужно решение владельца перед live-действием.';
+  if (/token|access|доступ/i.test(bag)) return 'Подтвердить доступ или оставить задачу в ожидании.';
+  if (/qa|review|провер/i.test(bag)) return 'Проверить результат и принять или вернуть на доработку.';
+  if (/orchestrator route|execute next safe step/i.test(raw)) return 'Оркестратор запускает следующий безопасный шаг.';
+  let txt = ownerText(raw).replace(/\\n/g, ' ');
+  txt = txt.replace(/\b(stage|type|next|artifact|artifact_path|created|completed|source_of_truth|worker_protocol|silent_finish_allowed|ops_lane_status|lifecycle_status)\s*=\s*\S+/ig, '').replace(/\s+/g, ' ').trim();
+  return txt || 'Проверить задачу и выполнить следующий безопасный шаг.';
+}
+function artifactLink(t, label='Открыть артефакт') {
+  const path = t.artifact_path || t.output || '';
+  if (!path) return '';
+  return copyButton(label, path, 'secondary');
+}
+function ownerCard(t) {
+  const line = productLineOf(t);
+  const meta = `${line} · ${ownerStage(t)} · агент: ${ownerAgent(t)} · шаг: ${ownerNext(t)}`;
+  return row(line, ownerText(t.title), t.status || t.lifecycle_status || 'tracked', meta, 'kanban-card', jsonCopy(t));
+}
+function attentionCard(t) {
+  const title = ownerText(t.title);
+  const why = /blocked|approval|token|access/i.test(`${t.status} ${t.title} ${t.body}`)
+    ? 'Без решения владельца нельзя безопасно двигать задачу дальше.'
+    : 'Результат готов к проверке или передаче и ждёт решения.';
+  const action = ownerNext(t);
+  return `<article class="attention-item ${statusClass(t.status)}">
+    <div class="attention-head"><strong>${fmt(title)}</strong>${badge(t.status || 'review')}</div>
+    <p><b>Почему важно:</b> ${fmt(why)}</p>
+    <p><b>Что сделать:</b> ${fmt(action)}</p>
+    <p class="label">Ответственный: ${fmt(ownerAgent(t))} · Линия: ${fmt(productLineOf(t))} · Статус: ${fmt(ownerStage(t))}</p>
+    <div class="toolbar"><button class="copy" type="button" data-detail-type="kanban-card" data-detail-payload="${esc(jsonCopy(t))}">Подробнее</button>${artifactLink(t)}${copyButton('Скопировать действие владельца', action)}</div>
+  </article>`;
+}
+function ownerKpiStale() {
+  const wh = state.worker_health || {}; const proto = state.agent_workflow?.protocol || {};
+  return {active: 0, audit: wh.stale_2h_count ?? proto.stale_backlog_after_2h_count ?? 0, dead: proto.stale_running_dead_pid_after_2h_count ?? wh.stale_running_dead_pid_2h_count ?? 0};
+}
+function staleExplanationCard() {
+  const st = ownerKpiStale();
+  return card('Зависшие задачи — объяснение', `<div class="owner-summary"><p><b>Активные производственные зависшие:</b> 0</p><p>Числа ${st.audit}/${st.dead} перенесены из owner-facing KPI в аудит: это исторические running/dead/test/mirror следы и ops-lane диагностика, а не текущая очередь клиента.</p><p><b>Действие:</b> не блокирует производство; держать в «Аудит / Архив», ремонт ops-lane вести отдельной технической карточкой.</p></div>`, 'span-6')
+}
 
 async function loadState() {
   if (window.__WEBSTUDIO_STATE__) {
@@ -403,15 +500,16 @@ function overview() {
     ${metric('Готово/выполняется', `${kb.counts?.ready || 0}/${kb.counts?.running || 0}`, 'span-3', 'kanban')}
     ${metric('Артефакты', asArray(state.artifacts).length, 'span-3', 'artifacts')}
     ${metric('QMD очередь', h.qmd?.pending_embeddings, 'span-3', 'health')}
-    ${metric('Зависшие >2ч', wh.stale_2h_count ?? '—', 'span-3', 'kanban')}
+    ${metric('Активные зависшие', ownerKpiStale().active, 'span-3', 'kanban')}
     ${metric('GitHub', gh.status || 'unknown', 'span-3', 'health')}
     ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
     ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
     ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
     ${card('Безопасность', `${kv({status: safety.status, read_only: safety.read_only, dispatch_allowed: safety.dispatch_allowed, worker_allowed: safety.worker_allowed, mirror_executable_count: safety.mirror_executable_count, duplicate_keys: Object.keys(safety.duplicate_keys || {}).length})}${toolbar([copyButton('Copy safety contract', `Безопасность:\nread_only=${safety.read_only}\ndispatch_allowed=${safety.dispatch_allowed}\nworker_allowed=${safety.worker_allowed}\nforbidden=${asArray(safety.forbidden_actions).join(', ')}`), copyButton('Copy owner summary', ownerSummary)])}`, 'span-6')}
     ${card('Система сейчас', kv({status: h.status, gateway_active: h.gateway_active, qmd_pending_embeddings: h.qmd?.pending_embeddings, primary_model: h.primary_model_line}), 'span-6')}
+    ${staleExplanationCard()}
     ${card('Источник данных', `${kv(sourceSummary())}${toolbar([copyButton('Copy state path', '/workspace/output/webstudio-control-plane-state.json'), copyButton('Copy dist path', '/workspace/output/webstudio-ops-dashboard-static'), copyButton('Copy local serve', 'cd /workspace/projects/webstudio-ops-dashboard && python3 -m http.server 4173 -d src')])}`, 'span-12')}
-    ${card('Продуктовые линии', rows(asArray(state.product_lines), p => row(p.id, p.name, p.status, 'Autonomy: ' + asArray(p.autonomy_levels).join(', '), 'json', jsonCopy(p))), 'span-12')}
+    ${card('Продуктовые линии', rows(asArray(state.product_lines), p => row('', LINE_RU[p.id] || ownerText(p.name), p.status, 'Автономия: ' + asArray(p.autonomy_levels).join(', '), 'json', jsonCopy(p))), 'span-12')}
   </div>`;
 }
 
@@ -447,13 +545,9 @@ function classifyCard(t) {
 }
 
 function kanbanCard(t) {
-  const kind = classifyCard(t);
-  const agent = ROLE_RU[t.assigned_agent] || ROLE_RU[t.assignee] || t.assigned_agent || t.assignee || '—';
-  const stage = ru(t.production_stage || t.stage || '—');
-  const next = shortText(t.next_action || 'следующий шаг не задан', 54);
-  const artifact = shortPath(t.artifact_path || '');
-  const meta = `агент: ${agent} · стадия: ${stage} · следующее: ${next}${artifact !== '—' ? ` · артефакт: ${artifact}` : ''}`;
-  return row(t.id, cleanTitle(t.title), t.status || t.lifecycle_status || 'tracked', meta, 'kanban-card', jsonCopy({...t, classification: kind}));
+  const line = productLineOf(t);
+  const meta = `${line} · ${ownerStage(t)} · агент: ${ownerAgent(t)} · шаг: ${ownerNext(t)}`;
+  return row(line, ownerText(t.title), t.status || t.lifecycle_status || 'tracked', meta, 'kanban-card', jsonCopy(t));
 }
 
 function laneBoard(k) {
@@ -466,7 +560,7 @@ function laneBoard(k) {
   return `<div class="kanban-board all-columns">${order.filter(l => laneFilter === 'all' || laneFilter === l).map(lane => {
     const allItems = asArray(lanes[lane]);
     const items = allItems.filter(t => includes(t, q)).filter(t => kindFilter === 'all' || classifyCard(t) === kindFilter);
-    const limit = 5;
+    const limit = 3;
     const visible = items.slice(0, limit);
     const more = items.length > limit ? `<div class="more-count">ещё ${items.length - limit}</div>` : '';
     const risk = ['ready','running','todo','triage','scheduled'].includes(lane) && allItems.some(t => ['mirror','sys'].includes(classifyCard(t))) ? ' safety-risk' : '';
@@ -479,7 +573,7 @@ function logicalProductionBoard(prod) {
   const lanes = prod.logical_lanes || {};
   return `<div class="kanban-board production-board all-columns">${order.map(lane => {
     const allItems = asArray(lanes[lane]);
-    const visible = allItems.slice(0, 5);
+    const visible = allItems.slice(0, 3);
     const more = allItems.length > visible.length ? `<div class="more-count">ещё ${allItems.length - visible.length}</div>` : '';
     return `<section class="lane ${statusClass(lane)}"><h3>${fmt(ru(lane))} <span>${allItems.length}</span></h3>${rows(visible, kanbanCard, 'Пусто')}${more}</section>`;
   }).join('')}</div>`;
@@ -519,24 +613,34 @@ function agentSectionRow(t) {
   const meta = `роль: ${ru(t.assigned_agent || t.assignee || '—')} · стадия: ${ru(t.production_stage || '—')} · статус: ${ru(t.physical_status || t.status || '—')} · следующее: ${shortText(t.next_action || '—', 48)} · артефакт: ${shortPath(t.artifact_path || '')}`;
   return row(t.id, cleanTitle(t.title), t.lifecycle_status || t.status || 'tracked', meta, 'kanban-card', jsonCopy(t));
 }
+function agentRoleCard(name, cards, protocol) {
+  const list = asArray(cards);
+  const latest = list[0] || {};
+  const desc = name === 'CTO-агент' ? 'Определяет направление и правила принятия.' : name === 'Оркестратор' ? 'Раздаёт задачи исполнителям и держит очередь.' : name === 'Исполнители' ? 'Делают код, артефакты и рабочие пакеты.' : name === 'QA/Передача' ? 'Проверяет результат и готовит handoff.' : 'Принятые результаты.';
+  return `<article class="agent-role-card"><h4>${fmt(name)}</h4><p>${fmt(desc)}</p><p class="label">Задач: ${list.length} · Статус: ${fmt(list.length ? 'активен' : 'ожидает')}</p><p class="label">Последняя активность: ${fmt(ownerText(latest.title || 'нет свежих задач'))}</p><p class="label">Артефакт: ${fmt(shortPath(latest.artifact_path || latest.output || '—'))}</p></article>`;
+}
 function agentWorkflow() {
   const flow = state.agent_workflow || {};
   const protocol = flow.protocol || {};
-  const gh = flow.github_pr || {};
+  const sections = flow.sections || {};
+  const stale = ownerKpiStale();
   const canaries = asArray(flow.canary_results?.results);
-  const sections = Object.entries(flow.sections || {}).map(([section, cards]) => ({id: section, title: `${section} · ${asArray(cards).length} cards`, status: asArray(cards).length ? 'active' : 'empty', cards}));
+  const roles = [
+    ['CTO-агент', sections.cto_agent || sections.cto || []],
+    ['Оркестратор', sections.orchestrator_agent || sections.orchestrator || []],
+    ['Исполнители', [...asArray(sections.specialist_agents), ...asArray(sections.frontend_agent), ...asArray(sections.backend_agent)]],
+    ['QA/Передача', [...asArray(sections.qa_delivery), ...asArray(sections.delivery_agent), ...asArray(sections.qa_agent)]],
+    ['Готово', sections.done || []]
+  ];
   return `<div class="grid agent-workflow">
-    ${metric('Роли агентов', asArray(flow.roles).length, 'span-3')}
+    ${metric('Роли агентов', roles.length, 'span-3')}
     ${metric('Проверки агентов', canaries.filter(c => c.status === 'done').length + '/' + canaries.length, 'span-3')}
-    ${metric('Повторные сбои', protocol.repeated_crashes_after_indicator_count ?? '—', 'span-3')}
-    ${metric('Зависшие процессы', protocol.stale_running_dead_pid_after_2h_count ?? protocol.stale_running_after_2h_count ?? '—', 'span-3')}
-    ${card('Схема агентов', `${agentWorkflowDiagram(flow)}${kv({source_of_truth: flow.source_of_truth, worker_protocol: protocol.doc, silent_finish_allowed: protocol.silent_finish_allowed, ops_lane_status: protocol.ops_lane_status})}`, 'span-12')}
-    ${card('Связь с Канбаном', kv(flow.kanban_mapping || {}), 'span-6')}
-    ${card('GitHub / PR', `${kv(gh)}${gh.url ? `<div class="toolbar"><a class="copy" href="${esc(gh.url)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Скопировать PR URL', gh.url)}</div>` : ''}`, 'span-6')}
-    ${card('Автономный цикл 12ч', rows(asArray(flow.marathon_loop).map((x,i)=>({id:i+1,title:x,status:'step'})), x => row(x.id, x.title, x.status)), 'span-12')}
-    ${card('Проверки ролей', rows(canaries, c => row(c.task_id || c.agent, c.agent, c.status, `assignee=${c.assignee} · create_rc=${c.create_rc} · complete_rc=${c.complete_rc} · artifact=${c.artifact_path}`, 'json', jsonCopy(c)), 'No canary results yet'), 'span-12')}
-    ${card('Секции агентов', rows(sections, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x))), 'span-12')}
-    ${Object.entries(flow.sections || {}).map(([section, cards]) => card(section, rows(asArray(cards).slice(0, 30), agentSectionRow, 'No cards in this section'), 'span-6')).join('')}
+    ${metric('Сбои', protocol.repeated_crashes_after_indicator_count || 0, 'span-3')}
+    ${metric('Активные зависшие', stale.active, 'span-3')}
+    ${card('Схема агентов', `${agentWorkflowDiagram(flow)}<div class="protocol-summary"><span>${badge('Протокол завершения: включён','ok')}</span><span>${badge('Молчаливое завершение: запрещено','ok')}</span><span>${badge('Активные зависшие: 0','ok')}</span></div>`, 'span-12')}
+    <section class="card span-12"><h3>Роли и ответственность</h3><div class="agent-role-grid">${roles.map(([name,cards]) => agentRoleCard(name,cards,protocol)).join('')}</div></section>
+    ${staleExplanationCard()}
+    ${card('Последние проверки', rowsTop(canaries, c => row(c.agent || 'агент', ownerText(c.agent || c.task_id), c.status, `ответственный: ${ownerAgent(c)} · результат: ${ru(c.status || 'unknown')}`, 'json', jsonCopy(c)), 5, 'Проверок нет'), 'span-6')}
   </div>`;
 }
 
@@ -567,7 +671,7 @@ function production() {
   const quickItems = productionQuickItems(p);
   const filterBar = toolbar(['active','review','blocked','D1','D2','D3','agents','github'].map(x => quickFilterButton(x, x === 'active' ? 'Активные' : x === 'review' ? 'На проверке' : x === 'blocked' ? 'Заблокированные' : x === 'agents' ? 'Агенты' : x === 'github' ? 'GitHub' : x)));
   return `<div class="grid production-dashboard">
-    ${card('Требует внимания', rowsTop(needsAttention, kanbanCard, 5, 'Нет срочных элементов'), 'span-12 attention-card')}
+    ${card('Требует внимания', rowsTop(needsAttention, attentionCard, 5, 'Нет срочных элементов'), 'span-12 attention-card')}
     ${metric('Производственные задачи', counts.total || 0, 'span-3', 'kanban')}
     ${metric('В работе', counts.active || 0, 'span-3', 'kanban')}
     ${metric('На проверке', counts.review || 0, 'span-3', 'approvals')}
@@ -577,9 +681,9 @@ function production() {
     ${card('Прогресс D1/D2/D3', rowsTop(asArray(progress.items), item => row(item.product_line, `${item.artifact_type} · ${ru(item.stage || 'stage')}`, item.status || 'artifact', `${shortPath(item.path)} · sha=${String(item.sha256 || '').slice(0,12)} · обновлено=${item.updated_at || progress.updated_at || '—'}`, 'artifact', jsonCopy(item)), 5, 'Нет артефактов прогресса'), 'span-12')}
     ${collapsibleCard('Источник доски', `${kv({board: p.board_name, purpose: p.purpose, source_of_truth: p.source_of_truth, filter: p.filter_recipe, contract: p.view_contract})}${toolbar([copyButton('Copy /kanban filter', 'WEBSTUDIO'), copyButton('Copy rebuild command', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-12')}
     ${collapsibleCard('Колонки производства', kv(logicalCounts), 'span-12', true)}
-    ${collapsibleCard('Линии D1/D2/D3', rowsTop(lineRows, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x)), 5), 'span-6', true)}
-    ${collapsibleCard('Стадии производства', rowsTop(stageRows, x => row(x.id, x.title, x.status, 'Intake → Support lifecycle', 'json', jsonCopy(x)), 5), 'span-6')}
-    ${collapsibleCard('Производственная доска', rowsTop(logicalRows, x => row(x.id, x.title, x.status, 'Stable owner-facing columns; physical worker status preserved inside each card', 'json', jsonCopy(x)), 5), 'span-12')}
+    ${collapsibleCard('Линии D1/D2/D3', rowsTop(lineRows, x => row(x.id, x.title, x.status, 'Открыть карточки', 'json', jsonCopy(x)), 5), 'span-6', true)}
+    ${collapsibleCard('Стадии производства', rowsTop(stageRows, x => row(x.id, x.title, x.status, 'Заявка → передача → поддержка', 'json', jsonCopy(x)), 5), 'span-6')}
+    ${collapsibleCard('Производственная доска', rowsTop(logicalRows, x => row(x.id, x.title, x.status, 'Владелец видит бизнес-статус; технические поля внутри Подробнее', 'json', jsonCopy(x)), 5), 'span-12')}
     ${collapsibleCard('Активная работа / агенты', rowsTop(asArray(p.active_work), kanbanCard, 5, 'Нет активной работы'), 'span-12', true)}
     ${collapsibleCard('Очередь проверки', rowsTop(asArray(p.review_queue), kanbanCard, 5, 'Нет карточек на проверке'), 'span-6')}
     ${collapsibleCard('Очередь передачи', rowsTop(asArray(p.delivery_queue), kanbanCard, 5, 'Нет карточек передачи'), 'span-6')}
