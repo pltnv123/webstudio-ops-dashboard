@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>WebStudio Ops Cockpit</title>
+  <link rel="stylesheet" href="./styles.css?v=webstudio-production-kanban-v1" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Hermes WebStudio</p>
+      <h1>Ops Cockpit</h1>
+      <p class="sub">Read-only visibility layer: Work Factory · Kanban · Clients · Health · Artifacts</p>
+    </div>
+    <div class="top-actions">
+      <span id="safetyPill" class="pill">loading</span>
+      <button id="refreshBtn" class="ghost" type="button">Refresh data</button>
+      <button id="exportBtn" class="ghost" type="button">Export JSON</button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Dashboard sections">
+    <a href="#overview">Overview</a>
+    <a href="#work-factory">Work Factory</a>
+    <a href="#kanban">Kanban</a>
+    <a href="#production">Production Pipeline</a>
+    <a href="#d3-intake">D3 Intake Inbox</a>
+    <a href="#clients">Clients / Orders</a>
+    <a href="#sales-pack">Sales Pack</a>
+    <a href="#morning-desk">Morning Desk</a>
+    <a href="#approvals">Approvals</a>
+    <a href="#health">Health</a>
+    <a href="#artifacts">Artifacts</a>
+    <a href="#marathon">12h Marathon</a>
+    <a href="#audit">Audit</a>
+  </nav>
+
+  <main id="app" class="shell">
+    <section class="loading">Loading dashboard state…</section>
+  </main>
+
+  <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Detail drawer">
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <section class="drawer-panel">
+      <div class="drawer-head">
+        <h2 id="drawerTitle">Details</h2>
+        <button id="drawerClose" type="button" aria-label="Close details">Close</button>
+      </div>
+      <div id="drawerBody" class="drawer-body"></div>
+    </section>
+  </aside>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">
+    <strong>Safety:</strong> MIRROR ONLY · DO NOT DISPATCH · dispatch_allowed=false · worker_allowed=false · quiet notifications.
+    <span id="footerState"></span>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>

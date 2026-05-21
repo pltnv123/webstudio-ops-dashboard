@@ -1,0 +1,17 @@
+{
+  "name": "webstudio-ops-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Read-only Hermes WebStudio Ops cockpit",
+  "type": "module",
+  "scripts": {
+    "snapshot": "python3 scripts/build_snapshot.py",
+    "build": "python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static",
+    "smoke": "python3 scripts/smoke_check.py",
+    "serve:src": "python3 -m http.server 4173 -d src",
+    "serve:dist": "python3 -m http.server 4173 -d /workspace/output/webstudio-ops-dashboard-static",
+    "preview:file": "python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static && python3 scripts/smoke_check.py"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
