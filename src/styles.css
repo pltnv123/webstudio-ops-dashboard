@@ -113,3 +113,24 @@ textarea { resize: vertical; min-height: 120px; }
   .kanban-board.production-board { grid-template-columns: repeat(9, minmax(0, 1fr)); }
   .filters, .intake-filters, .form-grid, .kanban-compact .filters { grid-template-columns: 1fr; }
 }
+
+
+.owner-feedback .metric-card { border-color: rgba(125, 211, 252, .24); }
+.owner-feedback-form { border: 1px solid rgba(125, 211, 252, .18); border-radius: 18px; padding: 14px; background: rgba(125, 211, 252, .035); }
+.owner-feedback-warning { border: 1px solid rgba(250, 204, 21, .36); border-radius: 16px; padding: 12px; background: rgba(250, 204, 21, .07); color: var(--text); }
+.owner-feedback-warning p { margin: 0; color: var(--muted); }
+.status.owner_decision_required, .status.owner_decision_pending, .status.needs_clarification { color: var(--blocked); }
+.status.ready_for_scoping, .status.scoped_to_kanban { color: var(--accent); }
+.status.qa_verification_pending, .status.owner_acceptance_pending { color: var(--warn); }
+button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+button:disabled:hover { border-color: var(--line); background: var(--panel); }
+
+.agent-diagram { display: flex; align-items: stretch; gap: 10px; overflow-x: auto; padding: 8px 0; }
+.agent-node { min-width: 170px; border: 1px solid rgba(125,211,252,.28); border-radius: 16px; padding: 14px; background: rgba(125,211,252,.06); display: grid; gap: 6px; }
+.agent-node strong { letter-spacing: -.02em; }
+.agent-node small { color: var(--muted); }
+.agent-arrow { display: grid; place-items: center; color: var(--accent); font-size: 24px; }
+.agent-workflow .card { border-color: rgba(125,211,252,.16); }
+.status.live_backlog, .status.active_worker, .status.completed { color: var(--ok); }
+.status.stale_running_watch, .status.blocked_true_only { color: var(--warn); }
+@media (max-width: 980px) { .agent-diagram { flex-direction: column; } .agent-arrow { transform: rotate(90deg); } }

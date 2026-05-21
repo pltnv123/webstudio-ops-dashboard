@@ -30,7 +30,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'kanban', 'production', 'd3-intake', 'clients', 'sales-pack', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'kanban', 'production', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -58,6 +58,12 @@ required_js_symbols = [
     'audit',
     'handleD3TriageSubmit',
     'd3TriageForm',
+    'ownerFeedback',
+    'OWNER_FEEDBACK_STATES',
+    'handleOwnerFeedbackSubmit',
+    'handleOwnerFeedbackScope',
+    'owner_decision_pending',
+    'Not scoped — cannot be Done',
     'D3_INTAKE_STATUSES',
     'needs_clarification',
     'qualified',
@@ -73,14 +79,33 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress']:
     assert key in state, f'missing state key {key}'
+controller = state['continuation_controller']
+assert controller['checkpoint_path'] == '/workspace/output/current-task-continuation-checkpoint.md'
+assert controller['terminal_protocol']['silent_exit_allowed'] is False
+assert controller['terminal_protocol']['bare_partial_allowed'] is False
+assert 'PARTIAL' in controller['terminal_protocol']['forbidden_final_states']
+assert controller['terminal_protocol']['success_action'] == 'kanban_complete'
+assert controller['terminal_protocol']['blocker_action'] == 'kanban_block'
+assert controller['final_status'] in ['PASS', 'CONTINUING', 'BLOCKED']
+assert state['agent_workflow']['protocol']['continuation_controller']['terminal_protocol']['silent_exit_allowed'] is False
+assert Path(controller['checkpoint_path']).exists(), 'continuation checkpoint must exist/refreshed for continuation handoff'
 assert state['d3_intake']['idempotency_key'] == 'webstudio:D3:intake'
 assert state['d3_intake']['product_line'] == 'D3'
 assert state['d3_intake']['stage'] == 'intake'
 assert state['d3_intake']['source_board'] == 'webstudio-production'
 assert state['d3_intake']['source_view'] == 'raw_requirements_inbox'
+assert 'owner-feedback' in html
+assert 'ownerFeedback' in js
+assert 'Done' not in re.findall(r'<select name="triage_state">(.*?)</select>', js, flags=re.S)[0]
 assert state['d3_intake']['safety']['production_card_preserved'] is True
+progress = state['product_progress']
+assert progress['mode'] == 'safe_local_artifacts_only'
+assert {item['product_line'] for item in progress['items']} >= {'D1', 'D2', 'D3'}
+if state['github_readiness'].get('status') == 'UPDATED':
+    assert state['github_readiness'].get('latest_commit_sha'), 'UPDATED PR needs latest commit SHA'
+    assert state['github_readiness'].get('pushed_at'), 'UPDATED PR needs pushed_at'
 assert state['kanban']['task_total'] >= 100
 assert state['kanban'].get('executable_mirror_count', state['safety'].get('mirror_executable_count')) == 0
 assert len(state['kanban'].get('duplicate_keys', state['safety'].get('duplicate_keys', {}))) == 0

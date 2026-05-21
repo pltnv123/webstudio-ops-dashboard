@@ -41,6 +41,12 @@ LIVE_KANBAN_PATH = OUTPUT / "work-factory-live-kanban-v3-status.md"
 HOST_SNAPSHOT_PATH = RUNTIME / "host-health-snapshot.txt"
 CONTROL_STATE_PATH = PUBLIC_DATA / "webstudio-control-plane-state.json"
 CANONICAL_OUTPUT_STATE_PATH = OUTPUT / "webstudio-control-plane-state.json"
+CONTINUATION_POLICY_PATH = OUTPUT / "webstudio-continuation-policy-v1.md"
+CONTINUATION_CHECKPOINT_PATH = OUTPUT / "current-task-continuation-checkpoint.md"
+CONTINUATION_CARD_TITLE = "[WEBSTUDIO][OPS] Continuation controller / no-partial policy"
+AGENT_WORKFLOW_SCREENSHOT_PATH = OUTPUT / "webstudio-agent-workflow-screenshot.png"
+GITHUB_PR1_STATUS_PATH = OUTPUT / "webstudio-github-pr1-status.json"
+PRODUCT_PROGRESS_PATH = OUTPUT / "webstudio-product-progress-v1.json"
 
 FORBIDDEN_ACTIONS = [
     "dispatch", "run", "daemon", "unblock", "reclaim", "deploy", "release",
@@ -91,6 +97,11 @@ def stat_info(path: Path) -> dict[str, Any]:
         "mtime": datetime.fromtimestamp(st.st_mtime, timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "sha256": sha256_file(path) if path.is_file() else None,
     }
+
+
+def latest_file_info(pattern: str, root: Path = OUTPUT) -> dict[str, Any]:
+    files = sorted(root.glob(pattern), key=lambda x: x.stat().st_mtime, reverse=True) if root.exists() else []
+    return stat_info(files[0]) if files else {"path": str(root / pattern), "exists": False}
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -674,6 +685,7 @@ def build_approvals(wf: dict[str, Any], kanban: dict[str, Any]) -> list[dict[str
 def build_github_readiness() -> dict[str, Any]:
     completion_result_path = OUTPUT / "github-pr-completion-v3-3-result.json"
     completion_result = load_json(completion_result_path, {})
+    pr1_status = load_json(GITHUB_PR1_STATUS_PATH, {})
     checks = {
         "command_v_gh": run_cmd(["bash", "-lc", "command -v gh || true"], timeout=10),
         "workspace_bin_gh": run_cmd(["bash", "-lc", "ls -l /workspace/bin/gh 2>&1 || true"], timeout=10),
@@ -687,18 +699,41 @@ def build_github_readiness() -> dict[str, Any]:
     status = "blocked_wrapper_missing_binary" if wrapper_broken else ("available" if checks["gh_auth_status"].get("ok") else "unknown_or_unavailable")
     if isinstance(completion_result, dict) and completion_result.get("status") == "PR_CREATED":
         status = "PR_CREATED"
+    if isinstance(pr1_status, dict) and pr1_status.get("status") == "UPDATED":
+        status = "UPDATED"
     return {
         "account_expected": "pltnv123",
         "repo": "pltnv123/webstudio-ops-dashboard",
         "repo_url": "https://github.com/pltnv123/webstudio-ops-dashboard",
         "branch": "webstudio/hardening-v3-host-completion",
         "status": status,
+        "pr_status": pr1_status if isinstance(pr1_status, dict) else {},
+        "pr_status_source": stat_info(GITHUB_PR1_STATUS_PATH),
+        "latest_commit_sha": pr1_status.get("latest_commit_sha") if isinstance(pr1_status, dict) else None,
+        "pushed_at": pr1_status.get("pushed_at") if isinstance(pr1_status, dict) else None,
+        "pr_url": pr1_status.get("pr_url") if isinstance(pr1_status, dict) else "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
         "wrapper_broken": wrapper_broken,
         "completion_result": completion_result if isinstance(completion_result, dict) else {},
         "completion_result_source": stat_info(completion_result_path),
         "checks": {k: {"ok": v.get("ok"), "returncode": v.get("returncode"), "stdout": v.get("stdout", "")[:2000], "stderr": v.get("stderr", "")[:1000]} for k, v in checks.items()},
         "repair_packet": "/workspace/output/github-clone-copy-pr-v3-3.sh" if wrapper_broken else None,
         "hardening_report": "/workspace/output/github-and-ops-worker-v3-status.md",
+    }
+
+
+def build_product_progress() -> dict[str, Any]:
+    data = load_json(PRODUCT_PROGRESS_PATH, {})
+    if not isinstance(data, dict):
+        data = {}
+    items = data.get("items") if isinstance(data.get("items"), list) else []
+    return {
+        "source_of_truth": str(PRODUCT_PROGRESS_PATH),
+        "source": stat_info(PRODUCT_PROGRESS_PATH),
+        "updated_at": data.get("updated_at"),
+        "mode": data.get("mode", "safe_local_artifacts_only"),
+        "items": items,
+        "by_line": {line: [x for x in items if x.get("product_line") == line] for line in ["D1", "D2", "D3"]},
+        "latest_summary": [f"{x.get('product_line')}: {x.get('artifact_type')} → {x.get('path')}" for x in items[:10]],
     }
 
 
@@ -723,6 +758,200 @@ def build_marathon_status() -> dict[str, Any]:
         ],
     }
 
+
+
+def _env_int(name: str) -> int | None:
+    try:
+        raw = os.environ.get(name)
+        return int(raw) if raw not in {None, ""} else None
+    except Exception:
+        return None
+
+
+def detect_near_limit() -> dict[str, Any]:
+    """Read optional runtime/tool-limit hints and normalize them into a single guard signal.
+
+    The controller is intentionally env-driven: schedulers, cron wrappers, or agent
+    launchers can set any of these values without coupling the dashboard builder to a
+    specific LLM/runtime implementation.
+    """
+    thresholds = {
+        "HERMES_TOOL_CALLS_REMAINING": 3,
+        "HERMES_ITERATIONS_REMAINING": 1,
+        "HERMES_RUNTIME_SECONDS_REMAINING": 300,
+        "HERMES_CONTEXT_REMAINING_TOKENS": 8192,
+    }
+    signals = {name: _env_int(name) for name in thresholds}
+    explicit = str(os.environ.get("HERMES_NEAR_LIMIT") or "").lower() in {"1", "true", "yes", "y"}
+    tripped = [name for name, limit in thresholds.items() if signals.get(name) is not None and signals[name] <= limit]
+    return {
+        "near_limit": explicit or bool(tripped),
+        "explicit_env": explicit,
+        "signals": signals,
+        "thresholds": thresholds,
+        "tripped": tripped,
+    }
+
+
+def find_continuation_card(kanban: dict[str, Any]) -> dict[str, Any] | None:
+    expected = CONTINUATION_CARD_TITLE.lower()
+    for lane_items in (kanban.get("lanes") or {}).values():
+        for card in lane_items or []:
+            title = str(card.get("title") or "").lower()
+            body = str(card.get("body") or "").lower()
+            if expected in title or "continuation controller" in title or "no-partial policy" in f"{title} {body}":
+                return card
+    return None
+
+
+def normalize_final_status(raw: str, continuation_required: bool, real_blockers: list[str]) -> str:
+    status = str(raw or "").upper()
+    if status == "PARTIAL":
+        return "CONTINUING"
+    if real_blockers:
+        return "BLOCKED"
+    if continuation_required:
+        return "CONTINUING"
+    return "PASS" if status in {"", "PASS", "OK", "SUCCESS"} else (status if status in {"CONTINUING", "BLOCKED"} else "CONTINUING")
+
+
+def render_continuation_checkpoint(controller: dict[str, Any]) -> str:
+    next_commands = [
+        "export HOME=/workspace PATH=/workspace/bin:/workspace/.hermes/node/bin:$PATH",
+        "cd /workspace/projects/webstudio-ops-dashboard",
+        "python3 -m py_compile scripts/build_snapshot.py",
+        "node --check src/app.js",
+        "npm run smoke",
+        "npm run build",
+        "qmd update",
+        "hfinalize",
+    ]
+    unfinished = controller.get("unfinished_reasons") or ["none"]
+    blockers = controller.get("real_blockers") or ["none"]
+    external_limitations = controller.get("external_limitations") or ["none"]
+    controls = controller.get("continuation_controls") or {}
+    return "\n".join([
+        "# Current Task Continuation Checkpoint",
+        "",
+        f"Updated: {controller['updated_at']}",
+        "Status target: PASS only when validation is clean; CONTINUING while unfinished; BLOCKED only for real blockers.",
+        "No bare PARTIAL final answer is allowed; PARTIAL is normalized to CONTINUING.",
+        "",
+        "## Completed work",
+        "- Continuation controller guard is active in `/workspace/projects/webstudio-ops-dashboard/scripts/build_snapshot.py`.",
+        "- Guard detects near-limit runtime/tool signals and unfinished workflow states.",
+        "- Guard refreshes this checkpoint before returning a CONTINUING/BLOCKED route.",
+        "- Terminal protocol is explicit: success uses `kanban_complete`; real blockers use `kanban_block`; silent exit is forbidden.",
+        "",
+        "## Unfinished work",
+        *[f"- {item}" for item in unfinished],
+        "",
+        "## Exact next commands",
+        "```bash",
+        *next_commands,
+        "```",
+        "",
+        "## Next files",
+        "- `/workspace/output/current-task-continuation-checkpoint.md`",
+        "- `/workspace/output/webstudio-control-plane-state.json`",
+        "- `/workspace/output/webstudio-ops-dashboard-static/`",
+        "- `/workspace/output/finalizer/hfinalize-*.md`",
+        "",
+        "## Validation requirements",
+        "- `state.continuation_controller.terminal_protocol.silent_exit_allowed == false`",
+        "- `state.continuation_controller.terminal_protocol.forbidden_final_states` contains `PARTIAL`",
+        "- `state.continuation_controller.final_status` is one of `PASS`, `CONTINUING`, `BLOCKED`",
+        "- `kanban_complete` is used for success; `kanban_block` is used for real blockers.",
+        "- `qmd_update PASS` and `hfinalize PASS` before final operator response.",
+        "",
+        "## Continuation controls",
+        f"- Required Kanban card: `{CONTINUATION_CARD_TITLE}` / exists={controls.get('kanban_card_exists')}",
+        f"- Required cron continuation: `work-factory-supervisor-12h` / expected job `5b5c924ba019` / status={controls.get('cron_continuation_status')}",
+        f"- Next route: {controller.get('next_route')}",
+        "",
+        "## Current blockers",
+        *[f"- {item}" for item in blockers],
+        "",
+        "## External limitations / not terminal blockers",
+        *[f"- {item}" for item in external_limitations],
+        "",
+    ]) + "\n"
+
+
+def build_continuation_controller(kanban: dict[str, Any], worker_health: dict[str, Any], github: dict[str, Any], marathon: dict[str, Any]) -> dict[str, Any]:
+    near_limit = detect_near_limit()
+    continuation_card = find_continuation_card(kanban)
+    latest_hfinalize = latest_file_info("finalizer/hfinalize-*.md")
+    screenshot = stat_info(AGENT_WORKFLOW_SCREENSHOT_PATH)
+    unfinished_reasons: list[str] = []
+    real_blockers: list[str] = []
+    external_limitations: list[str] = []
+    if worker_health.get("agent_workflow_v1_repeated_crash_count", 0) > 0:
+        unfinished_reasons.append("agent-workflow repeated crash indicators remain above zero")
+    if worker_health.get("stale_running_dead_pid_2h_count", 0) > 0:
+        unfinished_reasons.append("stale running/dead-PID indicators remain above zero")
+    if not screenshot.get("exists"):
+        unfinished_reasons.append("agent-workflow screenshot evidence is missing")
+    if not latest_hfinalize.get("exists"):
+        unfinished_reasons.append("no hfinalize report exists yet")
+    if not CONTINUATION_CHECKPOINT_PATH.exists():
+        unfinished_reasons.append("continuation checkpoint is missing and must be created before safe handoff")
+    if continuation_card is None:
+        real_blockers.append(f"required continuation Kanban card is missing: {CONTINUATION_CARD_TITLE}")
+    if github.get("wrapper_broken"):
+        external_limitations.append("sandbox gh wrapper cannot push PR updates; host GitHub credentials/repair packet required")
+    if str(marathon.get("status") or "") == "not_verified":
+        unfinished_reasons.append("12h marathon continuation cron is not freshly verified")
+    if near_limit["near_limit"]:
+        unfinished_reasons.append("runtime/tool/context limit guard is tripped")
+    continuation_required = bool(unfinished_reasons or near_limit["near_limit"])
+    final_status = normalize_final_status("CONTINUING" if continuation_required else "PASS", continuation_required, real_blockers)
+    controller = {
+        "updated_at": utc_now(),
+        "source_of_truth": "build_snapshot.py continuation controller + /workspace/output/current-task-continuation-checkpoint.md",
+        "policy_path": str(CONTINUATION_POLICY_PATH),
+        "checkpoint_path": str(CONTINUATION_CHECKPOINT_PATH),
+        "checkpoint": stat_info(CONTINUATION_CHECKPOINT_PATH),
+        "near_limit_detection": near_limit,
+        "unfinished_detected": bool(unfinished_reasons),
+        "unfinished_reasons": unfinished_reasons,
+        "real_blockers": real_blockers,
+        "external_limitations": external_limitations,
+        "continuation_required": continuation_required,
+        "final_status": final_status,
+        "next_route": "kanban_block review-required if code changes need review" if real_blockers else ("refresh checkpoint and continue via next pass/cron/card" if continuation_required else "kanban_complete"),
+        "continuation_controls": {
+            "kanban_card_title": CONTINUATION_CARD_TITLE,
+            "kanban_card_exists": continuation_card is not None,
+            "kanban_card": continuation_card,
+            "cron_continuation_name": "work-factory-supervisor-12h",
+            "cron_continuation_job": "5b5c924ba019",
+            "cron_continuation_status": marathon.get("status"),
+        },
+        "terminal_protocol": {
+            "allowed_final_states": ["PASS", "CONTINUING", "BLOCKED"],
+            "forbidden_final_states": ["PARTIAL"],
+            "partial_mapping": "PARTIAL -> CONTINUING after refreshing checkpoint",
+            "success_action": "kanban_complete",
+            "blocker_action": "kanban_block",
+            "silent_exit_allowed": False,
+            "bare_partial_allowed": False,
+        },
+        "evidence": {
+            "policy": stat_info(CONTINUATION_POLICY_PATH),
+            "latest_hfinalize": latest_hfinalize,
+            "agent_workflow_screenshot": screenshot,
+            "github_status": github.get("status"),
+        },
+    }
+    if continuation_required or final_status in {"CONTINUING", "BLOCKED"}:
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+        CONTINUATION_CHECKPOINT_PATH.write_text(render_continuation_checkpoint(controller))
+        controller["checkpoint"] = stat_info(CONTINUATION_CHECKPOINT_PATH)
+        controller["checkpoint_refreshed"] = True
+    else:
+        controller["checkpoint_refreshed"] = False
+    return controller
 
 
 def build_agent_workflow(production_pipeline: dict[str, Any], worker_health: dict[str, Any], github: dict[str, Any]) -> dict[str, Any]:
@@ -765,10 +994,12 @@ def build_agent_workflow(production_pipeline: dict[str, Any], worker_health: dic
             "archived": "old canary/test/noise",
         },
         "github_pr": {
-            "status": "PR_CREATED",
+            "status": github.get("status") or "PR_CREATED",
             "repo": "pltnv123/webstudio-ops-dashboard",
             "branch": "webstudio/hardening-v3-host-completion",
-            "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
+            "url": github.get("pr_url") or "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
+            "latest_commit_sha": github.get("latest_commit_sha"),
+            "pushed_at": github.get("pushed_at"),
             "local_cli_status": github.get("status"),
             "wrapper_broken": github.get("wrapper_broken"),
         },
@@ -791,8 +1022,19 @@ def build_state() -> dict[str, Any]:
     health = build_health()
     approvals = build_approvals(wf, kanban)
     production_pipeline = build_production_pipeline(kanban)
+    product_progress = build_product_progress()
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
+    marathon_status = build_marathon_status()
+    continuation_controller = build_continuation_controller(kanban, worker_health, github_readiness, marathon_status)
+    agent_workflow = build_agent_workflow(production_pipeline, worker_health, github_readiness)
+    agent_workflow["protocol"]["continuation_controller"] = {
+        "final_status": continuation_controller["final_status"],
+        "checkpoint_path": continuation_controller["checkpoint_path"],
+        "checkpoint_refreshed": continuation_controller["checkpoint_refreshed"],
+        "near_limit_detection": continuation_controller["near_limit_detection"],
+        "terminal_protocol": continuation_controller["terminal_protocol"],
+    }
     safety_status = "pass"
     safety_findings = []
     if kanban.get("executable_mirror_count"):
@@ -830,12 +1072,14 @@ def build_state() -> dict[str, Any]:
         "work_factory": wf,
         "kanban": kanban,
         "production_pipeline": production_pipeline,
+        "product_progress": product_progress,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
-        "agent_workflow": build_agent_workflow(production_pipeline, worker_health, github_readiness),
+        "agent_workflow": agent_workflow,
+        "continuation_controller": continuation_controller,
         "kanban_semantics": build_kanban_semantics_status(),
         "system_hardening": build_system_hardening_status(),
-        "marathon_12h": build_marathon_status(),
+        "marathon_12h": marathon_status,
         "d1_owner_feedback": build_d1_owner_feedback(),
         "d3_intake": build_d3_intake(),
         "d3_client_qualification": build_d3_client_qualification(),
