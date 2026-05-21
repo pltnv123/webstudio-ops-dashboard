@@ -15,6 +15,7 @@ let filters = {
   d3IntakeStatus: 'all',
   ownerFeedback: '',
   ownerFeedbackState: 'all',
+  productionQuick: 'active',
   showArchived: false
 };
 
@@ -62,6 +63,16 @@ function metric(label, value, span='span-3', target='') {
 function rows(items, mapper, empty='No items') {
   if (!items || !items.length) return `<div class="empty">${empty}</div>`;
   return `<div class="list">${items.map(mapper).join('')}</div>`;
+}
+function rowsTop(items, mapper, limit=5, empty='No items') {
+  const list = asArray(items);
+  if (!list.length) return `<div class="empty">${empty}</div>`;
+  const visible = list.slice(0, limit);
+  const more = list.length > limit ? `<details class="view-more"><summary>View ${list.length - limit} more</summary><div class="list">${list.slice(limit).map(mapper).join('')}</div></details>` : '';
+  return `<div class="list">${visible.map(mapper).join('')}</div>${more}`;
+}
+function collapsibleCard(title, body, span='span-12', open=false) {
+  return `<section class="card ${span} collapsible"><details ${open ? 'open' : ''}><summary><h3>${title}</h3></summary>${body}</details></section>`;
 }
 function badge(text, kind='') { return `<span class="status ${statusClass(kind || text)}">${fmt(text)}</span>`; }
 function row(id, title, status, meta='', detailType='', payload='') {
@@ -512,6 +523,21 @@ function agentWorkflow() {
   </div>`;
 }
 
+function productionQuickItems(p) {
+  const lanes = p.logical_lanes || {};
+  const all = Object.values(lanes).flatMap(asArray);
+  const q = filters.productionQuick || 'active';
+  if (q === 'review') return asArray(p.review_queue || lanes.review);
+  if (q === 'blocked') return asArray(lanes.blocked);
+  if (['D1','D2','D3'].includes(q)) return all.filter(x => String(x.product_line || x.title || '').includes(q) || String(x.title || '').includes('[' + q + ']'));
+  if (q === 'agents') return all.filter(x => /agent|worker|orchestrator|specialist/i.test(`${x.assigned_agent || ''} ${x.assignee || ''} ${x.title || ''}`));
+  if (q === 'github') return all.filter(x => /github|pr|repo/i.test(`${x.title || ''} ${x.body || ''}`));
+  return asArray(p.active_work || []).concat(asArray(lanes.ready), asArray(lanes.in_progress)).slice(0, 40);
+}
+function quickFilterButton(id, label) {
+  const active = filters.productionQuick === id ? ' active' : '';
+  return `<button type="button" class="quick-filter${active}" data-production-filter="${esc(id)}">${fmt(label)}</button>`;
+}
 function production() {
   const p = state.production_pipeline || {};
   const progress = state.product_progress || {};
@@ -520,20 +546,25 @@ function production() {
   const lineRows = Object.entries(p.product_lines || {}).map(([line, cards]) => ({id: line, title: `${line} · ${asArray(cards).length} cards`, status: 'production', cards}));
   const stageRows = Object.entries(p.by_stage || {}).map(([stage, cards]) => ({id: stage, title: `${stage} · ${asArray(cards).length} cards`, status: asArray(cards).length ? 'active' : 'empty', cards}));
   const logicalRows = Object.entries(p.logical_lanes || {}).map(([lane, cards]) => ({id: lane, title: `${lane} · ${asArray(cards).length} cards`, status: asArray(cards).length ? 'active' : 'empty', cards}));
-  return `<div class="grid">
+  const needsAttention = [...asArray((p.logical_lanes || {}).blocked), ...asArray(p.review_queue), ...asArray(p.delivery_queue)].slice(0, 12);
+  const quickItems = productionQuickItems(p);
+  const filterBar = toolbar(['active','review','blocked','D1','D2','D3','agents','github'].map(x => quickFilterButton(x, x === 'active' ? 'Active' : x === 'review' ? 'Review' : x === 'blocked' ? 'Blocked' : x === 'agents' ? 'Agents' : x === 'github' ? 'GitHub' : x)));
+  return `<div class="grid production-dashboard">
+    ${card('Needs Attention', rowsTop(needsAttention, kanbanCard, 5, 'No blocked/review/delivery items'), 'span-12 attention-card')}
     ${metric('Production cards', counts.total || 0, 'span-3', 'kanban')}
     ${metric('Active work', counts.active || 0, 'span-3', 'kanban')}
     ${metric('Review queue', counts.review || 0, 'span-3', 'approvals')}
     ${metric('Delivery queue', counts.delivery || 0, 'span-3', 'clients')}
-    ${card('Board source', `${kv({board: p.board_name, purpose: p.purpose, source_of_truth: p.source_of_truth, filter: p.filter_recipe, contract: p.view_contract})}${toolbar([copyButton('Copy /kanban filter', 'WEBSTUDIO'), copyButton('Copy rebuild command', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-12')}
-    ${card('Logical production lane counts', kv(logicalCounts), 'span-12')}
-    ${card('D1/D2/D3 next product progress', rows(asArray(progress.items), item => row(item.product_line, `${item.artifact_type} · ${item.stage || 'stage'}`, item.status || 'artifact', `${item.path} · sha=${String(item.sha256 || '').slice(0,12)} · updated=${item.updated_at || progress.updated_at || '—'}`, 'artifact', jsonCopy(item)), 'No product progress artifacts yet'), 'span-12')}
-    ${card('Product Lines D1/D2/D3', rows(lineRows, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x))), 'span-6')}
-    ${card('Production stages', rows(stageRows, x => row(x.id, x.title, x.status, 'Intake → Support lifecycle', 'json', jsonCopy(x))), 'span-6')}
-    ${card('Production logical columns', rows(logicalRows, x => row(x.id, x.title, x.status, 'Stable owner-facing columns; physical worker status preserved inside each card', 'json', jsonCopy(x))), 'span-12')}
-    ${card('Active Work / Agents', rows(asArray(p.active_work), kanbanCard, 'No active production work'), 'span-12')}
-    ${card('Review Queue', rows(asArray(p.review_queue), kanbanCard, 'No production cards in review queue'), 'span-6')}
-    ${card('Delivery Queue', rows(asArray(p.delivery_queue), kanbanCard, 'No delivery cards'), 'span-6')}
+    ${card('Quick filters', `${filterBar}${rowsTop(quickItems, kanbanCard, 5, 'No matching production cards')}`, 'span-12')}
+    ${card('D1/D2/D3 next product progress', rowsTop(asArray(progress.items), item => row(item.product_line, `${item.artifact_type} · ${item.stage || 'stage'}`, item.status || 'artifact', `${item.path} · sha=${String(item.sha256 || '').slice(0,12)} · updated=${item.updated_at || progress.updated_at || '—'}`, 'artifact', jsonCopy(item)), 5, 'No product progress artifacts yet'), 'span-12')}
+    ${collapsibleCard('Board source', `${kv({board: p.board_name, purpose: p.purpose, source_of_truth: p.source_of_truth, filter: p.filter_recipe, contract: p.view_contract})}${toolbar([copyButton('Copy /kanban filter', 'WEBSTUDIO'), copyButton('Copy rebuild command', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-12')}
+    ${collapsibleCard('Logical production lane counts', kv(logicalCounts), 'span-12', true)}
+    ${collapsibleCard('Product Lines D1/D2/D3', rowsTop(lineRows, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x)), 5), 'span-6', true)}
+    ${collapsibleCard('Production stages', rowsTop(stageRows, x => row(x.id, x.title, x.status, 'Intake → Support lifecycle', 'json', jsonCopy(x)), 5), 'span-6')}
+    ${collapsibleCard('Production logical columns', rowsTop(logicalRows, x => row(x.id, x.title, x.status, 'Stable owner-facing columns; physical worker status preserved inside each card', 'json', jsonCopy(x)), 5), 'span-12')}
+    ${collapsibleCard('Active Work / Agents', rowsTop(asArray(p.active_work), kanbanCard, 5, 'No active production work'), 'span-12', true)}
+    ${collapsibleCard('Review Queue', rowsTop(asArray(p.review_queue), kanbanCard, 5, 'No production cards in review queue'), 'span-6')}
+    ${collapsibleCard('Delivery Queue', rowsTop(asArray(p.delivery_queue), kanbanCard, 5, 'No delivery cards'), 'span-6')}
   </div>`;
 }
 
@@ -790,6 +821,7 @@ function bindInputs() {
   $('#d3IntakeStatusFilter')?.addEventListener('change', e => { filters.d3IntakeStatus = e.target.value; render(); });
   $('#ownerFeedbackSearch')?.addEventListener('input', e => { filters.ownerFeedback = e.target.value; render(); });
   $('#ownerFeedbackStateFilter')?.addEventListener('change', e => { filters.ownerFeedbackState = e.target.value; render(); });
+  document.querySelectorAll('[data-production-filter]').forEach(btn => btn.addEventListener('click', e => { filters.productionQuick = e.currentTarget.dataset.productionFilter || 'active'; render(); }));
 }
 
 async function copyText(value) {

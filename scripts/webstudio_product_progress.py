@@ -42,14 +42,14 @@ def d1_landing_qa(now: str) -> tuple[str, dict[str, Any]]:
         ("launch_gate", "DNS, analytics, paid pixels, and production forms remain approval-gated."),
     ]
     md = [
-        "# D1 Landing / Pages — Conversion QA Pack v3",
+        "# D1 Landing / Pages — Responsive UX + Conversion QA Pack v4",
         "",
         f"Updated: {now}",
         "Product line: D1 — landing/pages",
         "Stage: QA / Review",
         "",
         "## Next useful product progress",
-        "Created a reusable conversion QA pack for the next landing/site delivery. It converts D1 from generic website work into an artifact-driven acceptance gate.",
+        "Created a responsive conversion QA pack with no-horizontal-scroll acceptance gates for the next landing/site delivery. It converts D1 from generic website work into an artifact-driven acceptance gate.",
         "",
         "## QA checks",
     ]
@@ -60,7 +60,7 @@ def d1_landing_qa(now: str) -> tuple[str, dict[str, Any]]:
         "PASS_WITH_APPROVAL_BLOCKERS — safe local QA pack is ready; public launch/live form/DNS remain owner-approved actions.",
         "",
         "## Kanban handoff",
-        "idempotency_key: `webstudio:D1:qa-conversion-pack-v3`",
+        "idempotency_key: `webstudio:D1:responsive-conversion-qa-v4`",
         "logical_lane: `review`",
         "next_action: attach this pack to the next D1 implementation card before delivery review.",
     ]
@@ -75,14 +75,14 @@ def d2_intake_scenarios(now: str) -> tuple[str, dict[str, Any]]:
         {"id": "risk_live_access", "intent": "asks for token/CRM/live system write", "bot_action": "escalate to owner approval gate", "expected_status": "blocked_owner"},
     ]
     md = [
-        "# D2 AI-Intake Telegram Bot — Offline Scenario QA Pack v3",
+        "# D2 AI-Intake Telegram Bot — Transcript Fixture QA Pack v4",
         "",
         f"Updated: {now}",
         "Product line: D2 — AI-intake Telegram bot",
         "Stage: implementation QA / transcript proof",
         "",
         "## Next useful product progress",
-        "Defined the next offline transcript pack for the D2 bot. This lets the 12h loop validate intake quality without live Telegram token or CRM writes.",
+        "Defined the next transcript fixture pack for the D2 bot. This lets the 12h loop validate intake quality without live Telegram token or CRM writes.",
         "",
         "## Scenarios",
     ]
@@ -96,7 +96,7 @@ def d2_intake_scenarios(now: str) -> tuple[str, dict[str, Any]]:
         "- Private data is represented by redacted placeholders in transcripts.",
         "",
         "## Kanban handoff",
-        "idempotency_key: `webstudio:D2:offline-scenario-qa-v3`",
+        "idempotency_key: `webstudio:D2:transcript-fixture-qa-v4`",
         "logical_lane: `review`",
         "next_action: generate three transcript fixtures and run extraction assertions.",
     ]
@@ -113,14 +113,14 @@ def d3_automation_matrix(now: str) -> tuple[str, dict[str, Any]]:
         ("rollback_requested", "owner/client rejects output", "restore previous artifact/config from listed backup path"),
     ]
     md = [
-        "# D3 Business Automations — Dry-Run Exception Matrix v3",
+        "# D3 Business Automations — Automation Fixture Matrix v4",
         "",
         f"Updated: {now}",
         "Product line: D3 — business automations",
         "Stage: architecture / QA",
         "",
         "## Next useful product progress",
-        "Created the exception matrix that every D3 automation proof must satisfy before live system writes or scheduling are considered.",
+        "Created the fixture-oriented exception matrix that every D3 automation proof must satisfy before live system writes or scheduling are considered.",
         "",
         "## Matrix",
     ]
@@ -131,7 +131,7 @@ def d3_automation_matrix(now: str) -> tuple[str, dict[str, Any]]:
         "PASS_WITH_APPROVAL_BLOCKERS — dry-run rules are ready; live system writes/scheduled jobs remain approval-gated.",
         "",
         "## Kanban handoff",
-        "idempotency_key: `webstudio:D3:exception-matrix-v3`",
+        "idempotency_key: `webstudio:D3:automation-fixture-matrix-v4`",
         "logical_lane: `ready`",
         "next_action: attach to the next D3 dry-run proof and verify each exception row has a test fixture.",
     ]
@@ -143,15 +143,15 @@ def generate() -> dict[str, Any]:
     now = utc_now()
     outputs = []
     for name, builder in [
-        ("webstudio-d1-landing-conversion-qa-pack-v3.md", d1_landing_qa),
-        ("webstudio-d2-ai-intake-offline-scenario-qa-pack-v3.md", d2_intake_scenarios),
-        ("webstudio-d3-business-automation-exception-matrix-v3.md", d3_automation_matrix),
+        ("webstudio-d1-landing-responsive-qa-pack-v4.md", d1_landing_qa),
+        ("webstudio-d2-ai-intake-transcript-fixtures-v4.md", d2_intake_scenarios),
+        ("webstudio-d3-business-automation-fixture-matrix-v4.md", d3_automation_matrix),
     ]:
         md, data = builder(now)
         info = write(OUTPUT / name, md)
         info.update(data)
         outputs.append(info)
-    index = {"schema_version": "webstudio-product-progress.v1", "updated_at": now, "mode": "safe_local_artifacts_only", "items": outputs}
+    index = {"schema_version": "webstudio-product-progress.v4", "updated_at": now, "mode": "safe_local_artifacts_only", "items": outputs}
     index_info = write(OUTPUT / "webstudio-product-progress-v1.json", json.dumps(index, ensure_ascii=False, indent=2) + "\n")
     index["index"] = index_info
     return index
