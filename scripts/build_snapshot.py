@@ -15,6 +15,11 @@ from pathlib import Path
 from typing import Any
 
 try:
+    from d1_owner_feedback_backend import build_owner_feedback_state as build_d1_owner_feedback_state
+except Exception:  # snapshot must stay available even if optional owner feedback backend import fails
+    build_d1_owner_feedback_state = None
+
+try:
     from d3_intake_backend import build_inbox_state as build_d3_inbox_state
 except Exception:  # snapshot must stay available even if optional intake backend import fails
     build_d3_inbox_state = None
@@ -41,6 +46,19 @@ FORBIDDEN_ACTIONS = [
     "dispatch", "run", "daemon", "unblock", "reclaim", "deploy", "release",
     "systemd_write", "cron_write", "config_write", "env_write", "db_write",
 ]
+
+AGENT_ROLES = [
+    {"name": "CTO Agent", "profile": "default", "section": "CTO Planning Queue", "task_types": ["planning_refinement", "prd", "acceptance_criteria"]},
+    {"name": "Orchestrator Agent", "profile": "orchestrator", "section": "Orchestrator Dispatch Queue", "task_types": ["routing_coordination", "task_split", "kanban_hygiene"]},
+    {"name": "Frontend Agent", "profile": "frontend", "section": "Frontend Work", "task_types": ["frontend_execution", "ui", "accessibility"]},
+    {"name": "Backend Agent", "profile": "backend", "section": "Backend Work", "task_types": ["backend_execution", "api", "schema"]},
+    {"name": "QA Agent", "profile": "qa", "section": "QA Queue", "task_types": ["qa_validation", "smoke", "acceptance"]},
+    {"name": "Ops Agent", "profile": "ops/default", "section": "Ops / Infrastructure", "task_types": ["ops_infrastructure", "qmd", "snapshot", "dashboard"]},
+    {"name": "Research Agent", "profile": "researcher", "section": "Research Queue", "task_types": ["research_discovery", "docs", "source_research"]},
+    {"name": "Sales/Client Agent", "profile": "default", "section": "Sales / Client Intake", "task_types": ["sales_client_intake", "qualification", "proposal"]},
+    {"name": "Delivery Agent", "profile": "orchestrator", "section": "Delivery / Handoff", "task_types": ["delivery_handoff", "handoff", "support"]},
+]
+
 PRODUCT_LINES = [
     {"id": "D1", "name": "Landing pages / websites", "status": "enabled", "autonomy_levels": ["A", "B", "C", "D"]},
     {"id": "D2", "name": "AI-intake Telegram bots", "status": "enabled", "autonomy_levels": ["A", "B", "C", "D"]},
@@ -181,7 +199,7 @@ def build_work_factory(raw: dict[str, Any]) -> dict[str, Any]:
 def build_kanban() -> dict[str, Any]:
     # Kanban reads can be slow on cold starts, so give the CLI enough room to
     # return a full projection instead of falling back to an empty dashboard.
-    list_result = run_cmd(["hermes", "kanban", "list", "--json"], timeout=90)
+    list_result = run_cmd(["hermes", "kanban", "list", "--archived", "--json"], timeout=90)
     stats_result = run_cmd(["hermes", "kanban", "stats"], timeout=60)
     tasks = []
 
@@ -222,7 +240,10 @@ def build_kanban() -> dict[str, Any]:
         # Duplicate-key safety was designed for mirror/SYS cards. Specifier-created
         # WebStudio production child cards may inherit the parent body/idempotency
         # marker as context, but they are separate executable work packets.
-        if m and not str(m.group(1)).startswith("webstudio:"):
+        if m and st not in {"done", "archived"} and not str(m.group(1)).startswith("webstudio:"):
+            # Archived/Done mirrors are historical evidence, not executable
+            # production-board pollution. Duplicate detection is an active-lane
+            # guardrail only.
             duplicate_key_candidates[m.group(1)] = duplicate_key_candidates.get(m.group(1), 0) + 1
     duplicate_keys = {k: v for k, v in duplicate_key_candidates.items() if v > 1}
     all_slim_tasks = []
@@ -237,7 +258,7 @@ def build_kanban() -> dict[str, Any]:
         key=lambda x: x.get("created_at") or 0,
         reverse=True,
     )[:25]
-    lane_order = ["triage", "todo", "scheduled", "ready", "running", "blocked", "review", "done"]
+    lane_order = ["triage", "todo", "scheduled", "ready", "running", "blocked", "review", "done", "archived"]
     lanes: dict[str, list[dict[str, Any]]] = {lane: [] for lane in lane_order}
     for t in all_slim_tasks:
         st = str(t.get("status") or "unknown")
@@ -310,6 +331,11 @@ def build_worker_health(kanban: dict[str, Any]) -> dict[str, Any]:
     """Detect stale active cards and repeated crash protocol violations from read-only Kanban projection."""
     now = int(time.time())
     running = list((kanban.get("lanes") or {}).get("running") or [])
+    stale_running_2h = []
+    for t in running:
+        age = _task_age_seconds(t, now)
+        if age is not None and age > 7200:
+            stale_running_2h.append({**t, "age_seconds": age, "stale_2h": True})
     active = []
     stale_30m = []
     stale_2h = []
@@ -324,27 +350,39 @@ def build_worker_health(kanban: dict[str, Any]) -> dict[str, Any]:
                 stale_2h.append(item)
     crash_terms = ["protocol violation", "without calling kanban_complete", "without kanban_complete", "repeated_crashes", "pid not alive", "stale_lock"]
     crash_cards = []
-    for lane_items in (kanban.get("lanes") or {}).values():
+    agent_workflow_crash_cards = []
+    for lane_name, lane_items in (kanban.get("lanes") or {}).items():
         for t in lane_items or []:
             text = f"{t.get('title','')} {t.get('body','')} {t.get('metadata','')}".lower()
             if "webstudio" in text and any(term in text for term in crash_terms):
                 crash_cards.append(t)
+            if "webstudio" in text and "agent-workflow-v1" in text and "canary" not in text and lane_name not in {"done", "archived"} and any(term in text for term in crash_terms):
+                agent_workflow_crash_cards.append(t)
     return {
         "source_of_truth": "read-only Hermes Kanban projection; deep run-history checked in hardening reports",
         "lifecycle_contract": "Every dispatched worker must end with exactly one terminal action: kanban_complete or kanban_block. rc=0 without terminator is a crash.",
         "running_count": len(running),
         "stale_30m_count": len(stale_30m),
         "stale_2h_count": len(stale_2h),
+        "stale_running_dead_pid_2h_count": len(stale_running_2h),
         "repeated_crash_indicator_count": len(crash_cards),
+        "agent_workflow_v1_repeated_crash_count": len(agent_workflow_crash_cards),
         "ops_canary_v3": {
-            "task_id": "t_ab4c5fa1",
-            "status": "failed_then_archived",
-            "verdict": "FAIL: ops worker still exits without kanban_complete/kanban_block; no PASS claimed",
-            "evidence": "/workspace/output/github-and-ops-worker-v3-status.md",
+            "task_id": "t_111a83b3",
+            "status": "blocked_after_fresh_fail_reproduction",
+            "verdict": "FAIL: fresh ops canary v3.3 reproduced rc=0/no kanban_complete_or_kanban_block and created no artifact; operator blocked the card to stop retry spam",
+            "evidence": "/workspace/output/ops-worker-lane-repair-v3.md",
+            "next_required_action": "host-level ops profile/tool-contract repair; default lane remains PASS, ops lane remains FAIL",
         },
+        "remaining_blockers": [
+            "ops lane repair: profile ops exits cleanly without terminal Kanban action",
+            "QMD embeddings: Bun 1.3.13 segfaults during bounded qmd embed maintenance",
+            "optional Supabase authenticated check remains approval/credential scoped",
+        ],
         "running_cards": running[:40],
         "stale_30m_cards": stale_30m[:80],
         "stale_2h_cards": stale_2h[:80],
+        "stale_running_dead_pid_2h_cards": stale_running_2h[:40],
         "active_sample": sorted(active, key=lambda x: x.get("age_seconds") or 0, reverse=True)[:80],
         "canary_artifact": "/workspace/output/ops-lane-canary-v3-artifact.md",
         "hardening_report": "/workspace/output/github-and-ops-worker-v3-status.md",
@@ -409,6 +447,51 @@ def build_artifacts() -> list[dict[str, Any]]:
         artifacts.append({"title": title, "path": str(p), **info})
     return artifacts
 
+
+
+def infer_assigned_agent(title: str, body: str, assignee: str | None = None) -> str:
+    text = f"{title} {body} {assignee or ''}".lower()
+    explicit = re.search(r"assigned_agent[:=]\s*([A-Za-z0-9/ -]+?)(?:\n|$)", body, re.I)
+    if explicit:
+        return explicit.group(1).strip()
+    if "cto" in text or "prd" in text or "acceptance criteria" in text:
+        return "CTO Agent"
+    if "orchestrator" in text or "dispatch" in text or "route" in text:
+        return "Orchestrator Agent"
+    if "frontend" in text or "ui" in text or "component" in text:
+        return "Frontend Agent"
+    if "backend" in text or "api" in text or "schema" in text or "webhook" in text:
+        return "Backend Agent"
+    if "qa" in text or "smoke" in text or "test" in text:
+        return "QA Agent"
+    if "ops" in text or "snapshot" in text or "qmd" in text or "dashboard" in text:
+        return "Ops Agent"
+    if "research" in text or "docs" in text:
+        return "Research Agent"
+    if "sales" in text or "client" in text or "qualification" in text:
+        return "Sales/Client Agent"
+    if "delivery" in text or "handoff" in text:
+        return "Delivery Agent"
+    return "Orchestrator Agent" if assignee == "orchestrator" else "Specialist Agent"
+
+
+def infer_field(body: str, field: str, default: str = "") -> str:
+    m = re.search(rf"{re.escape(field)}[:=]\s*(.+?)(?:\n|$)", body, re.I)
+    return m.group(1).strip() if m else default
+
+
+def lifecycle_status_for_card(physical_status: str, logical_lane: str, age: int | None) -> str:
+    if physical_status == "done":
+        return "completed"
+    if logical_lane == "blocked":
+        return "blocked_true_only"
+    if physical_status == "running" and age is not None and age > 7200:
+        return "stale_running_watch"
+    if physical_status == "running":
+        return "active_worker"
+    if logical_lane in {"review", "ready", "todo", "scheduled", "triage"}:
+        return "live_backlog"
+    return "tracked"
 
 def infer_production_stage(title: str, body: str) -> str:
     text = f"{title} {body}".lower()
@@ -489,9 +572,15 @@ def build_production_pipeline(kanban: dict[str, Any]) -> dict[str, Any]:
                 owner_visible = False
             else:
                 stage = infer_production_stage(title, body + " " + meta + " " + idkey)
-                logical_lane = "done" if physical_status == "done" else logical_lane_for_stage(stage)
+                logical_lane = "done" if physical_status == "done" else ("in_progress" if physical_status == "running" else logical_lane_for_stage(stage))
                 owner_visible = True
-            card = {**t, "product_line": line, "production_stage": stage, "stage": stage, "physical_status": physical_status, "logical_lane": logical_lane, "owner_visible": owner_visible, "source_of_truth": "Hermes Kanban + WebStudio Production logical view"}
+            age = _task_age_seconds(t)
+            assigned_agent = infer_assigned_agent(title, body + " " + meta, str(t.get("assignee") or ""))
+            task_type = infer_field(body + "\n" + meta, "task_type", stage)
+            next_action = infer_field(body + "\n" + meta, "next_action", "review next safe step")
+            artifact_path = infer_field(body + "\n" + meta, "artifact_path", "")
+            lifecycle_status = infer_field(body + "\n" + meta, "lifecycle_status", lifecycle_status_for_card(physical_status, logical_lane, age))
+            card = {**t, "product_line": line, "assigned_agent": assigned_agent, "production_stage": stage, "stage": stage, "physical_status": physical_status, "task_type": task_type, "next_action": next_action, "artifact_path": artifact_path, "last_activity_at": t.get("updated_at") or t.get("started_at") or t.get("created_at"), "stale_age": age, "lifecycle_status": lifecycle_status, "logical_lane": logical_lane, "owner_visible": owner_visible, "source_of_truth": "Hermes Kanban + WebStudio Production logical view"}
             all_cards.append(card)
             if line in product_lines:
                 product_lines[line].append(card)
@@ -520,6 +609,18 @@ def build_production_pipeline(kanban: dict[str, Any]) -> dict[str, Any]:
         "delivery_queue": sorted(delivery_queue, key=sort_key, reverse=True)[:40],
         "filter_recipe": "Open /kanban and search WEBSTUDIO. Ops Cockpit /#production shows stable logical stages even when Hermes dispatcher promotes physical statuses.",
     }
+
+
+def build_d1_owner_feedback() -> dict[str, Any]:
+    if build_d1_owner_feedback_state is None:
+        return {
+            "available": False,
+            "source_of_truth": "/workspace/data/webstudio/d1/owner-feedback-inbox.jsonl",
+            "error": "d1_owner_feedback_backend import unavailable",
+        }
+    state = build_d1_owner_feedback_state()
+    state["available"] = True
+    return state
 
 
 def build_d3_intake() -> dict[str, Any]:
@@ -614,13 +715,73 @@ def build_marathon_status() -> dict[str, Any]:
         "work_factory_enabled": state.get("enabled") if isinstance(state, dict) else None,
         "timer_enabled": state.get("timer_enabled") if isinstance(state, dict) else None,
         "next_planned_useful_tasks": [
-            "Pick next WEBSTUDIO production card by logical_lane=ready/in_progress",
-            "Create/refresh safe artifact or QA report",
-            "Rebuild Ops Cockpit snapshot",
-            "Run qmd update and hfinalize",
+            "Ops lane repair: enforce kanban_complete/kanban_block terminator contract and rerun ops canary",
+            "QMD maintenance: bounded pending-embedding reduction without unlimited embed",
+            "D1/D2/D3 product improvements from production Kanban logical lanes",
+            "PR follow-up: keep GitHub readiness panel linked to https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
+            "Rebuild Ops Cockpit snapshot, run smoke, qmd update, hfinalize",
         ],
     }
 
+
+
+def build_agent_workflow(production_pipeline: dict[str, Any], worker_health: dict[str, Any], github: dict[str, Any]) -> dict[str, Any]:
+    canary = load_json(OUTPUT / "webstudio-agent-canary-results-v1.json", {"results": []})
+    lanes = production_pipeline.get("logical_lanes") or {}
+    sections = {r["section"]: [] for r in AGENT_ROLES}
+    for lane_items in lanes.values():
+        for card in lane_items or []:
+            agent = str(card.get("assigned_agent") or infer_assigned_agent(str(card.get("title") or ""), str(card.get("body") or ""), str(card.get("assignee") or "")))
+            section = next((r["section"] for r in AGENT_ROLES if r["name"] == agent), "Orchestrator Dispatch Queue")
+            sections.setdefault(section, []).append(card)
+    for k, items in sections.items():
+        items.sort(key=lambda x: x.get("last_activity_at") or x.get("updated_at") or x.get("created_at") or 0, reverse=True)
+    return {
+        "source_of_truth": "/workspace/output/webstudio-agent-operating-model-v1.md + Hermes Kanban production projection",
+        "diagram": ["CTO Agent", "Orchestrator Agent", "Specialist Agents", "QA/Delivery", "Done"],
+        "roles": AGENT_ROLES,
+        "sections": {k: v[:60] for k, v in sections.items()},
+        "canary_results": canary,
+        "protocol": {
+            "doc": "/workspace/output/webstudio-agent-worker-protocol-v1.md",
+            "continuation_policy": "/workspace/output/webstudio-continuation-policy-v1.md",
+            "continuation_checkpoint": "/workspace/output/current-task-continuation-checkpoint.md",
+            "terminal_actions": ["kanban_complete", "kanban_block"],
+            "silent_finish_allowed": False,
+            "ops_lane_status": "WATCH: use default lane temporarily until host-level ops profile terminator contract is repaired",
+            "repeated_crashes_after_indicator_count": worker_health.get("agent_workflow_v1_repeated_crash_count", 0),
+            "stale_running_dead_pid_after_2h_count": worker_health.get("stale_running_dead_pid_2h_count", 0),
+            "stale_backlog_after_2h_count": worker_health.get("stale_2h_count", 0),
+        },
+        "kanban_mapping": {
+            "triage": "CTO Agent receives raw idea/client request and drafts/refines spec",
+            "todo": "Orchestrator accepted spec but dependencies remain",
+            "scheduled": "Orchestrator scheduled work for cron/timed window",
+            "ready": "Orchestrator assigned task to specialist profile",
+            "in_progress": "Specialist agent actively executing",
+            "review": "QA/Delivery/Owner review stage; logical production_stage=qa|delivery-handoff if native review unsupported",
+            "blocked": "true blockers only",
+            "done": "accepted completed task with artifact/proof",
+            "archived": "old canary/test/noise",
+        },
+        "github_pr": {
+            "status": "PR_CREATED",
+            "repo": "pltnv123/webstudio-ops-dashboard",
+            "branch": "webstudio/hardening-v3-host-completion",
+            "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
+            "local_cli_status": github.get("status"),
+            "wrapper_broken": github.get("wrapper_broken"),
+        },
+        "marathon_loop": [
+            "CTO Agent picks/refines next best work item",
+            "Orchestrator Agent splits/routes work",
+            "Specialist agent executes and terminates with kanban_complete/kanban_block",
+            "QA/Delivery validates",
+            "Kanban and Ops Cockpit are updated",
+            "GitHub branch/PR updated when code changes and gh is available",
+            "qmd update, hfinalize, short heartbeat",
+        ],
+    }
 
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
@@ -630,6 +791,8 @@ def build_state() -> dict[str, Any]:
     health = build_health()
     approvals = build_approvals(wf, kanban)
     production_pipeline = build_production_pipeline(kanban)
+    github_readiness = build_github_readiness()
+    worker_health = build_worker_health(kanban)
     safety_status = "pass"
     safety_findings = []
     if kanban.get("executable_mirror_count"):
@@ -667,11 +830,13 @@ def build_state() -> dict[str, Any]:
         "work_factory": wf,
         "kanban": kanban,
         "production_pipeline": production_pipeline,
-        "github_readiness": build_github_readiness(),
-        "worker_health": build_worker_health(kanban),
+        "github_readiness": github_readiness,
+        "worker_health": worker_health,
+        "agent_workflow": build_agent_workflow(production_pipeline, worker_health, github_readiness),
         "kanban_semantics": build_kanban_semantics_status(),
         "system_hardening": build_system_hardening_status(),
         "marathon_12h": build_marathon_status(),
+        "d1_owner_feedback": build_d1_owner_feedback(),
         "d3_intake": build_d3_intake(),
         "d3_client_qualification": build_d3_client_qualification(),
         "live_kanban_v3_report": {"source": stat_info(LIVE_KANBAN_PATH), "parsed": live_counts},
@@ -704,6 +869,16 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
             f'  <script>window.__WEBSTUDIO_STATE__ = {embedded};</script>\n  <script src="./app.js"></script>'
         )
     (dist / "index.html").write_text(index_html)
+    # Owner tunnel supports direct paths such as /kanban. Keep static hosting
+    # route-safe without requiring a hash-only URL.
+    for route_name in ["kanban", "production", "agent-workflow", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+        route_dir = dist / route_name
+        route_dir.mkdir(parents=True, exist_ok=True)
+        (route_dir / "index.html").write_text(index_html)
+        for name in ["styles.css", "app.js"]:
+            shutil.copy2(SRC / name, route_dir / name)
+        (route_dir / "data").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(CONTROL_STATE_PATH, route_dir / "data" / "webstudio-control-plane-state.json")
     (dist / "data").mkdir(parents=True, exist_ok=True)
     shutil.copy2(CONTROL_STATE_PATH, dist / "data" / "webstudio-control-plane-state.json")
 

@@ -1,7 +1,8 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-let route = window.location.hash.replace('#', '') || 'overview';
+const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -11,7 +12,10 @@ let filters = {
   approvals: '',
   docs: '',
   d3Intake: '',
-  d3IntakeStatus: 'all'
+  d3IntakeStatus: 'all',
+  ownerFeedback: '',
+  ownerFeedbackState: 'all',
+  showArchived: false
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -72,6 +76,7 @@ function copyButton(label, value, variant='') {
 }
 function toolbar(items) { return `<div class="toolbar">${items.join('')}</div>`; }
 function searchBox(id, placeholder, value='') { return `<input id="${esc(id)}" class="search" placeholder="${esc(placeholder)}" value="${esc(value)}">`; }
+function clearFiltersButton(scope='all') { return `<button id="clearFiltersBtn" class="ghost" type="button" data-clear-scope="${esc(scope)}">Clear Filters</button>`; }
 
 const D3_INTAKE_STORAGE_KEY = 'webstudio.d3.rawRequirementsInbox.v1';
 const D3_INTAKE_CONTEXT = {
@@ -183,6 +188,170 @@ function validationList(errors) {
   return `<div class="validation bad"><strong>Missing required fields:</strong><ul>${errors.map(e => `<li>${fmt(e)}</li>`).join('')}</ul></div>`;
 }
 
+
+
+const OWNER_FEEDBACK_STORAGE_KEY = 'webstudio.d1.ownerFeedbackInbox.v1';
+const OWNER_FEEDBACK_OVERLAY_KEY = 'webstudio.d1.ownerFeedbackInbox.overlays.v1';
+const OWNER_FEEDBACK_CONTEXT = {
+  schema_version: '2026-05-21.d1-owner-feedback-inbox.v1',
+  tenant: 'webstudio-production',
+  source: 'telegram_owner',
+  source_owner: 'Антон',
+  app_under_test_url: 'http://127.0.0.1:9120/',
+  workflow: 'WebStudio D1 owner admin testing',
+  safety: 'feedback intake only; no Done destination; card payloads are preview/copy until operator creates scoped Kanban cards'
+};
+const OWNER_FEEDBACK_LANES = ['D1', 'D2', 'D3', 'owner_decision_required'];
+const OWNER_FEEDBACK_TYPES = ['bug', 'ux_issue', 'copy_change', 'feature_request', 'qa_observation', 'ops_issue', 'question', 'unknown'];
+const OWNER_FEEDBACK_SEVERITIES = ['critical', 'high', 'medium', 'low', 'trivial'];
+const OWNER_FEEDBACK_STATES = ['raw', 'triage_in_progress', 'needs_clarification', 'owner_decision_pending', 'ready_for_scoping', 'scoped_to_kanban', 'in_delivery', 'qa_verification_pending', 'owner_acceptance_pending'];
+const OWNER_FEEDBACK_TERMINALS = ['Closed', 'Duplicate', 'Rejected', 'Obsolete', 'Merged'];
+const OWNER_FEEDBACK_FOLLOWUPS = ['implementation_and_qa', 'implementation_only', 'qa_only', 'owner_decision'];
+
+function readOwnerFeedbackRecords() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(OWNER_FEEDBACK_STORAGE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function writeOwnerFeedbackRecords(records) {
+  localStorage.setItem(OWNER_FEEDBACK_STORAGE_KEY, JSON.stringify(records, null, 2));
+}
+function readOwnerFeedbackOverlays() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(OWNER_FEEDBACK_OVERLAY_KEY) || '{}');
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+function writeOwnerFeedbackOverlays(overlays) {
+  localStorage.setItem(OWNER_FEEDBACK_OVERLAY_KEY, JSON.stringify(overlays, null, 2));
+}
+function ownerFeedbackApplyOverlay(record, overlay) {
+  if (!overlay) return record;
+  return {
+    ...record,
+    ...overlay.patch,
+    routing: {...(record.routing || {}), ...(overlay.patch?.routing || {})},
+    content: {...(record.content || {}), ...(overlay.patch?.content || {})},
+    implementation: {...(record.implementation || {}), ...(overlay.patch?.implementation || {})},
+    audit: {...(record.audit || {}), updated_at: overlay.updated_at || record.audit?.updated_at, updated_by: 'ops_dashboard_local_overlay'},
+    ui_overlay: overlay
+  };
+}
+function ownerFeedbackAllRecords() {
+  const overlays = readOwnerFeedbackOverlays();
+  return readOwnerFeedbackRecords()
+    .map(r => ownerFeedbackApplyOverlay(r, overlays[r.id]))
+    .sort((a, b) => String(b.audit?.updated_at || b.received_at || '').localeCompare(String(a.audit?.updated_at || a.received_at || '')));
+}
+function ownerFeedbackCounts(records) {
+  return records.reduce((acc, r) => {
+    const st = r.routing?.triage_state || 'raw';
+    const lane = r.routing?.delivery_lane || 'D1';
+    acc[st] = (acc[st] || 0) + 1;
+    acc[lane] = (acc[lane] || 0) + 1;
+    if (lane === 'owner_decision_required' || r.routing?.decision_state === 'queued' || st === 'owner_decision_pending') acc.owner_decision_queue = (acc.owner_decision_queue || 0) + 1;
+    return acc;
+  }, {});
+}
+function ownerFeedbackRouteReason(lane, type) {
+  if (lane === 'D2') return 'D2: feedback touches Telegram ingestion, deployment wiring, secrets/config, or external intake.';
+  if (lane === 'D3') return 'D3: feedback changes product workflow, lifecycle, policy, or acceptance criteria.';
+  if (lane === 'owner_decision_required') return 'Owner decision required: intent, priority, UX choice, or scope is ambiguous.';
+  return `D1: default owner admin testing feedback for ${OWNER_FEEDBACK_CONTEXT.app_under_test_url}${type ? ' · type=' + type : ''}.`;
+}
+function ownerFeedbackTitle(raw) {
+  const s = shortSummary(raw).replace(/[.。]+$/g, '');
+  return s.length > 72 ? s.slice(0, 69) + '…' : s || 'Owner feedback item';
+}
+function linesFromTextarea(value) {
+  return String(value || '').split('\n').map(x => x.trim()).filter(Boolean);
+}
+function ownerFeedbackValidation(data) {
+  const errors = [];
+  if (!String(data.raw_text || '').trim()) errors.push('Owner feedback text');
+  if (!OWNER_FEEDBACK_LANES.includes(data.delivery_lane)) errors.push('D1/D2/D3 route or owner decision queue');
+  if ((data.delivery_lane === 'owner_decision_required' || data.triage_state === 'owner_decision_pending') && !String(data.owner_question || '').trim()) errors.push('Owner decision question for ambiguous feedback');
+  if (['ready_for_scoping', 'scoped_to_kanban'].includes(data.triage_state) && !String(data.acceptance_criteria || '').trim()) errors.push('Acceptance criteria before scoped card payloads');
+  return errors;
+}
+function ownerFeedbackRow(r) {
+  const meta = `${r.context?.workflow || OWNER_FEEDBACK_CONTEXT.workflow} · ${r.context?.app_under_test_url || OWNER_FEEDBACK_CONTEXT.app_under_test_url} · lane=${r.routing?.delivery_lane || 'D1'} · type=${r.content?.feedback_type || 'unknown'} · severity=${r.routing?.severity || 'medium'} · follow-up=${r.routing?.followup_kind || 'implementation_and_qa'} · updated=${r.audit?.updated_at || '—'}${r.card_payloads?.length ? ' · payloads=' + r.card_payloads.length : ''}`;
+  return row(r.id, r.content?.normalized_title || 'Owner feedback', r.routing?.triage_state || 'raw', meta, 'owner-feedback-record', jsonCopy(r));
+}
+function ownerFeedbackWorkflowHelp() {
+  return `<div class="workflow-grid">${OWNER_FEEDBACK_STATES.map(st => `<div class="workflow-step"><span class="status ${statusClass(st)}">${fmt(st)}</span><small>${st === 'raw' || st === 'owner_decision_pending' ? 'Not scoped — cannot be Done' : 'route / scope / verify'}</small></div>`).join('')}</div>`;
+}
+function ownerFeedbackForm() {
+  return `<form id="ownerFeedbackForm" class="intake-form owner-feedback-form">
+    <div id="ownerFeedbackValidation" class="validation ok"><strong>WebStudio D1 owner admin testing inbox.</strong> Paste owner feedback from ${fmt(OWNER_FEEDBACK_CONTEXT.app_under_test_url)}. Done is not a destination; use scoped implementation/QA payloads or owner decision queue.</div>
+    <label>Owner feedback text<textarea name="raw_text" required placeholder="Paste Антон's feedback exactly as received from Telegram / owner testing"></textarea></label>
+    <div class="form-grid">
+      <label>Source message ID<input name="source_message_id" placeholder="telegram chat/topic/message id or manual-id"></label>
+      <label>Affected area / route<input name="affected_area" placeholder="admin/dashboard, ops cockpit, unknown…"></label>
+      <label>Feedback type<select name="feedback_type">${options(OWNER_FEEDBACK_TYPES, 'bug')}</select></label>
+      <label>Routing lane<select name="delivery_lane">${options(OWNER_FEEDBACK_LANES, 'D1')}</select></label>
+      <label>Triage state<select name="triage_state">${options(OWNER_FEEDBACK_STATES, 'raw')}</select></label>
+      <label>Implementation vs QA follow-up<select name="followup_kind">${options(OWNER_FEEDBACK_FOLLOWUPS, 'implementation_and_qa')}</select></label>
+      <label>Severity<select name="severity">${options(OWNER_FEEDBACK_SEVERITIES, 'medium')}</select></label>
+      <label>Priority 0–100<input name="priority" type="number" min="0" max="100" value="50"></label>
+      <label>Normalized title<input name="normalized_title" placeholder="optional short title; auto-filled when empty"></label>
+    </div>
+    <label>Normalized summary<textarea name="normalized_summary" placeholder="Operator summary; defaults to shortened raw feedback"></textarea></label>
+    <label>Acceptance criteria (one per line)<textarea name="acceptance_criteria" placeholder="Required before implementation/QA payloads"></textarea></label>
+    <label>Reproduction steps / QA notes (one per line)<textarea name="reproduction_steps" placeholder="Required for bugs unless explicitly not reproducible yet"></textarea></label>
+    <label>Owner decision question (only for ambiguous feedback)<input name="owner_question" placeholder="One concise question for Антон"></label>
+    <label>Owner decision options (one per line)<textarea name="owner_options" placeholder="2–4 options with consequence when routed to owner_decision_required"></textarea></label>
+    <div class="toolbar"><button type="submit">Submit feedback to inbox</button>${copyButton('Copy empty feedback schema', jsonCopy({context: OWNER_FEEDBACK_CONTEXT, lanes: OWNER_FEEDBACK_LANES, states: OWNER_FEEDBACK_STATES, terminals_not_done: OWNER_FEEDBACK_TERMINALS}))}</div>
+  </form>`;
+}
+function ownerFeedbackDetailBody(record, actions) {
+  const st = record.routing?.triage_state || 'raw';
+  const lane = record.routing?.delivery_lane || 'D1';
+  const canScope = ['ready_for_scoping', 'scoped_to_kanban'].includes(st) && asArray(record.implementation?.acceptance_criteria).length > 0;
+  const ambiguous = lane === 'owner_decision_required' || st === 'owner_decision_pending' || st === 'needs_clarification';
+  const payloadActions = toolbar([
+    canScope ? `<button type="button" data-owner-feedback-scope="${esc(record.id)}" data-scope-kind="implementation_and_qa">Prepare implementation + QA card payloads</button>` : `<button type="button" disabled title="Needs ready_for_scoping plus acceptance criteria">Prepare implementation/QA payloads</button>`,
+    ambiguous ? `<button type="button" data-owner-feedback-scope="${esc(record.id)}" data-scope-kind="owner_decision">Prepare owner decision payload</button>` : '',
+    copyButton('Copy feedback JSON', jsonCopy(record)),
+    record.card_payloads?.length ? copyButton('Copy latest card payloads', jsonCopy(record.card_payloads)) : ''
+  ].filter(Boolean));
+  return `${actions}
+    <section class="detail-section owner-feedback-warning"><h3>D1 owner admin testing guard</h3><p><strong>Not scoped — cannot be Done</strong> applies until routing, acceptance criteria, QA/owner acceptance, and linked cards are verified. Normal destinations here are D1/D2/D3 or owner decision queue; terminal labels are ${OWNER_FEEDBACK_TERMINALS.join(', ')}, never Done.</p></section>
+    <section class="detail-section"><h3>Raw owner feedback</h3><pre class="code block raw-text">${fmt(record.content?.raw_text || '')}</pre></section>
+    <section class="detail-section"><h3>Routing / triage</h3>${kv({lane, triage_state: st, decision_state: record.routing?.decision_state || '—', routing_reason: record.routing?.routing_reason, severity: record.routing?.severity, priority: record.routing?.priority, followup_kind: record.routing?.followup_kind})}</section>
+    <section class="detail-section"><h3>Acceptance / QA scope</h3>${kv({acceptance_criteria: record.implementation?.acceptance_criteria || [], reproduction_steps: record.implementation?.reproduction_steps || [], expected_behavior: record.implementation?.expected_behavior || '—', actual_behavior: record.implementation?.actual_behavior || '—', scope_notes: record.implementation?.scope_notes || '—'})}</section>
+    <section class="detail-section"><h3>Prepare scoped card payloads</h3><p class="label">Copy-only/local payload preparation. This UI does not send any item to Done and does not dispatch workers.</p>${payloadActions}</section>
+    ${record.owner_decision ? `<section class="detail-section"><h3>Owner decision queue</h3>${kv(record.owner_decision)}</section>` : ''}
+    ${record.card_payloads?.length ? `<section class="detail-section"><h3>Prepared card payloads</h3><pre class="code block">${fmt(jsonCopy(record.card_payloads))}</pre></section>` : ''}
+    <section class="detail-section"><h3>Full audit JSON</h3><pre class="code block">${fmt(stringify(record, 8000))}</pre></section>`;
+}
+function ownerFeedback() {
+  const records = ownerFeedbackAllRecords();
+  const counts = ownerFeedbackCounts(records);
+  const stateOptions = ['all', ...OWNER_FEEDBACK_STATES].map(x => `<option value="${esc(x)}"${filters.ownerFeedbackState === x ? ' selected' : ''}>${fmt(x)}</option>`).join('');
+  const filtered = records
+    .filter(r => filters.ownerFeedbackState === 'all' || (r.routing?.triage_state || 'raw') === filters.ownerFeedbackState)
+    .filter(r => includes(r, filters.ownerFeedback));
+  const ambiguous = records.filter(r => (r.routing?.delivery_lane === 'owner_decision_required') || (r.routing?.decision_state === 'queued') || (r.routing?.triage_state === 'owner_decision_pending'));
+  return `<div class="grid owner-feedback">
+    ${metric('Feedback items', records.length, 'span-3')}
+    ${metric('D1 routed', counts.D1 || 0, 'span-3')}
+    ${metric('Owner decisions', counts.owner_decision_queue || 0, 'span-3')}
+    ${metric('Payload-ready', records.filter(r => ['ready_for_scoping','scoped_to_kanban'].includes(r.routing?.triage_state) && asArray(r.implementation?.acceptance_criteria).length).length, 'span-3')}
+    ${card('D1 owner feedback inbox contract', `${kv({workflow: OWNER_FEEDBACK_CONTEXT.workflow, app_under_test_url: OWNER_FEEDBACK_CONTEXT.app_under_test_url, source_owner: OWNER_FEEDBACK_CONTEXT.source_owner, routing: 'D1 default; D2 integration; D3 workflow/spec; owner_decision_required for ambiguity', done_guard: 'Done is not offered as an inbox destination. Use Closed/Duplicate/Rejected/Obsolete/Merged only after verification.', payload_mode: 'copy-only scoped Kanban card payload preparation'})}${toolbar([copyButton('Copy routing lanes', OWNER_FEEDBACK_LANES.join('\n')), copyButton('Copy state machine', OWNER_FEEDBACK_STATES.join('\n')), copyButton('Copy Done guard', 'Raw owner feedback never moves directly to Done. The inbox prepares scoped implementation/QA/owner-decision card payloads only.')])}`, 'span-8')}
+    ${card('Workflow states', ownerFeedbackWorkflowHelp(), 'span-4')}
+    ${card('Capture owner feedback', ownerFeedbackForm(), 'span-12')}
+    ${card('Inbox counts', kv(counts), 'span-4')}
+    ${card('Owner decision queue', rows(ambiguous, ownerFeedbackRow, 'No ambiguous feedback waiting for owner decision'), 'span-8')}
+    <section class="card span-12"><h3>Pending owner feedback items</h3><div class="filters intake-filters">${searchBox('ownerFeedbackSearch', 'Search owner feedback / D1 / D2 / D3 / affected area…', filters.ownerFeedback)}<select id="ownerFeedbackStateFilter">${stateOptions}</select></div>${filtered.length ? rows(filtered, ownerFeedbackRow) : `<div class="empty"><strong>No owner feedback matches filters.</strong><br>Paste owner testing feedback above. Ambiguous items route to owner decision queue; no Done destination exists here.</div>`}</section>
+  </div>`;
+}
+
 function sourceSummary() {
   return {
     schema_version: state.schema_version,
@@ -212,6 +381,7 @@ function overview() {
     ${metric('GitHub', gh.status || 'unknown', 'span-3', 'health')}
     ${metric('Snapshot backlog', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
     ${metric('12h marathon', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
+    ${metric('Agent workflow', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
     ${card('Safety contract', `${kv({status: safety.status, read_only: safety.read_only, dispatch_allowed: safety.dispatch_allowed, worker_allowed: safety.worker_allowed, mirror_executable_count: safety.mirror_executable_count, duplicate_keys: Object.keys(safety.duplicate_keys || {}).length})}${toolbar([copyButton('Copy safety contract', `Safety contract:\nread_only=${safety.read_only}\ndispatch_allowed=${safety.dispatch_allowed}\nworker_allowed=${safety.worker_allowed}\nforbidden=${asArray(safety.forbidden_actions).join(', ')}`), copyButton('Copy owner summary', ownerSummary)])}`, 'span-6')}
     ${card('Current health', kv({status: h.status, gateway_active: h.gateway_active, qmd_pending_embeddings: h.qmd?.pending_embeddings, primary_model: h.primary_model_line}), 'span-6')}
     ${card('Source of truth', `${kv(sourceSummary())}${toolbar([copyButton('Copy state path', '/workspace/output/webstudio-control-plane-state.json'), copyButton('Copy dist path', '/workspace/output/webstudio-ops-dashboard-static'), copyButton('Copy local serve', 'cd /workspace/projects/webstudio-ops-dashboard && python3 -m http.server 4173 -d src')])}`, 'span-12')}
@@ -254,12 +424,13 @@ function kanbanCard(t) {
   const kind = classifyCard(t);
   const age = t.age_seconds !== undefined && t.age_seconds !== null ? ` · age=${Math.round(t.age_seconds/60)}m` : '';
   const stale = t.stale_2h ? ' · STALE>2h' : t.stale_30m ? ' · stale>30m' : '';
-  const meta = `${t.assignee || 'unassigned'} · ${kind} · created=${t.created_at || '—'} · completed=${t.completed_at || '—'}${age}${stale}`;
+  const meta = `${t.assignee || 'unassigned'} · ${t.assigned_agent || 'agent?'} · stage=${t.production_stage || t.stage || '—'} · type=${t.task_type || kind} · next=${t.next_action || '—'} · artifact=${t.artifact_path || '—'} · created=${t.created_at || '—'} · completed=${t.completed_at || '—'}${age}${stale}`;
   return row(t.id, t.title, t.status, meta, 'kanban-card', jsonCopy({...t, classification: kind}));
 }
 
 function laneBoard(k) {
-  const order = k.lane_order || ['triage','todo','scheduled','ready','running','blocked','review','done'];
+  const baseOrder = k.lane_order || ['triage','todo','scheduled','ready','running','blocked','review','done','archived'];
+  const order = filters.showArchived ? baseOrder : baseOrder.filter(l => l !== 'archived');
   const lanes = k.lanes || {};
   const q = filters.kanban;
   const kindFilter = filters.kanbanKind;
@@ -302,12 +473,42 @@ function kanban() {
     ${card('Worker Health / repeated crashes detector', `${kv({running: wh.running_count, stale_30m: wh.stale_30m_count, stale_2h: wh.stale_2h_count, repeated_crash_indicators: wh.repeated_crash_indicator_count, contract: wh.lifecycle_contract, report: wh.hardening_report})}${toolbar([copyButton('Copy worker contract', wh.lifecycle_contract || ''), copyButton('Copy worker hardening report', wh.hardening_report || '/workspace/output/worker-lifecycle-contract-hardening-v2.md')])}`, 'span-6')}
     ${card('GitHub PR status', `${kv({account: gh.account_expected, status: gh.status, wrapper_broken: gh.wrapper_broken, repair_packet: gh.repair_packet, report: gh.hardening_report})}${toolbar([copyButton('Copy repair script', gh.repair_packet || '/workspace/output/github-host-repair-and-pr-v2.sh'), copyButton('Copy GitHub report', gh.hardening_report || '/workspace/output/github-hardening-v2-report.md')])}`, 'span-6')}
     ${card('Native vs logical Kanban semantics', `${kv({verdict: sem.verdict, review: sem.review, triage: sem.triage, report: sem.report})}${toolbar([copyButton('Copy semantics report', sem.report || '/workspace/output/kanban-native-review-triage-investigation-v2.md')])}`, 'span-12')}
-    <section class="card span-12 kanban-compact"><h3>Production board — WebStudio source view, all columns visible</h3><p class="label">Logical production lanes from stable [WEBSTUDIO]/D1/D2/D3 taxonomy. This fixes backend gaps where physical triage/review are not first-class statuses.</p>${logicalProductionBoard(prod)}</section>
-    <section class="card span-12 kanban-compact"><h3>Physical Hermes Kanban lanes — compact all-column view, Done newest first</h3><div class="filters">${searchBox('kanbanSearch', 'Search cards / assignee / id…', filters.kanban)}<select id="kanbanLaneFilter">${laneOptions}</select><select id="kanbanKindFilter">${kindOptions}</select></div>${laneBoard(k)}</section>
+    <section class="card span-12 kanban-compact"><h3>Production board — WebStudio source view, all columns visible</h3><p class="label">Logical production lanes from stable [WEBSTUDIO]/D1/D2/D3 taxonomy. Archived canary/noise is visible only as a separate lane and never mixed into active production work.</p>${logicalProductionBoard(prod)}</section>
+    <section class="card span-12 kanban-compact"><h3>Physical Hermes Kanban lanes — compact all-column view, Done newest first</h3><div class="filters">${searchBox('kanbanSearch', 'Search cards / assignee / id…', filters.kanban)}<select id="kanbanLaneFilter">${laneOptions}</select><select id="kanbanKindFilter">${kindOptions}</select><label class="check"><input id="kanbanShowArchived" type="checkbox" ${filters.showArchived ? 'checked' : ''}> Show Archived</label>${clearFiltersButton('kanban')}</div>${laneBoard(k)}</section>
     ${card('Last cards', rows(asArray(k.last_cards), kanbanCard), 'span-12')}
     ${card('Mirror cards sample', rows(asArray(k.mirrors), kanbanCard), 'span-6')}
     ${card('SYS cards', rows(asArray(k.sys_cards), kanbanCard), 'span-6')}
     ${card('Read errors', rows(asArray(k.read_errors).map((x,i)=>({id:i+1,title:String(x),status:'error'})), x => row(x.id, x.title, x.status)), 'span-12')}
+  </div>`;
+}
+
+
+function agentWorkflowDiagram(flow) {
+  const steps = asArray(flow.diagram).length ? asArray(flow.diagram) : ['CTO Agent','Orchestrator Agent','Specialist Agents','QA/Delivery','Done'];
+  return `<div class="agent-diagram">${steps.map((s,i)=>`<div class="agent-node"><strong>${fmt(s)}</strong><small>${i < steps.length - 1 ? 'routes to next' : 'accepted complete'}</small></div>`).join('<span class="agent-arrow">→</span>')}</div>`;
+}
+function agentSectionRow(t) {
+  const meta = `agent=${t.assigned_agent || '—'} · stage=${t.production_stage || '—'} · physical=${t.physical_status || t.status || '—'} · type=${t.task_type || '—'} · next=${t.next_action || '—'} · artifact=${t.artifact_path || '—'} · stale=${t.stale_age ?? '—'}`;
+  return row(t.id, t.title, t.lifecycle_status || t.status || 'tracked', meta, 'kanban-card', jsonCopy(t));
+}
+function agentWorkflow() {
+  const flow = state.agent_workflow || {};
+  const protocol = flow.protocol || {};
+  const gh = flow.github_pr || {};
+  const canaries = asArray(flow.canary_results?.results);
+  const sections = Object.entries(flow.sections || {}).map(([section, cards]) => ({id: section, title: `${section} · ${asArray(cards).length} cards`, status: asArray(cards).length ? 'active' : 'empty', cards}));
+  return `<div class="grid agent-workflow">
+    ${metric('Agent roles', asArray(flow.roles).length, 'span-3')}
+    ${metric('Canaries PASS', canaries.filter(c => c.status === 'done').length + '/' + canaries.length, 'span-3')}
+    ${metric('Repeated crashes', protocol.repeated_crashes_after_indicator_count ?? '—', 'span-3')}
+    ${metric('Stale running/dead PID >2h', protocol.stale_running_dead_pid_after_2h_count ?? protocol.stale_running_after_2h_count ?? '—', 'span-3')}
+    ${card('Agent Workflow', `${agentWorkflowDiagram(flow)}${kv({source_of_truth: flow.source_of_truth, worker_protocol: protocol.doc, silent_finish_allowed: protocol.silent_finish_allowed, ops_lane_status: protocol.ops_lane_status})}`, 'span-12')}
+    ${card('Kanban mapping', kv(flow.kanban_mapping || {}), 'span-6')}
+    ${card('GitHub / PR', `${kv(gh)}${gh.url ? `<div class="toolbar"><a class="copy" href="${esc(gh.url)}" target="_blank" rel="noreferrer">Open PR</a>${copyButton('Copy PR URL', gh.url)}</div>` : ''}`, 'span-6')}
+    ${card('12h autonomous loop', rows(asArray(flow.marathon_loop).map((x,i)=>({id:i+1,title:x,status:'step'})), x => row(x.id, x.title, x.status)), 'span-12')}
+    ${card('Canary Results', rows(canaries, c => row(c.task_id || c.agent, c.agent, c.status, `assignee=${c.assignee} · create_rc=${c.create_rc} · complete_rc=${c.complete_rc} · artifact=${c.artifact_path}`, 'json', jsonCopy(c)), 'No canary results yet'), 'span-12')}
+    ${card('Agent Sections', rows(sections, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x))), 'span-12')}
+    ${Object.entries(flow.sections || {}).map(([section, cards]) => card(section, rows(asArray(cards).slice(0, 30), agentSectionRow, 'No cards in this section'), 'span-6')).join('')}
   </div>`;
 }
 
@@ -333,6 +534,7 @@ function production() {
     ${card('Delivery Queue', rows(asArray(p.delivery_queue), kanbanCard, 'No delivery cards'), 'span-6')}
   </div>`;
 }
+
 
 function d3IntakeRecord(r) {
   const st = r.classification?.raw_inbox_status || r.audit?.capture_status || 'unknown';
@@ -525,7 +727,7 @@ function health() {
     ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot: h.host_snapshot?.path, snapshot_mtime: h.host_snapshot?.mtime, status: h.status})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
     ${card('QMD', kv(h.qmd), 'span-6')}
     ${card('Bad config summary', `<pre class="code block">${fmt(h.bad_config_summary || 'none')}</pre>`, 'span-6')}
-    ${card('GitHub Readiness', kv(state.github_readiness || {}), 'span-6')}
+    ${card('GitHub Readiness', `${kv(state.github_readiness || {})}${state.github_readiness?.completion_result?.pr_url ? `<div class="toolbar"><a class="copy" href="${esc(state.github_readiness.completion_result.pr_url)}" target="_blank" rel="noreferrer">Open PR</a>${copyButton('Copy PR URL', state.github_readiness.completion_result.pr_url)}</div>` : ''}`, 'span-6')}
     ${card('System hardening v3', `${kv(state.system_hardening || {})}${toolbar([copyButton('Copy snapshot processor', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD embed script', '/workspace/.hermes/scripts/qmd-auto-embed.sh'), copyButton('Copy GitHub repair packet', '/workspace/output/github-host-repair-and-pr-v3.sh')])}`, 'span-12')}
     ${card('Sources', rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s))), 'span-12')}
   </div>`;
@@ -567,7 +769,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'd3-intake': d3Intake, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'agent-workflow': agentWorkflow, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
@@ -577,11 +779,15 @@ function bindInputs() {
   $('#kanbanSearch')?.addEventListener('input', e => { filters.kanban = e.target.value; render(); });
   $('#kanbanLaneFilter')?.addEventListener('change', e => { filters.kanbanLane = e.target.value; render(); });
   $('#kanbanKindFilter')?.addEventListener('change', e => { filters.kanbanKind = e.target.value; render(); });
+  $('#kanbanShowArchived')?.addEventListener('change', e => { filters.showArchived = e.target.checked; render(); });
+  $('#clearFiltersBtn')?.addEventListener('click', () => { filters.kanban = ''; filters.kanbanLane = 'all'; filters.kanbanKind = 'all'; filters.showArchived = false; render(); });
   $('#artifactSearch')?.addEventListener('input', e => { filters.artifacts = e.target.value; render(); });
   $('#approvalSearch')?.addEventListener('input', e => { filters.approvals = e.target.value; render(); });
   $('#docSearch')?.addEventListener('input', e => { filters.docs = e.target.value; render(); });
   $('#d3IntakeSearch')?.addEventListener('input', e => { filters.d3Intake = e.target.value; render(); });
   $('#d3IntakeStatusFilter')?.addEventListener('change', e => { filters.d3IntakeStatus = e.target.value; render(); });
+  $('#ownerFeedbackSearch')?.addEventListener('input', e => { filters.ownerFeedback = e.target.value; render(); });
+  $('#ownerFeedbackStateFilter')?.addEventListener('change', e => { filters.ownerFeedbackState = e.target.value; render(); });
 }
 
 async function copyText(value) {
@@ -632,7 +838,9 @@ function handleDetail(type, raw) {
   ].filter(Boolean));
   const body = type === 'd3-intake-record' && payload?.request
     ? d3IntakeDetailBody(payload, actions)
-    : null;
+    : type === 'owner-feedback-record' && payload?.content
+      ? ownerFeedbackDetailBody(payload, actions)
+      : null;
   if (body) {
     const drawer = $('#drawer');
     $('#drawerTitle').textContent = String(title);
@@ -766,6 +974,153 @@ async function handleD3IntakeSubmit(form) {
   render();
 }
 
+
+async function handleOwnerFeedbackSubmit(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  const errors = ownerFeedbackValidation(data);
+  const box = $('#ownerFeedbackValidation');
+  if (errors.length) {
+    if (box) box.innerHTML = validationList(errors);
+    return;
+  }
+  const now = new Date().toISOString();
+  const rawText = String(data.raw_text || '').trim();
+  const contentSha = await sha256Hex(`${rawText}\n${data.source_message_id || ''}\n${data.delivery_lane || 'D1'}`);
+  const existing = readOwnerFeedbackRecords();
+  const sourceMessageId = data.source_message_id || `manual-${contentSha.slice(0, 12)}`;
+  const duplicateOf = existing.find(r => r.source?.source_message_id === sourceMessageId || r.idempotency?.content_sha256 === contentSha)?.id || null;
+  const lane = data.delivery_lane || 'D1';
+  const triageState = lane === 'owner_decision_required' ? 'owner_decision_pending' : (data.triage_state || 'raw');
+  const title = data.normalized_title || ownerFeedbackTitle(rawText);
+  const ownerOptions = linesFromTextarea(data.owner_options);
+  const feedbackId = 'fbk_' + contentSha.slice(0, 12);
+  const record = {
+    id: feedbackId,
+    schema_version: OWNER_FEEDBACK_CONTEXT.schema_version,
+    context: OWNER_FEEDBACK_CONTEXT,
+    source: {
+      source: OWNER_FEEDBACK_CONTEXT.source,
+      source_owner: OWNER_FEEDBACK_CONTEXT.source_owner,
+      source_message_id: sourceMessageId,
+      received_at: now,
+      app_under_test_url: OWNER_FEEDBACK_CONTEXT.app_under_test_url,
+      captured_by: 'ops_dashboard_owner_feedback_form'
+    },
+    content: {
+      raw_text: rawText,
+      normalized_title: title,
+      normalized_summary: data.normalized_summary || shortSummary(rawText),
+      feedback_type: data.feedback_type || 'unknown',
+      evidence: [],
+      affected_area: data.affected_area || 'unknown'
+    },
+    routing: {
+      delivery_lane: lane,
+      routing_reason: ownerFeedbackRouteReason(lane, data.feedback_type),
+      severity: data.severity || 'medium',
+      priority: Number(data.priority || 50),
+      triage_state: duplicateOf ? 'duplicate' : triageState,
+      decision_state: lane === 'owner_decision_required' ? 'queued' : null,
+      followup_kind: data.followup_kind || 'implementation_and_qa'
+    },
+    implementation: {
+      acceptance_criteria: linesFromTextarea(data.acceptance_criteria),
+      reproduction_steps: linesFromTextarea(data.reproduction_steps),
+      expected_behavior: null,
+      actual_behavior: null,
+      scope_notes: 'Generated from WebStudio D1 owner admin testing feedback inbox; no Done transition from inbox.'
+    },
+    links: {
+      linked_kanban_task_ids: [], implementation_task_id: null, qa_task_id: null, owner_decision_task_id: null, duplicate_of: duplicateOf, superseded_by: null
+    },
+    owner_decision: lane === 'owner_decision_required' ? {
+      decision_id: 'dec_' + contentSha.slice(0, 12),
+      feedback_id: feedbackId,
+      question: data.owner_question || 'Какой результат нужен по этому owner feedback?',
+      options: ownerOptions.length ? ownerOptions.slice(0, 4) : ['Route to D1 implementation with narrow UI acceptance criteria', 'Route to D3 workflow/spec decision before implementation'],
+      recommended_option: ownerOptions[0] || 'Route to D1 implementation with narrow UI acceptance criteria',
+      blocking: true,
+      decision_state: 'queued',
+      owner_answer_raw: null,
+      owner_answer_normalized: null,
+      applied_to_feedback_at: null
+    } : null,
+    idempotency: {content_sha256: contentSha, duplicate_of: duplicateOf, duplicate_policy: 'mark_duplicate_not_done'},
+    audit: {created_by: 'ops_dashboard_local_form', updated_by: 'ops_dashboard_local_form', created_at: now, updated_at: now, closed_at: null, close_reason: null, guard: 'raw owner feedback cannot move directly to Done'}
+  };
+  writeOwnerFeedbackRecords([record, ...existing]);
+  form.reset();
+  toast(duplicateOf ? 'Captured duplicate owner feedback marker' : 'Captured owner feedback');
+  render();
+}
+function buildOwnerFeedbackPayloads(record, kind) {
+  const lane = record.routing?.delivery_lane || 'D1';
+  const title = record.content?.normalized_title || 'Owner feedback';
+  const baseBody = [
+    `Feedback id: ${record.id}`,
+    `Owner source: ${record.source?.source_owner || OWNER_FEEDBACK_CONTEXT.source_owner} / ${record.source?.source || OWNER_FEEDBACK_CONTEXT.source}`,
+    `Source message id: ${record.source?.source_message_id || 'manual'}`,
+    `Lane: ${lane}`,
+    `App under test: ${record.context?.app_under_test_url || OWNER_FEEDBACK_CONTEXT.app_under_test_url}`,
+    `Summary: ${record.content?.normalized_summary || title}`,
+    `Acceptance criteria:\n${asArray(record.implementation?.acceptance_criteria).map(x => '- ' + x).join('\n') || '- Needs owner clarification before implementation'}`,
+    `Reproduction / QA notes:\n${asArray(record.implementation?.reproduction_steps).map(x => '- ' + x).join('\n') || '- Not provided yet'}`,
+    `Exclusions: Do not mark feedback inbox Done; do not perform production writes; verify owner-visible behavior through QA/owner acceptance.`
+  ].join('\n\n');
+  if (kind === 'owner_decision') {
+    return [{
+      title: `[OWNER-DECISION][owner-feedback] ${title}`,
+      assignee: 'default',
+      tenant: OWNER_FEEDBACK_CONTEXT.tenant,
+      status: 'todo_or_ready_not_done',
+      body: `${baseBody}\n\nOwner question: ${record.owner_decision?.question || 'Clarify desired result'}\nOptions:\n${asArray(record.owner_decision?.options).map(x => '- ' + x).join('\n')}`,
+      idempotency_key: `webstudio:D1:owner-feedback:${record.id}:decision`
+    }];
+  }
+  const payloads = [];
+  if (kind !== 'qa_only') {
+    payloads.push({
+      title: `[${lane}][owner-feedback] ${title}`,
+      assignee: 'default',
+      tenant: OWNER_FEEDBACK_CONTEXT.tenant,
+      status: 'todo_or_ready_not_done',
+      body: baseBody,
+      idempotency_key: `webstudio:${lane}:owner-feedback:${record.id}:implementation`
+    });
+  }
+  if (kind !== 'implementation_only') {
+    payloads.push({
+      title: `[QA][${lane}][owner-feedback] Verify ${title}`,
+      assignee: 'default',
+      tenant: OWNER_FEEDBACK_CONTEXT.tenant,
+      status: 'todo_or_ready_not_done',
+      parent_policy: payloads[0] ? 'depends_on_implementation_card' : 'qa_only_read_only_check',
+      body: `${baseBody}\n\nQA verification: confirm acceptance criteria, regression risk, and owner-visible result. Feedback item can only close after QA pass plus owner acceptance/waiver.`,
+      idempotency_key: `webstudio:${lane}:owner-feedback:${record.id}:qa`
+    });
+  }
+  return payloads;
+}
+function handleOwnerFeedbackScope(id, kind) {
+  const records = readOwnerFeedbackRecords();
+  const idx = records.findIndex(r => r.id === id);
+  if (idx < 0) return;
+  const record = ownerFeedbackApplyOverlay(records[idx], readOwnerFeedbackOverlays()[id]);
+  const payloads = buildOwnerFeedbackPayloads(record, kind || record.routing?.followup_kind || 'implementation_and_qa');
+  records[idx] = {
+    ...records[idx],
+    card_payloads: payloads,
+    routing: {...records[idx].routing, triage_state: kind === 'owner_decision' ? 'owner_decision_pending' : 'scoped_to_kanban'},
+    audit: {...records[idx].audit, updated_at: new Date().toISOString(), updated_by: 'ops_dashboard_payload_preparer'}
+  };
+  writeOwnerFeedbackRecords(records);
+  copyText(jsonCopy(payloads));
+  toast('Prepared scoped card payloads and copied JSON');
+  closeDrawer();
+  render();
+}
+
+
 window.addEventListener('hashchange', () => { route = window.location.hash.replace('#','') || 'overview'; render(); });
 $('#refreshBtn').addEventListener('click', loadState);
 $('#exportBtn').addEventListener('click', () => {
@@ -779,6 +1134,12 @@ $('#drawerClose').addEventListener('click', closeDrawer);
 $('#drawerBackdrop').addEventListener('click', closeDrawer);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 document.addEventListener('submit', e => {
+  const ownerForm = e.target.closest?.('#ownerFeedbackForm');
+  if (ownerForm) {
+    e.preventDefault();
+    handleOwnerFeedbackSubmit(ownerForm);
+    return;
+  }
   const triageForm = e.target.closest?.('#d3TriageForm');
   if (triageForm) {
     e.preventDefault();
@@ -791,6 +1152,8 @@ document.addEventListener('submit', e => {
   handleD3IntakeSubmit(form);
 });
 document.addEventListener('click', e => {
+  const ownerScope = e.target.closest('[data-owner-feedback-scope]');
+  if (ownerScope) { handleOwnerFeedbackScope(ownerScope.getAttribute('data-owner-feedback-scope'), ownerScope.getAttribute('data-scope-kind')); return; }
   const copy = e.target.closest('[data-copy]');
   if (copy) { copyText(copy.getAttribute('data-copy') || ''); return; }
   const routeCard = e.target.closest('[data-route]');
