@@ -35,11 +35,10 @@ for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
 required_labels = [
-    'Ops Cockpit',
-    'MIRROR ONLY',
-    'DO NOT DISPATCH',
-    'dispatch_allowed=false',
-    'worker_allowed=false',
+    'Админка веб-студии',
+    'только чтение',
+    'без запуска задач',
+    'без записи в production',
 ]
 for label in required_labels:
     assert label in html, f'missing label {label}'

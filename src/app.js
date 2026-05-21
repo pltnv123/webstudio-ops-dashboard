@@ -31,6 +31,19 @@ const stringify = (v, limit = 1400) => {
 const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
+const RU = {
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
+  pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка'
+};
+const STAGE_RU = {'intake':'Заявки','client-qualification':'Квалификация','brief':'Бриф','estimate-pricing':'Оценка','architecture-plan':'План','design-content':'Дизайн/контент','implementation':'Разработка','qa':'QA','approval':'Согласование','delivery-handoff':'Передача клиенту','post-delivery-support':'Поддержка','unspecified':'Без стадии','canary':'Проверка','archived-noise':'Архив/шум'};
+const LINE_RU = {D1:'D1 — Лендинги и сайты',D2:'D2 — AI-intake Telegram bot',D3:'D3 — Бизнес-автоматизации'};
+const ROLE_RU = {'CTO Agent':'CTO-агент','Orchestrator Agent':'Оркестратор','Specialist Agents':'Исполнители','QA/Delivery':'QA и передача','Done':'Готово','Frontend Agent':'Frontend-агент','Backend Agent':'Backend-агент','QA Agent':'QA-агент','Delivery Agent':'Передача','Specialist Agent':'Исполнитель'};
+const ru = (v) => RU[String(v)] || STAGE_RU[String(v)] || LINE_RU[String(v)] || ROLE_RU[String(v)] || String(v ?? '—');
+const shortText = (v, n=92) => { const t = String(v || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : (t || '—'); };
+const shortPath = (v) => { const t=String(v||''); return t.length > 42 ? '…/' + t.split('/').slice(-2).join('/') : (t || '—'); };
+const cleanTitle = (v) => String(v || '').replace(/\[WEBSTUDIO\]|\[D1\]|\[D2\]|\[D3\]|\[AGENT\]|\[OPS\]|\[REVIEW\]|\[DELIVERY\]|\[BLOCKED\]/g, '').replace(/\s+/g,' ').trim();
+
 async function loadState() {
   if (window.__WEBSTUDIO_STATE__) {
     state = window.__WEBSTUDIO_STATE__;
@@ -49,45 +62,47 @@ function updateChrome() {
   const pill = $('#safetyPill');
   const s = state?.safety?.status || 'unknown';
   pill.className = 'pill ' + (s === 'pass' ? 'ok' : s === 'fail' ? 'bad' : 'warn');
-  pill.textContent = 'Safety: ' + s.toUpperCase();
-  $('#footerState').textContent = `Source: ${state?.schema_version || 'unknown'} · generated ${state?.generated_at || '—'} · READ ONLY`;
+  pill.textContent = 'Безопасность: ' + (s === 'pass' ? 'OK' : ru(s));
+  $('#footerState').textContent = `Источник: ${state?.schema_version || 'unknown'} · обновлено ${state?.generated_at || '—'} · только чтение`;
 }
 
 function card(title, body, span='span-4', extra='') {
-  return `<section class="card ${span} ${extra}"><h3>${title}</h3>${body}</section>`;
+  return `<section class="card ${span} ${extra}"><h3>${fmt(title)}</h3>${body}</section>`;
 }
 function metric(label, value, span='span-3', target='') {
   const attr = target ? ` data-route="${esc(target)}"` : '';
   return `<section class="card metric-card ${span}"${attr}><p class="metric">${fmt(value)}</p><p class="label">${fmt(label)}</p></section>`;
 }
-function rows(items, mapper, empty='No items') {
-  if (!items || !items.length) return `<div class="empty">${empty}</div>`;
+function rows(items, mapper, empty='Нет элементов') {
+  if (!items || !items.length) return `<div class="empty">${fmt(empty)}</div>`;
   return `<div class="list">${items.map(mapper).join('')}</div>`;
 }
-function rowsTop(items, mapper, limit=5, empty='No items') {
+function rowsTop(items, mapper, limit=5, empty='Нет элементов') {
   const list = asArray(items);
-  if (!list.length) return `<div class="empty">${empty}</div>`;
+  if (!list.length) return `<div class="empty">${fmt(empty)}</div>`;
   const visible = list.slice(0, limit);
-  const more = list.length > limit ? `<details class="view-more"><summary>View ${list.length - limit} more</summary><div class="list">${list.slice(limit).map(mapper).join('')}</div></details>` : '';
+  const more = list.length > limit ? `<details class="view-more"><summary>Ещё ${list.length - limit}</summary><div class="list">${list.slice(limit).map(mapper).join('')}</div></details>` : '';
   return `<div class="list">${visible.map(mapper).join('')}</div>${more}`;
 }
 function collapsibleCard(title, body, span='span-12', open=false) {
-  return `<section class="card ${span} collapsible"><details ${open ? 'open' : ''}><summary><h3>${title}</h3></summary>${body}</details></section>`;
+  return `<section class="card ${span} collapsible"><details ${open ? 'open' : ''}><summary><h3>${fmt(title)}</h3></summary>${body}</details></section>`;
 }
-function badge(text, kind='') { return `<span class="status ${statusClass(kind || text)}">${fmt(text)}</span>`; }
+function badge(text, kind='') { return `<span class="status ${statusClass(kind || text)}">${fmt(ru(text))}</span>`; }
 function row(id, title, status, meta='', detailType='', payload='') {
   const detailAttrs = detailType ? ` role="button" tabindex="0" data-detail-type="${esc(detailType)}" data-detail-payload="${esc(payload)}"` : '';
-  return `<div class="row"${detailAttrs}><span class="status ${statusClass(status)}">${fmt(id)}</span><strong>${fmt(title)}</strong><span class="status ${statusClass(status)}">${fmt(status)}</span>${meta ? `<small class="label" style="grid-column:1/-1">${fmt(meta)}</small>`:''}</div>`;
+  const metaHtml = meta ? `<small class="label row-meta">${fmt(meta)}</small>` : '';
+  const details = payload ? `<details class="raw-details"><summary>Подробнее</summary><pre class="code mini">${fmt(stringify(payload, 1200))}</pre></details>` : '';
+  return `<div class="row compact-row"${detailAttrs}><span class="status ${statusClass(status)}">${fmt(id)}</span><strong title="${esc(title)}">${fmt(shortText(title, 96))}</strong><span class="status ${statusClass(status)}">${fmt(ru(status))}</span>${metaHtml}${details}</div>`;
 }
 function kv(obj) {
-  return `<dl class="kv">${Object.entries(obj || {}).map(([k, v]) => `<dt>${fmt(k)}</dt><dd>${typeof v === 'object' ? `<pre class="code mini">${fmt(stringify(v, 520))}</pre>` : fmt(v)}</dd>`).join('')}</dl>`;
+  return `<dl class="kv">${Object.entries(obj || {}).map(([k, v]) => `<dt>${fmt(ru(k))}</dt><dd>${typeof v === 'object' ? `<pre class="code mini">${fmt(stringify(v, 520))}</pre>` : fmt(ru(v))}</dd>`).join('')}</dl>`;
 }
 function copyButton(label, value, variant='') {
   return `<button class="copy ${variant}" type="button" data-copy="${esc(value)}">${fmt(label)}</button>`;
 }
 function toolbar(items) { return `<div class="toolbar">${items.join('')}</div>`; }
 function searchBox(id, placeholder, value='') { return `<input id="${esc(id)}" class="search" placeholder="${esc(placeholder)}" value="${esc(value)}">`; }
-function clearFiltersButton(scope='all') { return `<button id="clearFiltersBtn" class="ghost" type="button" data-clear-scope="${esc(scope)}">Clear Filters</button>`; }
+function clearFiltersButton(scope='all') { return `<button id="clearFiltersBtn" class="ghost" type="button" data-clear-scope="${esc(scope)}">Сбросить фильтры</button>`; }
 
 const D3_INTAKE_STORAGE_KEY = 'webstudio.d3.rawRequirementsInbox.v1';
 const D3_INTAKE_CONTEXT = {
@@ -359,7 +374,7 @@ function ownerFeedback() {
     ${card('Capture owner feedback', ownerFeedbackForm(), 'span-12')}
     ${card('Inbox counts', kv(counts), 'span-4')}
     ${card('Owner decision queue', rows(ambiguous, ownerFeedbackRow, 'No ambiguous feedback waiting for owner decision'), 'span-8')}
-    <section class="card span-12"><h3>Pending owner feedback items</h3><div class="filters intake-filters">${searchBox('ownerFeedbackSearch', 'Search owner feedback / D1 / D2 / D3 / affected area…', filters.ownerFeedback)}<select id="ownerFeedbackStateFilter">${stateOptions}</select></div>${filtered.length ? rows(filtered, ownerFeedbackRow) : `<div class="empty"><strong>No owner feedback matches filters.</strong><br>Paste owner testing feedback above. Ambiguous items route to owner decision queue; no Done destination exists here.</div>`}</section>
+    <section class="card span-12"><h3>Ожидают owner feedback items</h3><div class="filters intake-filters">${searchBox('ownerFeedbackSearch', 'Search owner feedback / D1 / D2 / D3 / affected area…', filters.ownerFeedback)}<select id="ownerFeedbackStateFilter">${stateOptions}</select></div>${filtered.length ? rows(filtered, ownerFeedbackRow) : `<div class="empty"><strong>No owner feedback matches filters.</strong><br>Paste owner testing feedback above. Ambiguous items route to owner decision queue; no Done destination exists here.</div>`}</section>
   </div>`;
 }
 
@@ -377,26 +392,26 @@ function sourceSummary() {
 
 function overview() {
   const wf = state.work_factory || {}, kb = state.kanban || {}, h = state.health || {}, safety = state.safety || {}, wh = state.worker_health || {}, gh = state.github_readiness || {};
-  const ownerSummary = `WebStudio Ops\nSafety: ${safety.status}\nWF: ${wf.counts?.completed || 0} completed, ${wf.counts?.pending || 0} pending, ${wf.counts?.approval_required || asArray(state.approvals).length} approvals, ${wf.counts?.blocked_error || 0} blocked/errors\nKanban: ${kb.task_total || 0} cards; ready/running=${kb.counts?.ready || 0}/${kb.counts?.running || 0}\nHealth: ${h.status}; QMD pending=${h.qmd?.pending_embeddings ?? '—'}`;
+  const ownerSummary = `WebStudio Ops\nSafety: ${safety.status}\nWF: ${wf.counts?.completed || 0} completed, ${wf.counts?.pending || 0} pending, ${wf.counts?.approval_required || asArray(state.approvals).length} approvals, ${wf.counts?.blocked_error || 0} blocked/errors\nKanban: ${kb.task_total || 0} cards; ready/running=${kb.counts?.ready || 0}/${kb.counts?.running || 0}\nHealth: ${h.status}; QMD очередь=${h.qmd?.pending_embeddings ?? '—'}`;
   return `<div class="grid">
-    ${metric('WF completed', wf.counts?.completed, 'span-3', 'work-factory')}
-    ${metric('Pending', wf.counts?.pending, 'span-3', 'work-factory')}
-    ${metric('Approvals', asArray(state.approvals).length, 'span-3', 'approvals')}
-    ${metric('Blocked/errors', wf.counts?.blocked_error, 'span-3', 'work-factory')}
-    ${metric('Kanban total', kb.task_total, 'span-3', 'kanban')}
-    ${metric('Production active', state.production_pipeline?.counts?.active || 0, 'span-3', 'production')}
-    ${metric('Ready/running', `${kb.counts?.ready || 0}/${kb.counts?.running || 0}`, 'span-3', 'kanban')}
-    ${metric('Artifacts', asArray(state.artifacts).length, 'span-3', 'artifacts')}
-    ${metric('QMD pending', h.qmd?.pending_embeddings, 'span-3', 'health')}
-    ${metric('Worker stale >2h', wh.stale_2h_count ?? '—', 'span-3', 'kanban')}
+    ${metric('Готово WF', wf.counts?.completed, 'span-3', 'work-factory')}
+    ${metric('Ожидают', wf.counts?.pending, 'span-3', 'work-factory')}
+    ${metric('Согласования', asArray(state.approvals).length, 'span-3', 'approvals')}
+    ${metric('Блокеры/ошибки', wf.counts?.blocked_error, 'span-3', 'work-factory')}
+    ${metric('Карточек Kanban', kb.task_total, 'span-3', 'kanban')}
+    ${metric('Активно в производстве', state.production_pipeline?.counts?.active || 0, 'span-3', 'production')}
+    ${metric('Готово/выполняется', `${kb.counts?.ready || 0}/${kb.counts?.running || 0}`, 'span-3', 'kanban')}
+    ${metric('Артефакты', asArray(state.artifacts).length, 'span-3', 'artifacts')}
+    ${metric('QMD очередь', h.qmd?.pending_embeddings, 'span-3', 'health')}
+    ${metric('Зависшие >2ч', wh.stale_2h_count ?? '—', 'span-3', 'kanban')}
     ${metric('GitHub', gh.status || 'unknown', 'span-3', 'health')}
-    ${metric('Snapshot backlog', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
-    ${metric('12h marathon', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
-    ${metric('Agent workflow', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
-    ${card('Safety contract', `${kv({status: safety.status, read_only: safety.read_only, dispatch_allowed: safety.dispatch_allowed, worker_allowed: safety.worker_allowed, mirror_executable_count: safety.mirror_executable_count, duplicate_keys: Object.keys(safety.duplicate_keys || {}).length})}${toolbar([copyButton('Copy safety contract', `Safety contract:\nread_only=${safety.read_only}\ndispatch_allowed=${safety.dispatch_allowed}\nworker_allowed=${safety.worker_allowed}\nforbidden=${asArray(safety.forbidden_actions).join(', ')}`), copyButton('Copy owner summary', ownerSummary)])}`, 'span-6')}
-    ${card('Current health', kv({status: h.status, gateway_active: h.gateway_active, qmd_pending_embeddings: h.qmd?.pending_embeddings, primary_model: h.primary_model_line}), 'span-6')}
-    ${card('Source of truth', `${kv(sourceSummary())}${toolbar([copyButton('Copy state path', '/workspace/output/webstudio-control-plane-state.json'), copyButton('Copy dist path', '/workspace/output/webstudio-ops-dashboard-static'), copyButton('Copy local serve', 'cd /workspace/projects/webstudio-ops-dashboard && python3 -m http.server 4173 -d src')])}`, 'span-12')}
-    ${card('Product lines', rows(asArray(state.product_lines), p => row(p.id, p.name, p.status, 'Autonomy: ' + asArray(p.autonomy_levels).join(', '), 'json', jsonCopy(p))), 'span-12')}
+    ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
+    ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
+    ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
+    ${card('Безопасность', `${kv({status: safety.status, read_only: safety.read_only, dispatch_allowed: safety.dispatch_allowed, worker_allowed: safety.worker_allowed, mirror_executable_count: safety.mirror_executable_count, duplicate_keys: Object.keys(safety.duplicate_keys || {}).length})}${toolbar([copyButton('Copy safety contract', `Безопасность:\nread_only=${safety.read_only}\ndispatch_allowed=${safety.dispatch_allowed}\nworker_allowed=${safety.worker_allowed}\nforbidden=${asArray(safety.forbidden_actions).join(', ')}`), copyButton('Copy owner summary', ownerSummary)])}`, 'span-6')}
+    ${card('Система сейчас', kv({status: h.status, gateway_active: h.gateway_active, qmd_pending_embeddings: h.qmd?.pending_embeddings, primary_model: h.primary_model_line}), 'span-6')}
+    ${card('Источник данных', `${kv(sourceSummary())}${toolbar([copyButton('Copy state path', '/workspace/output/webstudio-control-plane-state.json'), copyButton('Copy dist path', '/workspace/output/webstudio-ops-dashboard-static'), copyButton('Copy local serve', 'cd /workspace/projects/webstudio-ops-dashboard && python3 -m http.server 4173 -d src')])}`, 'span-12')}
+    ${card('Продуктовые линии', rows(asArray(state.product_lines), p => row(p.id, p.name, p.status, 'Autonomy: ' + asArray(p.autonomy_levels).join(', '), 'json', jsonCopy(p))), 'span-12')}
   </div>`;
 }
 
@@ -410,13 +425,13 @@ function workFactory() {
   const q = filters.wf;
   const filtered = all.filter(t => includes(t, q));
   return `<div class="grid">
-    ${metric('Backlog total', wf.counts?.backlog_total)}${metric('Completed', wf.counts?.completed)}${metric('Pending', wf.counts?.pending)}${metric('Approvals', wf.counts?.approval_required || asArray(wf.approval_required).length)}
+    ${metric('Backlog total', wf.counts?.backlog_total)}${metric('Completed', wf.counts?.completed)}${metric('Ожидают', wf.counts?.pending)}${metric('Согласования', wf.counts?.approval_required || asArray(wf.approval_required).length)}
     ${card('Tick / supervisor state', `${kv({source_of_truth: wf.source_of_truth, mode: wf.mode, enabled: wf.enabled, timer_enabled: wf.timer_enabled, updated_at: wf.updated_at, last_event: wf.last_event})}${toolbar([copyButton('Copy WF source path', wf.source_of_truth || '/workspace/output/work-factory-supervisor-state.json'), copyButton('Copy rebuild admin snapshot', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-6')}
     ${card('Progress', kv(wf.progress), 'span-6')}
     ${card('Roadmap manager', kv(wf.roadmap_manager), 'span-6')}
     ${card('Capability inventory', kv(wf.capability_inventory), 'span-6')}
     <section class="card span-12"><h3>Touchable Work Factory queue</h3>${searchBox('wfSearch', 'Search WF task / output / category…', q)}${rows(filtered, wfTaskRow, 'No WF tasks match')}</section>
-    ${card('Pending queue', rows(asArray(wf.pending), wfTaskRow), 'span-6')}
+    ${card('Ожидают queue', rows(asArray(wf.pending), wfTaskRow), 'span-6')}
     ${card('Approval required', rows(asArray(wf.approval_required), wfTaskRow), 'span-6')}
     ${card('Blocked / errors', rows(asArray(wf.blocked_error), wfTaskRow), 'span-6')}
     ${card('Latest completed', rows(asArray(wf.latest_completed).slice(0, 40), wfTaskRow), 'span-6')}
@@ -433,10 +448,12 @@ function classifyCard(t) {
 
 function kanbanCard(t) {
   const kind = classifyCard(t);
-  const age = t.age_seconds !== undefined && t.age_seconds !== null ? ` · age=${Math.round(t.age_seconds/60)}m` : '';
-  const stale = t.stale_2h ? ' · STALE>2h' : t.stale_30m ? ' · stale>30m' : '';
-  const meta = `${t.assignee || 'unassigned'} · ${t.assigned_agent || 'agent?'} · stage=${t.production_stage || t.stage || '—'} · type=${t.task_type || kind} · next=${t.next_action || '—'} · artifact=${t.artifact_path || '—'} · created=${t.created_at || '—'} · completed=${t.completed_at || '—'}${age}${stale}`;
-  return row(t.id, t.title, t.status, meta, 'kanban-card', jsonCopy({...t, classification: kind}));
+  const agent = ROLE_RU[t.assigned_agent] || ROLE_RU[t.assignee] || t.assigned_agent || t.assignee || '—';
+  const stage = ru(t.production_stage || t.stage || '—');
+  const next = shortText(t.next_action || 'следующий шаг не задан', 54);
+  const artifact = shortPath(t.artifact_path || '');
+  const meta = `агент: ${agent} · стадия: ${stage} · следующее: ${next}${artifact !== '—' ? ` · артефакт: ${artifact}` : ''}`;
+  return row(t.id, cleanTitle(t.title), t.status || t.lifecycle_status || 'tracked', meta, 'kanban-card', jsonCopy({...t, classification: kind}));
 }
 
 function laneBoard(k) {
@@ -446,25 +463,25 @@ function laneBoard(k) {
   const q = filters.kanban;
   const kindFilter = filters.kanbanKind;
   const laneFilter = filters.kanbanLane;
-  return `<div class="kanban-board">${order.filter(l => laneFilter === 'all' || laneFilter === l).map(lane => {
+  return `<div class="kanban-board all-columns">${order.filter(l => laneFilter === 'all' || laneFilter === l).map(lane => {
     const allItems = asArray(lanes[lane]);
     const items = allItems.filter(t => includes(t, q)).filter(t => kindFilter === 'all' || classifyCard(t) === kindFilter);
-    const limit = lane === 'done' ? 60 : 80;
+    const limit = 5;
     const visible = items.slice(0, limit);
-    const more = items.length > limit ? `<div class="empty">+${items.length - limit} more</div>` : '';
+    const more = items.length > limit ? `<div class="more-count">ещё ${items.length - limit}</div>` : '';
     const risk = ['ready','running','todo','triage','scheduled'].includes(lane) && allItems.some(t => ['mirror','sys'].includes(classifyCard(t))) ? ' safety-risk' : '';
-    return `<section class="lane ${statusClass(lane)}${risk}"><h3>${fmt(lane.toUpperCase())} <span>${items.length}/${allItems.length}</span></h3>${rows(visible, kanbanCard, 'No tasks')}${more}</section>`;
+    return `<section class="lane ${statusClass(lane)}${risk}"><h3>${fmt(ru(lane))} <span>${items.length}</span></h3>${rows(visible, kanbanCard, 'Пусто')}${more}</section>`;
   }).join('')}</div>`;
 }
 
 function logicalProductionBoard(prod) {
   const order = ['triage','todo','scheduled','ready','in_progress','blocked','review','done','archived'];
   const lanes = prod.logical_lanes || {};
-  return `<div class="kanban-board production-board">${order.map(lane => {
+  return `<div class="kanban-board production-board all-columns">${order.map(lane => {
     const allItems = asArray(lanes[lane]);
-    const visible = allItems.slice(0, lane === 'archived' ? 30 : 40);
-    const more = allItems.length > visible.length ? `<div class="empty">+${allItems.length - visible.length} more</div>` : '';
-    return `<section class="lane ${statusClass(lane)}"><h3>${fmt(lane.toUpperCase())} <span>${allItems.length}</span></h3>${rows(visible, kanbanCard, 'No production cards')}${more}</section>`;
+    const visible = allItems.slice(0, 5);
+    const more = allItems.length > visible.length ? `<div class="more-count">ещё ${allItems.length - visible.length}</div>` : '';
+    return `<section class="lane ${statusClass(lane)}"><h3>${fmt(ru(lane))} <span>${allItems.length}</span></h3>${rows(visible, kanbanCard, 'Пусто')}${more}</section>`;
   }).join('')}</div>`;
 }
 
@@ -477,30 +494,30 @@ function kanban() {
   const laneOptions = ['all', ...(k.lane_order || [])].map(x => `<option value="${esc(x)}"${filters.kanbanLane === x ? ' selected' : ''}>${fmt(x)}</option>`).join('');
   const kindOptions = ['all','normal','mirror','sys','approval'].map(x => `<option value="${esc(x)}"${filters.kanbanKind === x ? ' selected' : ''}>${fmt(x)}</option>`).join('');
   return `<div class="grid">
-    ${metric('Total cards', k.task_total)}${metric('Production cards', prod.counts?.total || 0, 'span-3', 'production')}${metric('Mirror cards', k.mirror_total)}${metric('Executable mirrors', k.executable_mirror_count)}
-    ${card('Physical lane counts', kv(k.counts), 'span-6')}
-    ${card('Production logical lane counts', kv(prod.logical_counts || {}), 'span-6')}
-    ${card('Safety / duplicates', `${kv({executable_mirror_count: k.executable_mirror_count, duplicate_keys: Object.keys(k.duplicate_keys || {}).length, list_available: k.list_available, stats_available: k.stats_available})}${toolbar([copyButton('Copy Kanban stats', k.stats_text || ''), copyButton('Copy read-only stats command', 'hermes kanban stats')])}`, 'span-6')}
-    ${card('Worker Health / repeated crashes detector', `${kv({running: wh.running_count, stale_30m: wh.stale_30m_count, stale_2h: wh.stale_2h_count, repeated_crash_indicators: wh.repeated_crash_indicator_count, contract: wh.lifecycle_contract, report: wh.hardening_report})}${toolbar([copyButton('Copy worker contract', wh.lifecycle_contract || ''), copyButton('Copy worker hardening report', wh.hardening_report || '/workspace/output/worker-lifecycle-contract-hardening-v2.md')])}`, 'span-6')}
-    ${card('GitHub PR status', `${kv({account: gh.account_expected, status: gh.status, pr_url: gh.pr_url, latest_commit_sha: gh.latest_commit_sha, pushed_at: gh.pushed_at, wrapper_broken: gh.wrapper_broken, repair_packet: gh.repair_packet, report: gh.hardening_report})}${toolbar([gh.pr_url ? `<a class="copy" href="${esc(gh.pr_url)}" target="_blank" rel="noreferrer">Open PR</a>` : '', copyButton('Copy PR URL', gh.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1'), copyButton('Copy latest commit', gh.latest_commit_sha || ''), copyButton('Copy GitHub report', gh.hardening_report || '/workspace/output/github-hardening-v2-report.md')].filter(Boolean))}`, 'span-6')}
-    ${card('Native vs logical Kanban semantics', `${kv({verdict: sem.verdict, review: sem.review, triage: sem.triage, report: sem.report})}${toolbar([copyButton('Copy semantics report', sem.report || '/workspace/output/kanban-native-review-triage-investigation-v2.md')])}`, 'span-12')}
-    <section class="card span-12 kanban-compact"><h3>Production board — WebStudio source view, all columns visible</h3><p class="label">Logical production lanes from stable [WEBSTUDIO]/D1/D2/D3 taxonomy. Archived canary/noise is visible only as a separate lane and never mixed into active production work.</p>${logicalProductionBoard(prod)}</section>
-    <section class="card span-12 kanban-compact"><h3>Physical Hermes Kanban lanes — compact all-column view, Done newest first</h3><div class="filters">${searchBox('kanbanSearch', 'Search cards / assignee / id…', filters.kanban)}<select id="kanbanLaneFilter">${laneOptions}</select><select id="kanbanKindFilter">${kindOptions}</select><label class="check"><input id="kanbanShowArchived" type="checkbox" ${filters.showArchived ? 'checked' : ''}> Show Archived</label>${clearFiltersButton('kanban')}</div>${laneBoard(k)}</section>
-    ${card('Last cards', rows(asArray(k.last_cards), kanbanCard), 'span-12')}
-    ${card('Mirror cards sample', rows(asArray(k.mirrors), kanbanCard), 'span-6')}
-    ${card('SYS cards', rows(asArray(k.sys_cards), kanbanCard), 'span-6')}
-    ${card('Read errors', rows(asArray(k.read_errors).map((x,i)=>({id:i+1,title:String(x),status:'error'})), x => row(x.id, x.title, x.status)), 'span-12')}
+    ${metric('Всего карточек', k.task_total)}${metric('Производственные задачи', prod.counts?.total || 0, 'span-3', 'production')}${metric('Зеркала', k.mirror_total)}${metric('Исполняемые зеркала', k.executable_mirror_count)}
+    ${card('Физические колонки', kv(k.counts), 'span-6')}
+    ${card('Производственные колонки', kv(prod.logical_counts || {}), 'span-6')}
+    ${card('Безопасность / дубли', `${kv({executable_mirror_count: k.executable_mirror_count, duplicate_keys: Object.keys(k.duplicate_keys || {}).length, list_available: k.list_available, stats_available: k.stats_available})}${toolbar([copyButton('Copy Kanban stats', k.stats_text || ''), copyButton('Copy read-only stats command', 'hermes kanban stats')])}`, 'span-6')}
+    ${card('Здоровье воркеров', `${kv({running: wh.running_count, stale_30m: wh.stale_30m_count, stale_2h: wh.stale_2h_count, repeated_crash_indicators: wh.repeated_crash_indicator_count, contract: wh.lifecycle_contract, report: wh.hardening_report})}${toolbar([copyButton('Copy worker contract', wh.lifecycle_contract || ''), copyButton('Copy worker hardening report', wh.hardening_report || '/workspace/output/worker-lifecycle-contract-hardening-v2.md')])}`, 'span-6')}
+    ${card('GitHub PR status', `${kv({account: gh.account_expected, status: gh.status, pr_url: gh.pr_url, latest_commit_sha: gh.latest_commit_sha, pushed_at: gh.pushed_at, wrapper_broken: gh.wrapper_broken, repair_packet: gh.repair_packet, report: gh.hardening_report})}${toolbar([gh.pr_url ? `<a class="copy" href="${esc(gh.pr_url)}" target="_blank" rel="noreferrer">Открыть PR</a>` : '', copyButton('Скопировать PR URL', gh.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1'), copyButton('Скопировать commit', gh.latest_commit_sha || ''), copyButton('Copy GitHub report', gh.hardening_report || '/workspace/output/github-hardening-v2-report.md')].filter(Boolean))}`, 'span-6')}
+    ${card('Семантика Канбана', `${kv({verdict: sem.verdict, review: sem.review, triage: sem.triage, report: sem.report})}${toolbar([copyButton('Copy semantics report', sem.report || '/workspace/output/kanban-native-review-triage-investigation-v2.md')])}`, 'span-12')}
+    <section class="card span-12 kanban-compact"><h3>Производственная доска — все столбики</h3><p class="label">Logical production lanes from stable [WEBSTUDIO]/D1/D2/D3 taxonomy. Archived canary/noise is visible only as a separate lane and never mixed into active production work.</p>${logicalProductionBoard(prod)}</section>
+    <section class="card span-12 kanban-compact"><h3>Физический Kanban Hermes — компактно</h3><div class="filters">${searchBox('kanbanSearch', 'Поиск карточек / агента / id…', filters.kanban)}<select id="kanbanLaneFilter">${laneOptions}</select><select id="kanbanKindFilter">${kindOptions}</select><label class="check"><input id="kanbanShowArchived" type="checkbox" ${filters.showArchived ? 'checked' : ''}> Показать архив</label>${clearFiltersButton('kanban')}</div>${laneBoard(k)}</section>
+    ${card('Последние карточки', rows(asArray(k.last_cards), kanbanCard), 'span-12')}
+    ${card('Зеркала sample', rows(asArray(k.mirrors), kanbanCard), 'span-6')}
+    ${card('Системные карточки', rows(asArray(k.sys_cards), kanbanCard), 'span-6')}
+    ${card('Ошибки чтения', rows(asArray(k.read_errors).map((x,i)=>({id:i+1,title:String(x),status:'error'})), x => row(x.id, x.title, x.status)), 'span-12')}
   </div>`;
 }
 
 
 function agentWorkflowDiagram(flow) {
-  const steps = asArray(flow.diagram).length ? asArray(flow.diagram) : ['CTO Agent','Orchestrator Agent','Specialist Agents','QA/Delivery','Done'];
-  return `<div class="agent-diagram">${steps.map((s,i)=>`<div class="agent-node"><strong>${fmt(s)}</strong><small>${i < steps.length - 1 ? 'routes to next' : 'accepted complete'}</small></div>`).join('<span class="agent-arrow">→</span>')}</div>`;
+  const steps = ['CTO Agent','Orchestrator Agent','Specialist Agents','QA/Delivery','Done'];
+  return `<div class="agent-diagram compact-diagram">${steps.map((s,i)=>`<div class="agent-node"><strong>${fmt(ru(s))}</strong><small>${i < steps.length - 1 ? 'передаёт дальше' : 'готово'}</small></div>`).join('<span class="agent-arrow">→</span>')}</div>`;
 }
 function agentSectionRow(t) {
-  const meta = `agent=${t.assigned_agent || '—'} · stage=${t.production_stage || '—'} · physical=${t.physical_status || t.status || '—'} · type=${t.task_type || '—'} · next=${t.next_action || '—'} · artifact=${t.artifact_path || '—'} · stale=${t.stale_age ?? '—'}`;
-  return row(t.id, t.title, t.lifecycle_status || t.status || 'tracked', meta, 'kanban-card', jsonCopy(t));
+  const meta = `роль: ${ru(t.assigned_agent || t.assignee || '—')} · стадия: ${ru(t.production_stage || '—')} · статус: ${ru(t.physical_status || t.status || '—')} · следующее: ${shortText(t.next_action || '—', 48)} · артефакт: ${shortPath(t.artifact_path || '')}`;
+  return row(t.id, cleanTitle(t.title), t.lifecycle_status || t.status || 'tracked', meta, 'kanban-card', jsonCopy(t));
 }
 function agentWorkflow() {
   const flow = state.agent_workflow || {};
@@ -509,16 +526,16 @@ function agentWorkflow() {
   const canaries = asArray(flow.canary_results?.results);
   const sections = Object.entries(flow.sections || {}).map(([section, cards]) => ({id: section, title: `${section} · ${asArray(cards).length} cards`, status: asArray(cards).length ? 'active' : 'empty', cards}));
   return `<div class="grid agent-workflow">
-    ${metric('Agent roles', asArray(flow.roles).length, 'span-3')}
-    ${metric('Canaries PASS', canaries.filter(c => c.status === 'done').length + '/' + canaries.length, 'span-3')}
-    ${metric('Repeated crashes', protocol.repeated_crashes_after_indicator_count ?? '—', 'span-3')}
-    ${metric('Stale running/dead PID >2h', protocol.stale_running_dead_pid_after_2h_count ?? protocol.stale_running_after_2h_count ?? '—', 'span-3')}
-    ${card('Agent Workflow', `${agentWorkflowDiagram(flow)}${kv({source_of_truth: flow.source_of_truth, worker_protocol: protocol.doc, silent_finish_allowed: protocol.silent_finish_allowed, ops_lane_status: protocol.ops_lane_status})}`, 'span-12')}
-    ${card('Kanban mapping', kv(flow.kanban_mapping || {}), 'span-6')}
-    ${card('GitHub / PR', `${kv(gh)}${gh.url ? `<div class="toolbar"><a class="copy" href="${esc(gh.url)}" target="_blank" rel="noreferrer">Open PR</a>${copyButton('Copy PR URL', gh.url)}</div>` : ''}`, 'span-6')}
-    ${card('12h autonomous loop', rows(asArray(flow.marathon_loop).map((x,i)=>({id:i+1,title:x,status:'step'})), x => row(x.id, x.title, x.status)), 'span-12')}
-    ${card('Canary Results', rows(canaries, c => row(c.task_id || c.agent, c.agent, c.status, `assignee=${c.assignee} · create_rc=${c.create_rc} · complete_rc=${c.complete_rc} · artifact=${c.artifact_path}`, 'json', jsonCopy(c)), 'No canary results yet'), 'span-12')}
-    ${card('Agent Sections', rows(sections, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x))), 'span-12')}
+    ${metric('Роли агентов', asArray(flow.roles).length, 'span-3')}
+    ${metric('Проверки агентов', canaries.filter(c => c.status === 'done').length + '/' + canaries.length, 'span-3')}
+    ${metric('Повторные сбои', protocol.repeated_crashes_after_indicator_count ?? '—', 'span-3')}
+    ${metric('Зависшие процессы', protocol.stale_running_dead_pid_after_2h_count ?? protocol.stale_running_after_2h_count ?? '—', 'span-3')}
+    ${card('Схема агентов', `${agentWorkflowDiagram(flow)}${kv({source_of_truth: flow.source_of_truth, worker_protocol: protocol.doc, silent_finish_allowed: protocol.silent_finish_allowed, ops_lane_status: protocol.ops_lane_status})}`, 'span-12')}
+    ${card('Связь с Канбаном', kv(flow.kanban_mapping || {}), 'span-6')}
+    ${card('GitHub / PR', `${kv(gh)}${gh.url ? `<div class="toolbar"><a class="copy" href="${esc(gh.url)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Скопировать PR URL', gh.url)}</div>` : ''}`, 'span-6')}
+    ${card('Автономный цикл 12ч', rows(asArray(flow.marathon_loop).map((x,i)=>({id:i+1,title:x,status:'step'})), x => row(x.id, x.title, x.status)), 'span-12')}
+    ${card('Проверки ролей', rows(canaries, c => row(c.task_id || c.agent, c.agent, c.status, `assignee=${c.assignee} · create_rc=${c.create_rc} · complete_rc=${c.complete_rc} · artifact=${c.artifact_path}`, 'json', jsonCopy(c)), 'No canary results yet'), 'span-12')}
+    ${card('Секции агентов', rows(sections, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x))), 'span-12')}
     ${Object.entries(flow.sections || {}).map(([section, cards]) => card(section, rows(asArray(cards).slice(0, 30), agentSectionRow, 'No cards in this section'), 'span-6')).join('')}
   </div>`;
 }
@@ -548,23 +565,24 @@ function production() {
   const logicalRows = Object.entries(p.logical_lanes || {}).map(([lane, cards]) => ({id: lane, title: `${lane} · ${asArray(cards).length} cards`, status: asArray(cards).length ? 'active' : 'empty', cards}));
   const needsAttention = [...asArray((p.logical_lanes || {}).blocked), ...asArray(p.review_queue), ...asArray(p.delivery_queue)].slice(0, 12);
   const quickItems = productionQuickItems(p);
-  const filterBar = toolbar(['active','review','blocked','D1','D2','D3','agents','github'].map(x => quickFilterButton(x, x === 'active' ? 'Active' : x === 'review' ? 'Review' : x === 'blocked' ? 'Blocked' : x === 'agents' ? 'Agents' : x === 'github' ? 'GitHub' : x)));
+  const filterBar = toolbar(['active','review','blocked','D1','D2','D3','agents','github'].map(x => quickFilterButton(x, x === 'active' ? 'Активные' : x === 'review' ? 'На проверке' : x === 'blocked' ? 'Заблокированные' : x === 'agents' ? 'Агенты' : x === 'github' ? 'GitHub' : x)));
   return `<div class="grid production-dashboard">
-    ${card('Needs Attention', rowsTop(needsAttention, kanbanCard, 5, 'No blocked/review/delivery items'), 'span-12 attention-card')}
-    ${metric('Production cards', counts.total || 0, 'span-3', 'kanban')}
-    ${metric('Active work', counts.active || 0, 'span-3', 'kanban')}
-    ${metric('Review queue', counts.review || 0, 'span-3', 'approvals')}
-    ${metric('Delivery queue', counts.delivery || 0, 'span-3', 'clients')}
-    ${card('Quick filters', `${filterBar}${rowsTop(quickItems, kanbanCard, 5, 'No matching production cards')}`, 'span-12')}
-    ${card('D1/D2/D3 next product progress', rowsTop(asArray(progress.items), item => row(item.product_line, `${item.artifact_type} · ${item.stage || 'stage'}`, item.status || 'artifact', `${item.path} · sha=${String(item.sha256 || '').slice(0,12)} · updated=${item.updated_at || progress.updated_at || '—'}`, 'artifact', jsonCopy(item)), 5, 'No product progress artifacts yet'), 'span-12')}
-    ${collapsibleCard('Board source', `${kv({board: p.board_name, purpose: p.purpose, source_of_truth: p.source_of_truth, filter: p.filter_recipe, contract: p.view_contract})}${toolbar([copyButton('Copy /kanban filter', 'WEBSTUDIO'), copyButton('Copy rebuild command', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-12')}
-    ${collapsibleCard('Logical production lane counts', kv(logicalCounts), 'span-12', true)}
-    ${collapsibleCard('Product Lines D1/D2/D3', rowsTop(lineRows, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x)), 5), 'span-6', true)}
-    ${collapsibleCard('Production stages', rowsTop(stageRows, x => row(x.id, x.title, x.status, 'Intake → Support lifecycle', 'json', jsonCopy(x)), 5), 'span-6')}
-    ${collapsibleCard('Production logical columns', rowsTop(logicalRows, x => row(x.id, x.title, x.status, 'Stable owner-facing columns; physical worker status preserved inside each card', 'json', jsonCopy(x)), 5), 'span-12')}
-    ${collapsibleCard('Active Work / Agents', rowsTop(asArray(p.active_work), kanbanCard, 5, 'No active production work'), 'span-12', true)}
-    ${collapsibleCard('Review Queue', rowsTop(asArray(p.review_queue), kanbanCard, 5, 'No production cards in review queue'), 'span-6')}
-    ${collapsibleCard('Delivery Queue', rowsTop(asArray(p.delivery_queue), kanbanCard, 5, 'No delivery cards'), 'span-6')}
+    ${card('Требует внимания', rowsTop(needsAttention, kanbanCard, 5, 'Нет срочных элементов'), 'span-12 attention-card')}
+    ${metric('Производственные задачи', counts.total || 0, 'span-3', 'kanban')}
+    ${metric('В работе', counts.active || 0, 'span-3', 'kanban')}
+    ${metric('На проверке', counts.review || 0, 'span-3', 'approvals')}
+    ${metric('Передача клиенту', counts.delivery || 0, 'span-3', 'clients')}
+    ${card('Фильтры', `${filterBar}${rowsTop(quickItems, kanbanCard, 5, 'Нет карточек по фильтру')}`, 'span-12')}
+    <section class="card span-12 kanban-compact"><h3>Канбан производства — все столбики</h3><p class="label">Разбор · Подготовка · Запланировано · Готово к запуску · Выполняется · Заблокировано · На проверке · Готово · Архив</p>${logicalProductionBoard(p)}</section>
+    ${card('Прогресс D1/D2/D3', rowsTop(asArray(progress.items), item => row(item.product_line, `${item.artifact_type} · ${ru(item.stage || 'stage')}`, item.status || 'artifact', `${shortPath(item.path)} · sha=${String(item.sha256 || '').slice(0,12)} · обновлено=${item.updated_at || progress.updated_at || '—'}`, 'artifact', jsonCopy(item)), 5, 'Нет артефактов прогресса'), 'span-12')}
+    ${collapsibleCard('Источник доски', `${kv({board: p.board_name, purpose: p.purpose, source_of_truth: p.source_of_truth, filter: p.filter_recipe, contract: p.view_contract})}${toolbar([copyButton('Copy /kanban filter', 'WEBSTUDIO'), copyButton('Copy rebuild command', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-12')}
+    ${collapsibleCard('Колонки производства', kv(logicalCounts), 'span-12', true)}
+    ${collapsibleCard('Линии D1/D2/D3', rowsTop(lineRows, x => row(x.id, x.title, x.status, 'Click for cards', 'json', jsonCopy(x)), 5), 'span-6', true)}
+    ${collapsibleCard('Стадии производства', rowsTop(stageRows, x => row(x.id, x.title, x.status, 'Intake → Support lifecycle', 'json', jsonCopy(x)), 5), 'span-6')}
+    ${collapsibleCard('Производственная доска', rowsTop(logicalRows, x => row(x.id, x.title, x.status, 'Stable owner-facing columns; physical worker status preserved inside each card', 'json', jsonCopy(x)), 5), 'span-12')}
+    ${collapsibleCard('Активная работа / агенты', rowsTop(asArray(p.active_work), kanbanCard, 5, 'Нет активной работы'), 'span-12', true)}
+    ${collapsibleCard('Очередь проверки', rowsTop(asArray(p.review_queue), kanbanCard, 5, 'Нет карточек на проверке'), 'span-6')}
+    ${collapsibleCard('Очередь передачи', rowsTop(asArray(p.delivery_queue), kanbanCard, 5, 'Нет карточек передачи'), 'span-6')}
   </div>`;
 }
 
@@ -760,7 +778,7 @@ function health() {
     ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot: h.host_snapshot?.path, snapshot_mtime: h.host_snapshot?.mtime, status: h.status})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
     ${card('QMD', kv(h.qmd), 'span-6')}
     ${card('Bad config summary', `<pre class="code block">${fmt(h.bad_config_summary || 'none')}</pre>`, 'span-6')}
-    ${card('GitHub Readiness', `${kv(state.github_readiness || {})}${state.github_readiness?.completion_result?.pr_url ? `<div class="toolbar"><a class="copy" href="${esc(state.github_readiness.completion_result.pr_url)}" target="_blank" rel="noreferrer">Open PR</a>${copyButton('Copy PR URL', state.github_readiness.completion_result.pr_url)}</div>` : ''}`, 'span-6')}
+    ${card('GitHub Readiness', `${kv(state.github_readiness || {})}${state.github_readiness?.completion_result?.pr_url ? `<div class="toolbar"><a class="copy" href="${esc(state.github_readiness.completion_result.pr_url)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Скопировать PR URL', state.github_readiness.completion_result.pr_url)}</div>` : ''}`, 'span-6')}
     ${card('System hardening v3', `${kv(state.system_hardening || {})}${toolbar([copyButton('Copy snapshot processor', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD embed script', '/workspace/.hermes/scripts/qmd-auto-embed.sh'), copyButton('Copy GitHub repair packet', '/workspace/output/github-host-repair-and-pr-v3.sh')])}`, 'span-12')}
     ${card('Sources', rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s))), 'span-12')}
   </div>`;
@@ -772,14 +790,14 @@ function artifactRow(a) {
 function artifacts() {
   const q = filters.artifacts;
   const list = asArray(state.artifacts).filter(a => includes(a, q));
-  return `<div class="grid"><section class="card span-12"><h3>Artifacts</h3>${searchBox('artifactSearch', 'Filter artifacts…', q)}${rows(list, artifactRow, 'No artifacts match')}</section></div>`;
+  return `<div class="grid"><section class="card span-12"><h3>Артефакты</h3>${searchBox('artifactSearch', 'Filter artifacts…', q)}${rows(list, artifactRow, 'No artifacts match')}</section></div>`;
 }
 
 function marathon() {
   const m = state.marathon_12h || {};
   const artifacts = asArray(state.artifacts).filter(a => /webstudio-12h|marathon/i.test(`${a.path || ''} ${a.title || ''}`));
   const latest = artifacts.slice(0, 12);
-  const ownerBrief = `WebStudio 12h marathon\nStatus: ${m.status || 'unknown'}\nSchedule: ${m.schedule || 'unknown'}\nIndex: /workspace/output/webstudio-12h-marathon-index.md\nNext: pick next production Kanban task, create artifact/QA, rebuild dashboard, qmd update, hfinalize`;
+  const ownerBrief = `WebStudio Автономный цикл\nStatus: ${m.status || 'unknown'}\nSchedule: ${m.schedule || 'unknown'}\nIndex: /workspace/output/webstudio-12h-marathon-index.md\nNext: pick next production Kanban task, create artifact/QA, rebuild dashboard, qmd update, hfinalize`;
   return `<div class="grid">
     ${metric('Marathon status', m.status || 'unknown', 'span-3')}
     ${metric('Marathon artifacts', artifacts.length, 'span-3')}
