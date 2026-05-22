@@ -1118,7 +1118,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "agent-workflow", "capabilities", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

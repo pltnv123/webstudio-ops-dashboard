@@ -30,7 +30,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'kanban', 'production', 'agent-workflow', 'capabilities', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -47,6 +47,8 @@ required_js_symbols = [
     'workFactory',
     'kanban',
     'production',
+    'demoProducts',
+    'demoProductCard',
     'd3Intake',
     'clients',
     'salesPack',

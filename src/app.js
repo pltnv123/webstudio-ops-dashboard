@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -32,7 +32,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
@@ -686,6 +686,43 @@ function capabilityMatrix() {
 }
 function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
 
+function demoProductCard(item) {
+  const score = Number(item.readiness_score || 0);
+  const line = item.product_line || 'D?';
+  const qa = item.qa_path || item.fixtures_path || '';
+  const handoff = item.handoff_path || item.demo_script_path || '';
+  return `<article class="demo-product-card ${String(line).toLowerCase()}">
+    <div class="demo-thumb"><span>${fmt(line)}</span><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>
+    <div class="demo-head"><div><p class="eyebrow">${fmt(ru(line))}</p><h3>${fmt(item.title || item.preview_label || 'Demo product')}</h3></div>${badge(item.status || 'watch')}</div>
+    <p>${fmt(item.preview_label || item.artifact_type || 'Демо-продукт')}</p>
+    <div class="demo-progress"><span>Readiness</span><b>${fmt(score)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, score))}%"></i></div></div>
+    <div class="task-meta-grid">
+      <span>QA</span><b>${qa ? 'готово' : 'нет'}</b>
+      <span>Handoff</span><b>${handoff ? 'готово' : 'нет'}</b>
+      <span>Следующий шаг</span><b>${fmt(shortText(item.next_action || 'проверить демо', 62))}</b>
+    </div>
+    <div class="toolbar">${copyButton('Preview path', item.path || '')}${qa ? copyButton('QA path', qa) : ''}${handoff ? copyButton('Handoff path', handoff) : ''}<button class="copy secondary" type="button" data-detail-type="demo-product" data-detail-payload="${esc(jsonCopy(item))}">Подробнее</button></div>
+  </article>`;
+}
+function demoProducts() {
+  const progress = state.product_progress || {};
+  const items = asArray(progress.items);
+  const avg = items.length ? Math.round(items.reduce((sum,item)=>sum + Number(item.readiness_score || 0), 0) / items.length) : 0;
+  const byLine = Object.fromEntries(['D1','D2','D3'].map(l => [l, items.find(x => x.product_line === l) || {}]));
+  return `<div class="grid demo-products-page">
+    ${metric('Демо-продукты', items.length, 'span-3', 'demo-products')}
+    ${metric('Средняя готовность', avg + '%', 'span-3', 'demo-products')}
+    ${metric('QA готово', items.filter(x => x.qa_path || x.fixtures_path).length + '/' + items.length, 'span-3', 'demo-products')}
+    ${metric('Handoff готово', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
+    <section class="card span-12 demo-products-hero"><h3>Демо-продукты WebStudio v9</h3><p class="label">Owner-facing витрина: D1 лендинг, D2 AI-intake Telegram bot, D3 safe automation map. Raw/debug спрятан в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
+    ${card('D1 — Лендинги и сайты', kv({status: byLine.D1.status, preview: byLine.D1.path, qa: byLine.D1.qa_path, handoff: byLine.D1.handoff_path, next_action: byLine.D1.next_action}), 'span-4')}
+    ${card('D2 — AI-intake bot', kv({status: byLine.D2.status, preview: byLine.D2.path, fixtures: byLine.D2.qa_path, demo_script: byLine.D2.handoff_path, next_action: byLine.D2.next_action}), 'span-4')}
+    ${card('D3 — Автоматизации', kv({status: byLine.D3.status, preview: byLine.D3.path, matrix: byLine.D3.qa_path, handoff: byLine.D3.handoff_path, next_action: byLine.D3.next_action}), 'span-4')}
+    ${card('Источник прогресса', `${kv({source_of_truth: progress.source_of_truth, updated_at: progress.updated_at, mode: progress.mode, report: '/workspace/output/webstudio-demo-products-v9-report.md'})}${toolbar([copyButton('Copy progress JSON path', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json'), copyButton('Copy v9 report path', '/workspace/output/webstudio-demo-products-v9-report.md')])}`, 'span-12')}
+  </div>`;
+}
+
+
 function kanbanCard(t) {
   const line = productLineOf(t);
   const meta = `${line} · ${ownerStage(t)} · агент: ${ownerAgent(t)} · шаг: ${ownerNext(t)}`;
@@ -1060,7 +1097,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'agent-workflow': agentWorkflow, capabilities, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
