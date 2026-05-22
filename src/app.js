@@ -570,6 +570,29 @@ const CAPABILITY_ROWS = [
   {domain:'Supabase и backend safe ops', gives:'Read-only liveness, schema proposal before writes, RLS-safe boundary', agents:['Backend','Ops','QA'], lines:['D2','D3'], status:'planned', source:'Hermes Supabase safe checks', next:'Read-only status tile'},
   {domain:'QMD и база знаний', gives:'Safe qmd status/update/search/get/ls; no vector-heavy commands by default', agents:['Research','Ops','CTO'], lines:['OPS','D1','D2','D3'], status:'active', source:'Hermes QMD safe mode', next:'Knowledge freshness chart'}
 ];
+const DESIGN_ENGINE_STEPS = [
+  {step:'1. Диагностика продукта', output:'бриф, аудит конкурентов, карта доверия', gate:'нет шаблонных claims и фейковых метрик'},
+  {step:'2. DESIGN.md', output:'tokens, типографика, сетка, motion budget', gate:'источник дизайна указан, правила повторяемы'},
+  {step:'3. Прототип', output:'hero, оффер, proof blocks, CTA, mobile-first flow', gate:'360px и 1920px без горизонтального скролла'},
+  {step:'4. Конверсия и polish', output:'CTA hierarchy, FAQ objections, proof policy', gate:'каждый claim подкреплён артефактом'},
+  {step:'5. QA / handoff', output:'screenshots, smoke, checklist, owner actions', gate:'build/smoke/secret scan/hfinalize PASS'}
+];
+const DESIGN_SYSTEMS = [
+  {name:'Editorial Premium', best_for:'D1 лендинги с экспертным позиционированием', tokens:'paper canvas, serif accent, hairline cards', avoid:'generic blue-purple SaaS'},
+  {name:'Ops Cockpit Dark', best_for:'админки, Kanban, production dashboards', tokens:'dark panels, compact cards, semantic accents', avoid:'raw logs in main view'},
+  {name:'Conversation Flow', best_for:'D2 Telegram bot и client-facing сценарии', tokens:'message bubbles, decision chips, handoff states', avoid:'магия без объяснения шага'},
+  {name:'Process Map', best_for:'D3 автоматизации и интеграционные риски', tokens:'swimlanes, risk chips, retry/approval gates', avoid:'линейные схемы без ошибок'}
+];
+function frontendDesignEngine() {
+  const artifacts = [
+    ['/workspace/output/webstudio-d1-premium-landing-design-workflow-v5.md','D1 premium workflow'],
+    ['/workspace/output/webstudio-d2-ai-intake-visual-flow-v5.md','D2 visual conversation flow'],
+    ['/workspace/output/webstudio-d3-automation-process-visualization-v5.md','D3 process/risk map'],
+    ['/workspace/output/webstudio-frontend-design-engine-v1.md','Frontend Design Engine'],
+    ['/workspace/output/webstudio-design-system-design-md-v1.md','DESIGN.md system']
+  ];
+  return `<section class="card span-12 design-engine"><h3>Frontend Design Engine</h3><p class="label">Повторяемый дизайн-конвейер WebStudio: от брифа до owner-ready screenshots без шаблонного UI.</p><div class="design-engine-grid"><article><h4>Процесс</h4>${DESIGN_ENGINE_STEPS.map(x => `<div class="engine-step"><b>${fmt(x.step)}</b><span>${fmt(x.output)}</span><em>${fmt(x.gate)}</em></div>`).join('')}</article><article><h4>Дизайн-системы</h4>${DESIGN_SYSTEMS.map(x => `<div class="design-system-card"><b>${fmt(x.name)}</b><span>${fmt(x.best_for)}</span><em>${fmt(x.tokens)}</em><small>Не делать: ${fmt(x.avoid)}</small></div>`).join('')}</article><article><h4>Артефакты</h4>${artifacts.map(([path,label]) => `<div class="artifact-chip"><b>${fmt(label)}</b><span>${fmt(path)}</span></div>`).join('')}</article></div></section>`;
+}
 function taskUpdatedAt(t) { return t.completed_at || t.updated_at || t.created_at || t.audit?.updated_at || t.audit?.created_at || ''; }
 function ageLabel(t) { const raw = taskUpdatedAt(t); if (!raw) return 'нет времени'; const d = new Date(raw); if (Number.isNaN(d.getTime())) return shortText(raw, 18); const h = Math.max(0, Math.round((Date.now() - d.getTime()) / 36e5)); return h < 1 ? 'только что' : h < 24 ? `${h}ч назад` : `${Math.round(h/24)}д назад`; }
 function lineClass(line) { return ['D1','D2','D3','OPS'].includes(line) ? line.toLowerCase() : 'ops'; }
@@ -649,7 +672,7 @@ function progressAnalytics() {
 function capabilityMatrix() {
   return `<section class="card span-12 capability-section"><h3>Навыки агентов</h3><p class="label">Capability matrix показывает, какие навыки реально используются в production pipeline. Raw skill names спрятаны в «Подробнее».</p><div class="capability-grid">${CAPABILITY_ROWS.map(c => `<article class="capability-card ${statusClass(c.status)}"><div class="capability-top"><h4>${fmt(c.domain)}</h4>${badge(c.status)}</div><p>${fmt(c.gives)}</p><div class="capability-meta"><span>Агенты: ${fmt(c.agents.join(', '))}</span><span>Линии: ${fmt(c.lines.join(', '))}</span><span>Источник: ${fmt(c.source)}</span></div><details><summary>Подробнее</summary><pre class="code mini">${fmt(jsonCopy(c))}</pre></details></article>`).join('')}</div></section>`;
 }
-function capabilities() { return `<div class="grid">${capabilityMatrix()}${progressAnalytics()}</div>`; }
+function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
 
 function kanbanCard(t) {
   const line = productLineOf(t);
