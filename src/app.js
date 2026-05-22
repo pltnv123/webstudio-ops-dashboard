@@ -571,27 +571,39 @@ const CAPABILITY_ROWS = [
   {domain:'QMD и база знаний', gives:'Safe qmd status/update/search/get/ls; no vector-heavy commands by default', agents:['Research','Ops','CTO'], lines:['OPS','D1','D2','D3'], status:'active', source:'Hermes QMD safe mode', next:'Knowledge freshness chart'}
 ];
 const DESIGN_ENGINE_STEPS = [
-  {step:'1. Диагностика продукта', output:'бриф, аудит конкурентов, карта доверия', gate:'нет шаблонных claims и фейковых метрик'},
-  {step:'2. DESIGN.md', output:'tokens, типографика, сетка, motion budget', gate:'источник дизайна указан, правила повторяемы'},
-  {step:'3. Прототип', output:'hero, оффер, proof blocks, CTA, mobile-first flow', gate:'360px и 1920px без горизонтального скролла'},
-  {step:'4. Конверсия и polish', output:'CTA hierarchy, FAQ objections, proof policy', gate:'каждый claim подкреплён артефактом'},
-  {step:'5. QA / handoff', output:'screenshots, smoke, checklist, owner actions', gate:'build/smoke/secret scan/hfinalize PASS'}
+  {role:'CTO', step:'Scope / strategy', output:'позиционирование, acceptance criteria, proof policy', gate:'нет неподтверждённых claims и фейковых метрик'},
+  {role:'Design Agent', step:'DESIGN.md / visual direction', output:'tokens, типографика, сетка, дизайн-система, motion budget', gate:'источник дизайна указан, правила повторяемы'},
+  {role:'Frontend Agent', step:'Prototype / implementation', output:'hero, оффер, proof blocks, CTA, responsive components', gate:'360px и 1920px без горизонтального скролла'},
+  {role:'QA', step:'Visual + conversion QA', output:'responsive screenshots, console check, copy review, reduced-motion audit', gate:'build/smoke/secret scan/browser QA PASS'},
+  {role:'Delivery', step:'Owner/client handoff', output:'artifact index, checklist, rollback/approval notes', gate:'точные owner actions и handoff без internal debug'}
 ];
 const DESIGN_SYSTEMS = [
-  {name:'Editorial Premium', best_for:'D1 лендинги с экспертным позиционированием', tokens:'paper canvas, serif accent, hairline cards', avoid:'generic blue-purple SaaS'},
-  {name:'Ops Cockpit Dark', best_for:'админки, Kanban, production dashboards', tokens:'dark panels, compact cards, semantic accents', avoid:'raw logs in main view'},
-  {name:'Conversation Flow', best_for:'D2 Telegram bot и client-facing сценарии', tokens:'message bubbles, decision chips, handoff states', avoid:'магия без объяснения шага'},
-  {name:'Process Map', best_for:'D3 автоматизации и интеграционные риски', tokens:'swimlanes, risk chips, retry/approval gates', avoid:'линейные схемы без ошибок'}
+  {name:'Editorial Premium', best_for:'D1 лендинги с экспертным позиционированием', tokens:'warm canvas · serif accent · hairline cards · high-trust proof', avoid:'generic blue-purple SaaS', artifact:'/workspace/output/webstudio-d1-premium-landing-demo-v1.html'},
+  {name:'Ops Cockpit Dark', best_for:'админки, Kanban, production dashboards', tokens:'dark panels · compact cards · semantic lane accents · dense 1920 grid', avoid:'raw logs in main view', artifact:'/workspace/output/webstudio-ops-dashboard-static/index.html'},
+  {name:'Conversation Flow', best_for:'D2 Telegram bot и client-facing сценарии', tokens:'message bubbles · decision chips · escalation states · privacy notes', avoid:'магия без объяснения шага', artifact:'/workspace/output/webstudio-d2-bot-intake-screens-v1.html'},
+  {name:'Process Map', best_for:'D3 автоматизации и интеграционные риски', tokens:'swimlanes · risk chips · exception gates · handoff checklist', avoid:'линейные схемы без ошибок', artifact:'/workspace/output/webstudio-d3-process-map-ui-v1.html'}
 ];
+const MOTION_QA_GATES = [
+  'micro-interactions only: hover/focus/reveal <= 180ms',
+  'prefers-reduced-motion disables non-essential movement',
+  'no layout shift from animation; CTA remains tappable',
+  'mobile above-fold readable without scroll traps',
+  'browser console clean before delivery'
+];
+function designPipelineDiagram() {
+  return `<div class="engine-pipeline">${DESIGN_ENGINE_STEPS.map((x, i) => `<article class="pipeline-node"><span>${fmt(x.role)}</span><b>${fmt(x.step)}</b><small>${fmt(x.output)}</small><em>${fmt(x.gate)}</em></article>${i < DESIGN_ENGINE_STEPS.length - 1 ? '<i class="pipeline-arrow">→</i>' : ''}`).join('')}</div>`;
+}
 function frontendDesignEngine() {
   const artifacts = [
-    ['/workspace/output/webstudio-d1-premium-landing-design-workflow-v5.md','D1 premium workflow'],
-    ['/workspace/output/webstudio-d2-ai-intake-visual-flow-v5.md','D2 visual conversation flow'],
-    ['/workspace/output/webstudio-d3-automation-process-visualization-v5.md','D3 process/risk map'],
-    ['/workspace/output/webstudio-frontend-design-engine-v1.md','Frontend Design Engine'],
-    ['/workspace/output/webstudio-design-system-design-md-v1.md','DESIGN.md system']
+    ['/workspace/output/webstudio-d1-premium-landing-demo-v1.html','D1 premium landing demo'],
+    ['/workspace/output/webstudio-d1-conversion-qa-checklist-v1.md','D1 conversion QA checklist'],
+    ['/workspace/output/webstudio-d2-bot-intake-screens-v1.html','D2 bot intake screens'],
+    ['/workspace/output/webstudio-d2-qa-fixtures-v1.json','D2 QA fixtures'],
+    ['/workspace/output/webstudio-d3-process-map-ui-v1.html','D3 process map UI'],
+    ['/workspace/output/webstudio-d3-handoff-checklist-v1.md','D3 handoff checklist'],
+    ['/workspace/output/webstudio-frontend-design-engine-v2.md','Frontend Design Engine spec']
   ];
-  return `<section class="card span-12 design-engine"><h3>Frontend Design Engine</h3><p class="label">Повторяемый дизайн-конвейер WebStudio: от брифа до owner-ready screenshots без шаблонного UI.</p><div class="design-engine-grid"><article><h4>Процесс</h4>${DESIGN_ENGINE_STEPS.map(x => `<div class="engine-step"><b>${fmt(x.step)}</b><span>${fmt(x.output)}</span><em>${fmt(x.gate)}</em></div>`).join('')}</article><article><h4>Дизайн-системы</h4>${DESIGN_SYSTEMS.map(x => `<div class="design-system-card"><b>${fmt(x.name)}</b><span>${fmt(x.best_for)}</span><em>${fmt(x.tokens)}</em><small>Не делать: ${fmt(x.avoid)}</small></div>`).join('')}</article><article><h4>Артефакты</h4>${artifacts.map(([path,label]) => `<div class="artifact-chip"><b>${fmt(label)}</b><span>${fmt(path)}</span></div>`).join('')}</article></div></section>`;
+  return `<section class="card span-12 design-engine"><h3>Frontend Design Engine</h3><p class="label">Рабочий конвейер: CTO → Design Agent → Frontend Agent → QA → Delivery. На выходе не описание, а demo/spec/fixtures/checklist с проверками.</p>${designPipelineDiagram()}<div class="design-engine-grid"><article><h4>Pipeline gates</h4>${DESIGN_ENGINE_STEPS.map(x => `<div class="engine-step"><b>${fmt(x.role)} · ${fmt(x.step)}</b><span>${fmt(x.output)}</span><em>${fmt(x.gate)}</em></div>`).join('')}</article><article><h4>Design systems cards</h4>${DESIGN_SYSTEMS.map(x => `<div class="design-system-card"><b>${fmt(x.name)}</b><span>${fmt(x.best_for)}</span><em>${fmt(x.tokens)}</em><small>Anti-template: ${fmt(x.avoid)}</small><small>Artifact: ${fmt(x.artifact)}</small></div>`).join('')}</article><article><h4>Motion / QA gates</h4>${MOTION_QA_GATES.map(x => `<div class="artifact-chip motion-gate"><b>QA gate</b><span>${fmt(x)}</span></div>`).join('')}<h4>Artifacts</h4>${artifacts.map(([path,label]) => `<div class="artifact-chip"><b>${fmt(label)}</b><span>${fmt(path)}</span></div>`).join('')}</article></div></section>`;
 }
 function taskUpdatedAt(t) { return t.completed_at || t.updated_at || t.created_at || t.audit?.updated_at || t.audit?.created_at || ''; }
 function ageLabel(t) { const raw = taskUpdatedAt(t); if (!raw) return 'нет времени'; const d = new Date(raw); if (Number.isNaN(d.getTime())) return shortText(raw, 18); const h = Math.max(0, Math.round((Date.now() - d.getTime()) / 36e5)); return h < 1 ? 'только что' : h < 24 ? `${h}ч назад` : `${Math.round(h/24)}д назад`; }
