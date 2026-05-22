@@ -34,7 +34,7 @@ const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().include
 const RU = {
   overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
-  pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
+  pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
 const STAGE_RU = {'intake':'Заявки','client-qualification':'Квалификация','brief':'Бриф','estimate-pricing':'Оценка','architecture-plan':'План','design-content':'Дизайн/контент','implementation':'Разработка','qa':'QA','approval':'Согласование','delivery-handoff':'Передача клиенту','post-delivery-support':'Поддержка','unspecified':'Без стадии','canary':'Проверка','archived-noise':'Архив/шум'};
 const LINE_RU = {D1:'D1 — Лендинги и сайты',D2:'D2 — AI-intake бот',D3:'D3 — Бизнес-автоматизации'};
@@ -185,6 +185,8 @@ function collapsibleCard(title, body, span='span-12', open=false) {
   return `<section class="card ${span} collapsible"><details ${open ? 'open' : ''}><summary><h3>${fmt(title)}</h3></summary>${body}</details></section>`;
 }
 function badge(text, kind='') { return `<span class="status ${statusClass(kind || text)}">${fmt(ru(text))}</span>`; }
+function openButton(label, value, variant='') { return value ? copyButton(label, value, variant) : ''; }
+function detailPayloadButton(payload, label='Подробнее', type='details') { return `<button class="copy secondary" type="button" data-detail-type="${esc(type)}" data-detail-payload="${esc(jsonCopy(payload))}">${fmt(label)}</button>`; }
 function row(id, title, status, meta='', detailType='', payload='') {
   const detailAttrs = detailType ? ` role="button" tabindex="0" data-detail-type="${esc(detailType)}" data-detail-payload="${esc(payload)}"` : '';
   const metaHtml = meta ? `<small class="label row-meta">${fmt(meta)}</small>` : '';
@@ -710,46 +712,87 @@ function demoThumbnail(item, score, line) {
   const t = item.preview_thumbnail || {};
   const chips = asArray(t.chips).slice(0,4);
   const accent = t.accent || (line === 'D1' ? '#f5c37b' : line === 'D2' ? '#5dd2ff' : '#36d399');
-  return `<div class="demo-thumb v11-thumb ${String(line).toLowerCase()}" style="--thumb-accent:${esc(accent)}"><span>${fmt(line)}</span><strong>${fmt(t.headline || item.preview_label || 'Preview')}</strong><em>${fmt(t.theme || item.artifact_type || 'WebStudio')}</em><div class="thumb-chips">${chips.map(c => `<small>${fmt(c)}</small>`).join('')}</div><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>`;
+  return `<div class="demo-thumb v11-thumb ${String(line).toLowerCase()}" style="--thumb-accent:${esc(accent)}"><span>${fmt(line)}</span><strong>${fmt(t.headline || item.preview_label || 'Демо')}</strong><em>${fmt(t.theme || item.artifact_type || 'WebStudio')}</em><div class="thumb-chips">${chips.map(c => `<small>${fmt(c)}</small>`).join('')}</div><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>`;
+}
+function productLineName(line) {
+  return line === 'D1' ? 'Лендинги и сайты' : line === 'D2' ? 'AI-intake Telegram bot' : line === 'D3' ? 'Бизнес-автоматизации' : 'WebStudio';
 }
 function demoProductCard(item) {
   const score = Number(item.readiness_score || 0);
   const line = item.product_line || 'D?';
   const qa = item.qa_path || item.fixtures_path || '';
   const handoff = item.handoff_path || item.demo_script_path || '';
-  return `<article class="demo-product-card ${String(line).toLowerCase()}">
+  const clientGets = item.client_gets || item.preview_label || item.artifact_type || 'Готовый артефакт для клиентского показа.';
+  const example = item.example_request || item.example_dialog || item.example_process || 'Пример клиентского запроса хранится в деталях.';
+  const automation = item.automation || 'Система готовит артефакты, QA и передачу владельцу.';
+  return `<article class="demo-product-card showcase-card ${String(line).toLowerCase()}">
     ${demoThumbnail(item, score, line)}
-    <div class="demo-head"><div><p class="eyebrow">${fmt(ru(line))}</p><h3>${fmt(item.title || item.preview_label || 'Demo product')}</h3></div>${badge(item.status || 'watch')}</div>
-    <p>${fmt(item.preview_label || item.artifact_type || 'Демо-продукт')}</p>
-    <div class="demo-progress"><span>Readiness</span><b>${fmt(score)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, score))}%"></i></div></div>
-    <div class="task-meta-grid">
-      <span>QA</span><b>${qa ? 'готово' : 'нет'}</b>
-      <span>Handoff</span><b>${handoff ? 'готово' : 'нет'}</b>
-      <span>Фаза</span><b>${fmt(item.phase || 'v11')}</b>
-      <span>Следующий шаг</span><b>${fmt(shortText(item.next_action || 'проверить демо', 62))}</b>
+    <div class="demo-head"><div><p class="eyebrow">${fmt(line)} — ${fmt(productLineName(line))}</p><h3>${fmt(item.title || productLineName(line))}</h3></div>${badge(item.status || 'watch')}</div>
+    <div class="showcase-copy">
+      <p><b>Что клиент получает:</b> ${fmt(clientGets)}</p>
+      <p><b>Пример:</b> ${fmt(shortText(example, 130))}</p>
+      <p><b>Что система делает автоматически:</b> ${fmt(automation)}</p>
     </div>
-    <div class="toolbar">${copyButton('Preview path', item.path || '')}${qa ? copyButton('QA path', qa) : ''}${handoff ? copyButton('Handoff path', handoff) : ''}<button class="copy secondary" type="button" data-detail-type="demo-product" data-detail-payload="${esc(jsonCopy(item))}">Подробнее</button></div>
+    <div class="demo-progress"><span>Готовность</span><b>${fmt(score)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, score))}%"></i></div></div>
+    <div class="task-meta-grid owner-meta">
+      <span>Демо</span><b>${item.path ? 'готово' : 'нет'}</b>
+      <span>QA</span><b>${qa ? 'готово' : 'нет'}</b>
+      <span>Передача</span><b>${handoff ? 'готово' : 'нет'}</b>
+      <span>Следующий шаг</span><b>${fmt(shortText(item.next_action || 'проверить демо', 72))}</b>
+    </div>
+    <div class="toolbar cta-row">
+      ${openButton('Открыть демо', item.path || '')}
+      ${openButton('Показать клиенту', item.path || '')}
+      ${openButton('QA', qa)}
+      ${openButton('Передача', handoff)}
+      ${detailPayloadButton(item, 'Подробнее', 'demo-product')}
+    </div>
   </article>`;
+}
+function clientSimulationPanel(progress={}) {
+  const sim = progress.client_simulation || {};
+  if (!sim.id) return '';
+  const links = [
+    ['Бриф', sim.brief_path], ['D1', sim.d1_path], ['D2', sim.d2_path], ['D3', sim.d3_path], ['Delivery pack', sim.delivery_pack_path]
+  ];
+  const score = Number(sim.readiness_score || 0);
+  return `<section class="card span-12 client-sim-card"><div class="sim-head"><div><p class="eyebrow">First Real Intake Simulation</p><h3>Client Simulation #001</h3></div>${badge(sim.status || 'draft')}</div>
+    <p class="sim-request">${fmt(sim.source_request || '—')}</p>
+    <div class="sim-split">
+      <article><span>D1</span><b>Лендинг для ремонта квартир</b><p>Оффер, proof cards, возражения, CTA.</p></article>
+      <article><span>D2</span><b>Telegram intake flow</b><p>Вопросы бота, qualification fields, handoff.</p></article>
+      <article><span>D3</span><b>Автоматизация заявки</b><p>CRM/таблица, уведомление, risk gates, dry-run.</p></article>
+    </div>
+    <div class="demo-progress"><span>Готовность simulation</span><b>${fmt(score)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, score))}%"></i></div></div>
+    <div class="task-meta-grid owner-meta"><span>Статус</span><b>draft / QA / ready for owner review</b><span>Решение владельца</span><b>${fmt(shortText(sim.owner_decision || '—', 86))}</b></div>
+    <div class="toolbar">${links.map(([label,path]) => openButton(label, path)).join('')}${detailPayloadButton(sim, 'Подробнее', 'client-simulation')}</div>
+  </section>`;
+}
+function compactLineCard(line, item={}) {
+  const qa = item.qa_path || item.fixtures_path || '';
+  const handoff = item.handoff_path || item.demo_script_path || '';
+  const body = `<p><b>Что клиент получает:</b> ${fmt(item.client_gets || '—')}</p><p><b>Следующий шаг:</b> ${fmt(item.next_action || '—')}</p><div class="toolbar">${openButton('Открыть демо', item.path || '')}${openButton('Открыть QA', qa)}${openButton('Открыть handoff', handoff)}${detailPayloadButton(item, 'Подробнее', 'line-details')}</div>`;
+  return card(`${line} — ${productLineName(line)}`, body, 'span-4');
 }
 function demoProducts() {
   const progress = state.product_progress || {};
   const items = asArray(progress.items);
   const avg = items.length ? Math.round(items.reduce((sum,item)=>sum + Number(item.readiness_score || 0), 0) / items.length) : 0;
   const byLine = Object.fromEntries(['D1','D2','D3'].map(l => [l, items.find(x => x.product_line === l) || {}]));
-  const reportPath = progress.report || '/workspace/output/webstudio-product-build-v11-final-report.md';
-  return `<div class="grid demo-products-page">
-    ${metric('Демо-продукты', items.length, 'span-3', 'demo-products')}
+  const reportPath = progress.report || '/workspace/output/webstudio-product-build-v12-report.md';
+  return `<div class="grid demo-products-page showcase-page">
+    ${metric('Продуктовые линии', items.length, 'span-3', 'demo-products')}
     ${metric('Средняя готовность', avg + '%', 'span-3', 'demo-products')}
     ${metric('QA готово', items.filter(x => x.qa_path || x.fixtures_path).length + '/' + items.length, 'span-3', 'demo-products')}
-    ${metric('Handoff готово', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
-    <section class="card span-12 demo-products-hero"><h3>Демо-продукты WebStudio v11</h3><p class="label">Owner-facing витрина Product Build Phase v11: D1 real-client landing adaptation, D2 transcript runner scenario replay, D3 dry-run integration readiness. Raw/debug спрятан в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
-    ${card('D1 — Лендинги и сайты', kv({status: byLine.D1.status, preview: byLine.D1.path, qa: byLine.D1.qa_path, handoff: byLine.D1.handoff_path, next_action: byLine.D1.next_action}), 'span-4')}
-    ${card('D2 — AI-intake bot', kv({status: byLine.D2.status, preview: byLine.D2.path, fixtures: byLine.D2.qa_path, demo_script: byLine.D2.handoff_path, next_action: byLine.D2.next_action}), 'span-4')}
-    ${card('D3 — Автоматизации', kv({status: byLine.D3.status, preview: byLine.D3.path, matrix: byLine.D3.qa_path, handoff: byLine.D3.handoff_path, next_action: byLine.D3.next_action}), 'span-4')}
-    ${card('Источник прогресса', `${kv({source_of_truth: progress.source_of_truth, updated_at: progress.updated_at, mode: progress.mode, report: reportPath, phase: progress.phase || 'v11', pr_verification: progress.pr_verification_verdict || 'PASS'})}${toolbar([copyButton('Copy progress JSON path', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json'), copyButton('Copy v11 report path', reportPath)])}`, 'span-12')}
+    ${metric('Передача готова', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
+    <section class="card span-12 demo-products-hero showcase-hero"><p class="eyebrow">WebStudio Showcase</p><h3>Витрина WebStudio</h3><p class="label">Клиентская витрина автоматизированной веб-студии: D1 сайты, D2 Telegram intake, D3 бизнес-автоматизации. Технические пути и raw/debug убраны в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
+    ${clientSimulationPanel(progress)}
+    ${compactLineCard('D1', byLine.D1)}
+    ${compactLineCard('D2', byLine.D2)}
+    ${compactLineCard('D3', byLine.D3)}
+    ${card('Источник прогресса', `<p>Фаза: ${fmt(progress.phase || 'v12')} · обновлено: ${fmt(progress.updated_at)} · PR: ${fmt(progress.pr_verification_verdict || 'PASS')}</p><div class="toolbar">${copyButton('Скопировать путь прогресса', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json')}${copyButton('Скопировать v12 report', reportPath)}${detailPayloadButton(progress, 'Подробнее', 'progress-source')}</div>`, 'span-12')}
   </div>`;
 }
-
 
 function kanbanCard(t) {
   const line = productLineOf(t);

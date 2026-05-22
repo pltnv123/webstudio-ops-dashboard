@@ -140,6 +140,27 @@ def d3_automation_matrix(now: str) -> tuple[str, dict[str, Any]]:
 
 
 def generate() -> dict[str, Any]:
+    """Return the current product progress index without downgrading v12.
+
+    Earlier versions of this generator produced v4 proof packs and overwrote
+    `/workspace/output/webstudio-product-progress-v1.json`. Product Build v12
+    treats that JSON as the canonical showcase index, so tests/builds must not
+    regress it back to v4. If v12 exists, validate artifact paths and return it.
+    """
+    progress_path = OUTPUT / "webstudio-product-progress-v1.json"
+    if progress_path.exists():
+        try:
+            current = json.loads(progress_path.read_text())
+            if str(current.get("schema_version", "")).endswith("v12"):
+                for item in current.get("items", []):
+                    for key in ["path", "qa_path", "handoff_path"]:
+                        value = item.get(key)
+                        if value and Path(value).exists():
+                            item.setdefault(f"{key}_sha256", sha256_text(Path(value).read_text(errors="replace")))
+                return current
+        except Exception:
+            pass
+
     now = utc_now()
     outputs = []
     for name, builder in [
