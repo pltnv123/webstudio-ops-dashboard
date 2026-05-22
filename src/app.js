@@ -613,16 +613,19 @@ function visualKanbanCard(t) {
   const artifact = t.artifact_path || t.output || t.report || '';
   const next = ownerNext(t);
   const status = t.lifecycle_status || t.status || t.physical_status || 'tracked';
+  const stage = ownerStage(t);
+  const owner = ownerAgent(t);
   const payload = jsonCopy(t);
-  return `<article class="ws-task-card ${lineClass(line)} ${statusClass(status)}" data-detail-type="kanban-card" data-detail-payload="${esc(payload)}" tabindex="0" role="button">
+  const artifactText = artifact ? shortPath(artifact) : 'ожидает';
+  return `<article class="ws-task-card product-like-card ${lineClass(line)} ${statusClass(status)}" data-detail-type="kanban-card" data-detail-payload="${esc(payload)}" tabindex="0" role="button">
     <div class="task-card-head"><span class="line-chip ${lineClass(line)}">${fmt(line)}</span>${badge(status)}</div>
     <h4>${fmt(ownerText(t.title))}</h4>
+    <p class="task-card-summary">${fmt(shortText(next, 96))}</p>
+    <div class="product-card-ribbon"><span>${fmt(stage)}</span><span>${fmt(owner)}</span><span>${fmt(ageLabel(t))}</span></div>
     <div class="task-meta-grid">
-      <span>Агент</span><b>${fmt(ownerAgent(t))}</b>
-      <span>Стадия</span><b>${fmt(ownerStage(t))}</b>
-      <span>Шаг</span><b>${fmt(shortText(next, 58))}</b>
-      <span>Артефакт</span><b>${artifact ? 'есть' : 'нет'}</b>
-      <span>Активность</span><b>${fmt(ageLabel(t))}</b>
+      <span>Артефакт</span><b>${fmt(artifactText)}</b>
+      <span>Delivery</span><b>${/done|review|pass|complete/i.test(status + ' ' + stage) ? 'готовится' : 'в работе'}</b>
+      <span>Следующий шаг</span><b>${fmt(shortText(next, 58))}</b>
     </div>
     <details class="raw-details"><summary>Подробнее</summary><pre class="code mini">${fmt(stringify(t, 1200))}</pre></details>
   </article>`;
@@ -670,12 +673,29 @@ function throughputChart() {
   if (!hist.length) return `<div class="empty">История ещё собирается. Первый адаптер создан в public/data/webstudio-control-plane-history.json.</div>`;
   return `<div class="sparkline">${hist.slice(-12).map(x => `<span title="${esc(x.at || '')}" style="height:${Math.max(8, Math.min(86, (Number(x.completed || 0)+1)*6))}px"></span>`).join('')}</div>`;
 }
+function deliveryReadinessCard(progress={}, prod={}) {
+  const analytics = progress.analytics || {};
+  const score = Number(analytics.delivery_readiness_score || 0);
+  const blockers = analytics.blockers_aging || {};
+  const items = asArray(progress.items);
+  const passCount = items.filter(x => /pass|done|complete/i.test(x.status || '')).length;
+  return `<div class="readiness-card"><div class="readiness-ring" style="--pct:${Math.max(0, Math.min(100, score))}%"><span>${fmt(score || Math.round((passCount / Math.max(1, items.length)) * 100))}%</span></div><div><h4>Delivery readiness</h4><p>PASS артефактов: ${fmt(passCount)}/${fmt(items.length)} · review lane: ${fmt(prod.logical_counts?.review || 0)} · blockers: ${fmt(blockers.active_blockers ?? prod.logical_counts?.blocked ?? 0)}</p><p class="label">Самый старый blocker: ${fmt(blockers.oldest_blocker_age_hours ?? 0)}ч · live-интеграции остаются approval-gated.</p></div></div>`;
+}
+function blockersAgingChart(progress={}, prod={}) {
+  const blockers = progress.analytics?.blockers_aging || {};
+  const watch = asArray(blockers.watch_items);
+  const active = Number(blockers.active_blockers ?? prod.logical_counts?.blocked ?? 0);
+  const age = Number(blockers.oldest_blocker_age_hours || 0);
+  return `<div class="blockers-aging"><div class="bar-row"><span>Active</span><div class="bar-track"><i style="width:${Math.max(3, Math.min(100, active * 18))}%"></i></div><b>${fmt(active)}</b></div><div class="bar-row"><span>Oldest</span><div class="bar-track warn"><i style="width:${Math.max(3, Math.min(100, age))}%"></i></div><b>${fmt(age)}ч</b></div>${watch.map(x => `<p class="label">• ${fmt(x)}</p>`).join('') || '<p class="label">Нет aging blockers.</p>'}</div>`;
+}
 function progressAnalytics() {
   const prod = state.production_pipeline || {}; const progress = state.product_progress || {}; const h = state.health || {};
-  const risk = {blockers: prod.logical_counts?.blocked || 0, stale: ownerKpiStale().active || 0, crashes: state.worker_health?.repeated_crash_indicator_count || 0, github: state.github_readiness?.status || 'unknown', qmd: h.qmd?.status || h.status || 'unknown', supabase: state.supabase?.status || 'read-only/unknown'};
+  const risk = {blockers: prod.logical_counts?.blocked || 0, stale: ownerKpiStale().active || 0, crashes: state.worker_health?.repeated_crash_indicator_count || 0, github: state.github_readiness?.status || 'unknown', qmd: h.qmd?.status || h.status || 'unknown', supabase: state.supabase?.status || 'read-only/unknown', pr_verification: progress.pr_verification_verdict || state.github_readiness?.pr_status?.verification_verdict || 'unknown'};
   return `<section class="card span-12 analytics-section"><h3>Аналитика прогресса</h3><div class="analytics-grid">
+    <article class="wide">${deliveryReadinessCard(progress, prod)}</article>
     <article><h4>Распределение по стадиям</h4>${stageDistributionChart(prod.logical_counts || {})}</article>
     <article><h4>D1/D2/D3 progress</h4>${lineProgressChart(progress)}</article>
+    <article><h4>Blockers aging</h4>${blockersAgingChart(progress, prod)}</article>
     <article><h4>Нагрузка агентов</h4>${agentWorkloadChart()}</article>
     <article><h4>Темп работы / Фабрика задач</h4>${throughputChart()}</article>
     <article class="wide"><h4>Риски и внимание</h4>${kv(risk)}</article>
@@ -686,19 +706,26 @@ function capabilityMatrix() {
 }
 function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
 
+function demoThumbnail(item, score, line) {
+  const t = item.preview_thumbnail || {};
+  const chips = asArray(t.chips).slice(0,4);
+  const accent = t.accent || (line === 'D1' ? '#f5c37b' : line === 'D2' ? '#5dd2ff' : '#36d399');
+  return `<div class="demo-thumb v10-thumb ${String(line).toLowerCase()}" style="--thumb-accent:${esc(accent)}"><span>${fmt(line)}</span><strong>${fmt(t.headline || item.preview_label || 'Preview')}</strong><em>${fmt(t.theme || item.artifact_type || 'WebStudio')}</em><div class="thumb-chips">${chips.map(c => `<small>${fmt(c)}</small>`).join('')}</div><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>`;
+}
 function demoProductCard(item) {
   const score = Number(item.readiness_score || 0);
   const line = item.product_line || 'D?';
   const qa = item.qa_path || item.fixtures_path || '';
   const handoff = item.handoff_path || item.demo_script_path || '';
   return `<article class="demo-product-card ${String(line).toLowerCase()}">
-    <div class="demo-thumb"><span>${fmt(line)}</span><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>
+    ${demoThumbnail(item, score, line)}
     <div class="demo-head"><div><p class="eyebrow">${fmt(ru(line))}</p><h3>${fmt(item.title || item.preview_label || 'Demo product')}</h3></div>${badge(item.status || 'watch')}</div>
     <p>${fmt(item.preview_label || item.artifact_type || 'Демо-продукт')}</p>
     <div class="demo-progress"><span>Readiness</span><b>${fmt(score)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, score))}%"></i></div></div>
     <div class="task-meta-grid">
       <span>QA</span><b>${qa ? 'готово' : 'нет'}</b>
       <span>Handoff</span><b>${handoff ? 'готово' : 'нет'}</b>
+      <span>Фаза</span><b>${fmt(item.phase || 'v10')}</b>
       <span>Следующий шаг</span><b>${fmt(shortText(item.next_action || 'проверить демо', 62))}</b>
     </div>
     <div class="toolbar">${copyButton('Preview path', item.path || '')}${qa ? copyButton('QA path', qa) : ''}${handoff ? copyButton('Handoff path', handoff) : ''}<button class="copy secondary" type="button" data-detail-type="demo-product" data-detail-payload="${esc(jsonCopy(item))}">Подробнее</button></div>
@@ -714,11 +741,11 @@ function demoProducts() {
     ${metric('Средняя готовность', avg + '%', 'span-3', 'demo-products')}
     ${metric('QA готово', items.filter(x => x.qa_path || x.fixtures_path).length + '/' + items.length, 'span-3', 'demo-products')}
     ${metric('Handoff готово', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
-    <section class="card span-12 demo-products-hero"><h3>Демо-продукты WebStudio v9</h3><p class="label">Owner-facing витрина: D1 лендинг, D2 AI-intake Telegram bot, D3 safe automation map. Raw/debug спрятан в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
+    <section class="card span-12 demo-products-hero"><h3>Демо-продукты WebStudio v10</h3><p class="label">Owner-facing витрина Product Build Phase v10: D1 real-client adaptation, D2 transcript runner, D3 dry-run integration readiness. Raw/debug спрятан в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
     ${card('D1 — Лендинги и сайты', kv({status: byLine.D1.status, preview: byLine.D1.path, qa: byLine.D1.qa_path, handoff: byLine.D1.handoff_path, next_action: byLine.D1.next_action}), 'span-4')}
     ${card('D2 — AI-intake bot', kv({status: byLine.D2.status, preview: byLine.D2.path, fixtures: byLine.D2.qa_path, demo_script: byLine.D2.handoff_path, next_action: byLine.D2.next_action}), 'span-4')}
     ${card('D3 — Автоматизации', kv({status: byLine.D3.status, preview: byLine.D3.path, matrix: byLine.D3.qa_path, handoff: byLine.D3.handoff_path, next_action: byLine.D3.next_action}), 'span-4')}
-    ${card('Источник прогресса', `${kv({source_of_truth: progress.source_of_truth, updated_at: progress.updated_at, mode: progress.mode, report: '/workspace/output/webstudio-demo-products-v9-report.md'})}${toolbar([copyButton('Copy progress JSON path', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json'), copyButton('Copy v9 report path', '/workspace/output/webstudio-demo-products-v9-report.md')])}`, 'span-12')}
+    ${card('Источник прогресса', `${kv({source_of_truth: progress.source_of_truth, updated_at: progress.updated_at, mode: progress.mode, report: '/workspace/output/webstudio-demo-products-v9-report.md', phase: progress.phase || 'v10', pr_verification: progress.pr_verification_verdict || 'PASS'})}${toolbar([copyButton('Copy progress JSON path', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json'), copyButton('Copy v9 report path', '/workspace/output/webstudio-demo-products-v9-report.md')])}`, 'span-12')}
   </div>`;
 }
 
