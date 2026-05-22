@@ -710,7 +710,7 @@ function demoThumbnail(item, score, line) {
   const t = item.preview_thumbnail || {};
   const chips = asArray(t.chips).slice(0,4);
   const accent = t.accent || (line === 'D1' ? '#f5c37b' : line === 'D2' ? '#5dd2ff' : '#36d399');
-  return `<div class="demo-thumb v10-thumb ${String(line).toLowerCase()}" style="--thumb-accent:${esc(accent)}"><span>${fmt(line)}</span><strong>${fmt(t.headline || item.preview_label || 'Preview')}</strong><em>${fmt(t.theme || item.artifact_type || 'WebStudio')}</em><div class="thumb-chips">${chips.map(c => `<small>${fmt(c)}</small>`).join('')}</div><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>`;
+  return `<div class="demo-thumb v11-thumb ${String(line).toLowerCase()}" style="--thumb-accent:${esc(accent)}"><span>${fmt(line)}</span><strong>${fmt(t.headline || item.preview_label || 'Preview')}</strong><em>${fmt(t.theme || item.artifact_type || 'WebStudio')}</em><div class="thumb-chips">${chips.map(c => `<small>${fmt(c)}</small>`).join('')}</div><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>`;
 }
 function demoProductCard(item) {
   const score = Number(item.readiness_score || 0);
@@ -725,7 +725,7 @@ function demoProductCard(item) {
     <div class="task-meta-grid">
       <span>QA</span><b>${qa ? 'готово' : 'нет'}</b>
       <span>Handoff</span><b>${handoff ? 'готово' : 'нет'}</b>
-      <span>Фаза</span><b>${fmt(item.phase || 'v10')}</b>
+      <span>Фаза</span><b>${fmt(item.phase || 'v11')}</b>
       <span>Следующий шаг</span><b>${fmt(shortText(item.next_action || 'проверить демо', 62))}</b>
     </div>
     <div class="toolbar">${copyButton('Preview path', item.path || '')}${qa ? copyButton('QA path', qa) : ''}${handoff ? copyButton('Handoff path', handoff) : ''}<button class="copy secondary" type="button" data-detail-type="demo-product" data-detail-payload="${esc(jsonCopy(item))}">Подробнее</button></div>
@@ -736,16 +736,17 @@ function demoProducts() {
   const items = asArray(progress.items);
   const avg = items.length ? Math.round(items.reduce((sum,item)=>sum + Number(item.readiness_score || 0), 0) / items.length) : 0;
   const byLine = Object.fromEntries(['D1','D2','D3'].map(l => [l, items.find(x => x.product_line === l) || {}]));
+  const reportPath = progress.report || '/workspace/output/webstudio-product-build-v11-final-report.md';
   return `<div class="grid demo-products-page">
     ${metric('Демо-продукты', items.length, 'span-3', 'demo-products')}
     ${metric('Средняя готовность', avg + '%', 'span-3', 'demo-products')}
     ${metric('QA готово', items.filter(x => x.qa_path || x.fixtures_path).length + '/' + items.length, 'span-3', 'demo-products')}
     ${metric('Handoff готово', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
-    <section class="card span-12 demo-products-hero"><h3>Демо-продукты WebStudio v10</h3><p class="label">Owner-facing витрина Product Build Phase v10: D1 real-client adaptation, D2 transcript runner, D3 dry-run integration readiness. Raw/debug спрятан в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
+    <section class="card span-12 demo-products-hero"><h3>Демо-продукты WebStudio v11</h3><p class="label">Owner-facing витрина Product Build Phase v11: D1 real-client landing adaptation, D2 transcript runner scenario replay, D3 dry-run integration readiness. Raw/debug спрятан в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
     ${card('D1 — Лендинги и сайты', kv({status: byLine.D1.status, preview: byLine.D1.path, qa: byLine.D1.qa_path, handoff: byLine.D1.handoff_path, next_action: byLine.D1.next_action}), 'span-4')}
     ${card('D2 — AI-intake bot', kv({status: byLine.D2.status, preview: byLine.D2.path, fixtures: byLine.D2.qa_path, demo_script: byLine.D2.handoff_path, next_action: byLine.D2.next_action}), 'span-4')}
     ${card('D3 — Автоматизации', kv({status: byLine.D3.status, preview: byLine.D3.path, matrix: byLine.D3.qa_path, handoff: byLine.D3.handoff_path, next_action: byLine.D3.next_action}), 'span-4')}
-    ${card('Источник прогресса', `${kv({source_of_truth: progress.source_of_truth, updated_at: progress.updated_at, mode: progress.mode, report: '/workspace/output/webstudio-demo-products-v9-report.md', phase: progress.phase || 'v10', pr_verification: progress.pr_verification_verdict || 'PASS'})}${toolbar([copyButton('Copy progress JSON path', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json'), copyButton('Copy v9 report path', '/workspace/output/webstudio-demo-products-v9-report.md')])}`, 'span-12')}
+    ${card('Источник прогресса', `${kv({source_of_truth: progress.source_of_truth, updated_at: progress.updated_at, mode: progress.mode, report: reportPath, phase: progress.phase || 'v11', pr_verification: progress.pr_verification_verdict || 'PASS'})}${toolbar([copyButton('Copy progress JSON path', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json'), copyButton('Copy v11 report path', reportPath)])}`, 'span-12')}
   </div>`;
 }
 
