@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -32,7 +32,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
@@ -544,6 +544,113 @@ function classifyCard(t) {
   return 'normal';
 }
 
+
+const LANE_DESCRIPTIONS = {
+  triage: 'Новые идеи, лиды и сырые требования без полной спецификации.',
+  todo: 'Уточнённые задачи: смысл понятен, но есть подготовка или зависимость.',
+  scheduled: 'Старт позже: следующий 12h tick, окно владельца или событие.',
+  ready: 'Всё готово: агент может брать в работу без дополнительных вопросов.',
+  in_progress: 'Реально выполняется агентом, воркером или субагентом сейчас.',
+  running: 'Реально выполняется агентом, воркером или субагентом сейчас.',
+  blocked: 'Только настоящие blockers: решение владельца, доступ или внешний риск.',
+  review: 'Результат готов и ждёт QA, owner review или delivery review.',
+  done: 'Принятые результаты. Новые сверху по updated/completed времени.',
+  archived: 'Canary, test, noise и старые карточки вне production-фокуса.'
+};
+const LANE_ACCENTS = {triage:'#60a5fa',todo:'#38bdf8',scheduled:'#a78bfa',ready:'#34d399',in_progress:'#5dd2ff',running:'#5dd2ff',blocked:'#fb7185',review:'#fbbf24',done:'#22c55e',archived:'#94a3b8'};
+const CAPABILITY_ROWS = [
+  {domain:'Визуальный дизайн', gives:'Дизайн-системы, DESIGN.md, визуальные гипотезы, не шаблонная сетка', agents:['CTO','Design','Frontend'], lines:['D1','D2','D3'], status:'active', source:'Open Design + встроенные навыки Hermes', next:'Автовыбор DESIGN.md по типу продукта'},
+  {domain:'Анимация и микровзаимодействия', gives:'Дисциплинированный слой motion, микровзаимодействия, reveal без перегруза', agents:['Design','Frontend','QA'], lines:['D1','D2'], status:'active', source:'Open Design craft + локальный навык анимации', next:'Бюджет анимации и reduced-motion аудит'},
+  {domain:'QA и ревью', gives:'Browser QA, console=0, responsive, проверка артефактов, русская copy-проверка', agents:['QA','Delivery'], lines:['D1','D2','D3'], status:'active', source:'Паттерны webapp-testing + Hermes browser QA', next:'Визуальные regression snapshots'},
+  {domain:'Производительность и передача', gives:'Лёгкая static-админка, build/smoke, owner-ready handoff, rollback notes', agents:['Frontend','Ops','Delivery'], lines:['D1','D2','D3'], status:'active', source:'Hermes WebStudio delivery skills', next:'Адаптер рисков Core Web Vitals'},
+  {domain:'Конверсия и аналитика', gives:'Воронки, CTA, оффер, acceptance criteria, throughput charts', agents:['Sales','CTO','Research'], lines:['D1','D2','D3'], status:'active', source:'Таксономия awesome-agent-skills', next:'Lead scoring в D3 intake'},
+  {domain:'Русский текст и UX', gives:'Owner-friendly RU labels, короткие next steps, raw/debug скрыты под «Подробнее»', agents:['Design','QA','Delivery'], lines:['D1','D2','D3'], status:'active', source:'локальный навык русского copy', next:'Tone presets per client'},
+  {domain:'GitHub и PR-передача', gives:'PR status, branch, checks, safe push boundary, evidence paths', agents:['Ops','Delivery'], lines:['OPS','D1'], status:'active', source:'Hermes github-pr-workflow', next:'История CI badge'},
+  {domain:'Передача клиенту', gives:'Пакет передачи: screenshots, QA report, summary, exact approvals', agents:['Delivery','QA','Sales'], lines:['D1','D2','D3'], status:'active', source:'локальный handoff-навык', next:'Client-ready ZIP manifest'},
+  {domain:'Supabase и backend safe ops', gives:'Read-only liveness, schema proposal before writes, RLS-safe boundary', agents:['Backend','Ops','QA'], lines:['D2','D3'], status:'planned', source:'Hermes Supabase safe checks', next:'Read-only status tile'},
+  {domain:'QMD и база знаний', gives:'Safe qmd status/update/search/get/ls; no vector-heavy commands by default', agents:['Research','Ops','CTO'], lines:['OPS','D1','D2','D3'], status:'active', source:'Hermes QMD safe mode', next:'Knowledge freshness chart'}
+];
+function taskUpdatedAt(t) { return t.completed_at || t.updated_at || t.created_at || t.audit?.updated_at || t.audit?.created_at || ''; }
+function ageLabel(t) { const raw = taskUpdatedAt(t); if (!raw) return 'нет времени'; const d = new Date(raw); if (Number.isNaN(d.getTime())) return shortText(raw, 18); const h = Math.max(0, Math.round((Date.now() - d.getTime()) / 36e5)); return h < 1 ? 'только что' : h < 24 ? `${h}ч назад` : `${Math.round(h/24)}д назад`; }
+function lineClass(line) { return ['D1','D2','D3','OPS'].includes(line) ? line.toLowerCase() : 'ops'; }
+function visualKanbanCard(t) {
+  const line = productLineOf(t);
+  const artifact = t.artifact_path || t.output || t.report || '';
+  const next = ownerNext(t);
+  const status = t.lifecycle_status || t.status || t.physical_status || 'tracked';
+  const payload = jsonCopy(t);
+  return `<article class="ws-task-card ${lineClass(line)} ${statusClass(status)}" data-detail-type="kanban-card" data-detail-payload="${esc(payload)}" tabindex="0" role="button">
+    <div class="task-card-head"><span class="line-chip ${lineClass(line)}">${fmt(line)}</span>${badge(status)}</div>
+    <h4>${fmt(ownerText(t.title))}</h4>
+    <div class="task-meta-grid">
+      <span>Агент</span><b>${fmt(ownerAgent(t))}</b>
+      <span>Стадия</span><b>${fmt(ownerStage(t))}</b>
+      <span>Шаг</span><b>${fmt(shortText(next, 58))}</b>
+      <span>Артефакт</span><b>${artifact ? 'есть' : 'нет'}</b>
+      <span>Активность</span><b>${fmt(ageLabel(t))}</b>
+    </div>
+    <details class="raw-details"><summary>Подробнее</summary><pre class="code mini">${fmt(stringify(t, 1200))}</pre></details>
+  </article>`;
+}
+function sortLaneItems(lane, items) {
+  const list = asArray(items).slice();
+  if (lane === 'done' || lane === 'archived') list.sort((a,b) => String(taskUpdatedAt(b)).localeCompare(String(taskUpdatedAt(a))));
+  return list;
+}
+function visualLaneBoard(lanes, order, opts={}) {
+  return `<div class="visual-kanban-board" data-columns="${order.length}">${order.map(lane => {
+    const allItems = sortLaneItems(lane, lanes?.[lane]);
+    const visible = allItems.slice(0, opts.limit || 5);
+    const accent = LANE_ACCENTS[lane] || '#5dd2ff';
+    const morePayload = {lane, count: allItems.length, items: allItems.slice(0, 50), note: allItems.length > 50 ? 'Показаны первые 50 карточек; полный список доступен через фильтр/экспорт JSON.' : 'Полный список колонки.'};
+    const more = allItems.length > visible.length ? `<button class="more-count" type="button" data-detail-type="kanban-lane" data-detail-payload="${esc(jsonCopy(morePayload))}">ещё ${allItems.length - visible.length}</button>` : '';
+    return `<section class="visual-lane ${statusClass(lane)}" style="--lane-accent:${accent}">
+      <header class="lane-head"><div><h3>${fmt(ru(lane))}</h3><p>${fmt(LANE_DESCRIPTIONS[lane] || 'Рабочая колонка production pipeline.')}</p></div><span>${allItems.length}</span></header>
+      <div class="lane-scroll">${visible.length ? visible.map(visualKanbanCard).join('') : `<div class="empty lane-empty">Пока пусто</div>`}${more}</div>
+    </section>`;
+  }).join('')}</div>`;
+}
+function maxCount(values) { return Math.max(1, ...values.map(v => Number(v) || 0)); }
+function stageDistributionChart(counts={}) {
+  const order = ['triage','todo','scheduled','ready','in_progress','blocked','review','done','archived'];
+  const max = maxCount(order.map(k => counts[k] || 0));
+  return `<div class="chart-grid stage-chart">${order.map(k => `<div class="bar-row"><span>${fmt(ru(k))}</span><div class="bar-track"><i style="width:${Math.max(3, Math.round(((counts[k] || 0) / max) * 100))}%;background:${LANE_ACCENTS[k] || '#5dd2ff'}"></i></div><b>${fmt(counts[k] || 0)}</b></div>`).join('')}</div>`;
+}
+function lineProgressChart(progress={}) {
+  const byLine = progress.by_line || {};
+  const lines = ['D1','D2','D3'];
+  const max = maxCount(lines.map(l => byLine[l]?.total || asArray(progress.items).filter(i => i.product_line === l).length));
+  return `<div class="line-progress-grid">${lines.map(l => { const entry = byLine[l] || {}; const total = entry.total || asArray(progress.items).filter(i => i.product_line === l).length; const active = entry.active || entry.in_progress || 0; const done = entry.done || entry.completed || asArray(progress.items).filter(i => i.product_line === l && /done|complete|pass/i.test(i.status || '')).length; return `<article class="line-progress-card ${l.toLowerCase()}"><h4>${fmt(LINE_RU[l])}</h4><div class="donut" style="--pct:${Math.min(100, Math.round((total / max) * 100))}%"><span>${fmt(total)}</span></div><p>активно ${fmt(active)} · готово ${fmt(done)} · review ${fmt(entry.review || 0)} · blocked ${fmt(entry.blocked || 0)}</p></article>`; }).join('')}</div>`;
+}
+function agentWorkloadChart() {
+  const prod = state.production_pipeline || {}; const lanes = prod.logical_lanes || {}; const all = Object.values(lanes).flatMap(asArray);
+  const roles = ['CTO','Оркестратор','Frontend','Backend','QA','Ops','Research','Sales','Delivery'];
+  const counts = Object.fromEntries(roles.map(r => [r, 0]));
+  for (const t of all) { const a = ownerAgent(t); const key = roles.find(r => new RegExp(r === 'Оркестратор' ? 'оркестр|orchestr' : r, 'i').test(a + ' ' + (t.assigned_agent || '') + ' ' + (t.assignee || '') + ' ' + (t.title || ''))) || 'Ops'; counts[key]++; }
+  const max = maxCount(Object.values(counts));
+  return `<div class="workload-chart">${roles.map(r => `<div class="workload-pill"><b>${fmt(r)}</b><span style="height:${Math.max(10, Math.round((counts[r]/max)*72))}px"></span><em>${fmt(counts[r])}</em></div>`).join('')}</div>`;
+}
+function throughputChart() {
+  const hist = asArray(state.control_plane_history?.snapshots);
+  if (!hist.length) return `<div class="empty">История ещё собирается. Первый адаптер создан в public/data/webstudio-control-plane-history.json.</div>`;
+  return `<div class="sparkline">${hist.slice(-12).map(x => `<span title="${esc(x.at || '')}" style="height:${Math.max(8, Math.min(86, (Number(x.completed || 0)+1)*6))}px"></span>`).join('')}</div>`;
+}
+function progressAnalytics() {
+  const prod = state.production_pipeline || {}; const progress = state.product_progress || {}; const h = state.health || {};
+  const risk = {blockers: prod.logical_counts?.blocked || 0, stale: ownerKpiStale().active || 0, crashes: state.worker_health?.repeated_crash_indicator_count || 0, github: state.github_readiness?.status || 'unknown', qmd: h.qmd?.status || h.status || 'unknown', supabase: state.supabase?.status || 'read-only/unknown'};
+  return `<section class="card span-12 analytics-section"><h3>Аналитика прогресса</h3><div class="analytics-grid">
+    <article><h4>Распределение по стадиям</h4>${stageDistributionChart(prod.logical_counts || {})}</article>
+    <article><h4>D1/D2/D3 progress</h4>${lineProgressChart(progress)}</article>
+    <article><h4>Нагрузка агентов</h4>${agentWorkloadChart()}</article>
+    <article><h4>Темп работы / Фабрика задач</h4>${throughputChart()}</article>
+    <article class="wide"><h4>Риски и внимание</h4>${kv(risk)}</article>
+  </div></section>`;
+}
+function capabilityMatrix() {
+  return `<section class="card span-12 capability-section"><h3>Навыки агентов</h3><p class="label">Capability matrix показывает, какие навыки реально используются в production pipeline. Raw skill names спрятаны в «Подробнее».</p><div class="capability-grid">${CAPABILITY_ROWS.map(c => `<article class="capability-card ${statusClass(c.status)}"><div class="capability-top"><h4>${fmt(c.domain)}</h4>${badge(c.status)}</div><p>${fmt(c.gives)}</p><div class="capability-meta"><span>Агенты: ${fmt(c.agents.join(', '))}</span><span>Линии: ${fmt(c.lines.join(', '))}</span><span>Источник: ${fmt(c.source)}</span></div><details><summary>Подробнее</summary><pre class="code mini">${fmt(jsonCopy(c))}</pre></details></article>`).join('')}</div></section>`;
+}
+function capabilities() { return `<div class="grid">${capabilityMatrix()}${progressAnalytics()}</div>`; }
+
 function kanbanCard(t) {
   const line = productLineOf(t);
   const meta = `${line} · ${ownerStage(t)} · агент: ${ownerAgent(t)} · шаг: ${ownerNext(t)}`;
@@ -569,14 +676,8 @@ function laneBoard(k) {
 }
 
 function logicalProductionBoard(prod) {
-  const order = ['triage','todo','scheduled','ready','in_progress','blocked','review','done','archived'];
-  const lanes = prod.logical_lanes || {};
-  return `<div class="kanban-board production-board all-columns">${order.map(lane => {
-    const allItems = asArray(lanes[lane]);
-    const visible = allItems.slice(0, 3);
-    const more = allItems.length > visible.length ? `<div class="more-count">ещё ${allItems.length - visible.length}</div>` : '';
-    return `<section class="lane ${statusClass(lane)}"><h3>${fmt(ru(lane))} <span>${allItems.length}</span></h3>${rows(visible, kanbanCard, 'Пусто')}${more}</section>`;
-  }).join('')}</div>`;
+  const order = prod.logical_lane_order || ['triage','todo','scheduled','ready','in_progress','blocked','review','done','archived'];
+  return visualLaneBoard(prod.logical_lanes || {}, order, {limit: 5});
 }
 
 function kanban() {
@@ -595,7 +696,7 @@ function kanban() {
     ${card('Здоровье воркеров', `${kv({running: wh.running_count, stale_30m: wh.stale_30m_count, stale_2h: wh.stale_2h_count, repeated_crash_indicators: wh.repeated_crash_indicator_count, contract: wh.lifecycle_contract, report: wh.hardening_report})}${toolbar([copyButton('Copy worker contract', wh.lifecycle_contract || ''), copyButton('Copy worker hardening report', wh.hardening_report || '/workspace/output/worker-lifecycle-contract-hardening-v2.md')])}`, 'span-6')}
     ${card('GitHub PR status', `${kv({account: gh.account_expected, status: gh.status, pr_url: gh.pr_url, latest_commit_sha: gh.latest_commit_sha, pushed_at: gh.pushed_at, wrapper_broken: gh.wrapper_broken, repair_packet: gh.repair_packet, report: gh.hardening_report})}${toolbar([gh.pr_url ? `<a class="copy" href="${esc(gh.pr_url)}" target="_blank" rel="noreferrer">Открыть PR</a>` : '', copyButton('Скопировать PR URL', gh.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1'), copyButton('Скопировать commit', gh.latest_commit_sha || ''), copyButton('Copy GitHub report', gh.hardening_report || '/workspace/output/github-hardening-v2-report.md')].filter(Boolean))}`, 'span-6')}
     ${card('Семантика Канбана', `${kv({verdict: sem.verdict, review: sem.review, triage: sem.triage, report: sem.report})}${toolbar([copyButton('Copy semantics report', sem.report || '/workspace/output/kanban-native-review-triage-investigation-v2.md')])}`, 'span-12')}
-    <section class="card span-12 kanban-compact"><h3>Производственная доска — все столбики</h3><p class="label">Logical production lanes from stable [WEBSTUDIO]/D1/D2/D3 taxonomy. Archived canary/noise is visible only as a separate lane and never mixed into active production work.</p>${logicalProductionBoard(prod)}</section>
+    <section class="card span-12 kanban-compact visual-board-card"><h3>Производственный Канбан</h3><p class="label">Живая production-доска WebStudio: бизнес-стадии, агент, следующий шаг и артефакт на карточке. Debug-поля спрятаны в details.</p>${logicalProductionBoard(prod)}</section>${progressAnalytics()}${capabilityMatrix()}
     <section class="card span-12 kanban-compact"><h3>Физический Kanban Hermes — компактно</h3><div class="filters">${searchBox('kanbanSearch', 'Поиск карточек / агента / id…', filters.kanban)}<select id="kanbanLaneFilter">${laneOptions}</select><select id="kanbanKindFilter">${kindOptions}</select><label class="check"><input id="kanbanShowArchived" type="checkbox" ${filters.showArchived ? 'checked' : ''}> Показать архив</label>${clearFiltersButton('kanban')}</div>${laneBoard(k)}</section>
     ${card('Последние карточки', rows(asArray(k.last_cards), kanbanCard), 'span-12')}
     ${card('Зеркала sample', rows(asArray(k.mirrors), kanbanCard), 'span-6')}
@@ -677,7 +778,7 @@ function production() {
     ${metric('На проверке', counts.review || 0, 'span-3', 'approvals')}
     ${metric('Передача клиенту', counts.delivery || 0, 'span-3', 'clients')}
     ${card('Фильтры', `${filterBar}${rowsTop(quickItems, kanbanCard, 5, 'Нет карточек по фильтру')}`, 'span-12')}
-    <section class="card span-12 kanban-compact"><h3>Канбан производства — все столбики</h3><p class="label">Разбор · Подготовка · Запланировано · Готово к запуску · Выполняется · Заблокировано · На проверке · Готово · Архив</p>${logicalProductionBoard(p)}</section>
+    <section class="card span-12 kanban-compact visual-board-card"><h3>Производственный Канбан</h3><p class="label">Разбор · Подготовка · Запланировано · Готово к запуску · Выполняется · Заблокировано · На проверке · Готово · Архив</p>${logicalProductionBoard(p)}</section>${progressAnalytics()}${capabilityMatrix()}
     ${card('Прогресс D1/D2/D3', rowsTop(asArray(progress.items), item => row(item.product_line, `${item.artifact_type} · ${ru(item.stage || 'stage')}`, item.status || 'artifact', `${shortPath(item.path)} · sha=${String(item.sha256 || '').slice(0,12)} · обновлено=${item.updated_at || progress.updated_at || '—'}`, 'artifact', jsonCopy(item)), 5, 'Нет артефактов прогресса'), 'span-12')}
     ${collapsibleCard('Источник доски', `${kv({board: p.board_name, purpose: p.purpose, source_of_truth: p.source_of_truth, filter: p.filter_recipe, contract: p.view_contract})}${toolbar([copyButton('Copy /kanban filter', 'WEBSTUDIO'), copyButton('Copy rebuild command', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-12')}
     ${collapsibleCard('Колонки производства', kv(logicalCounts), 'span-12', true)}
@@ -924,7 +1025,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'agent-workflow': agentWorkflow, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'agent-workflow': agentWorkflow, capabilities, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
@@ -1308,6 +1409,7 @@ document.addEventListener('submit', e => {
   handleD3IntakeSubmit(form);
 });
 document.addEventListener('click', e => {
+  if (e.target.closest('summary') && e.target.closest('.raw-details')) return;
   const ownerScope = e.target.closest('[data-owner-feedback-scope]');
   if (ownerScope) { handleOwnerFeedbackScope(ownerScope.getAttribute('data-owner-feedback-scope'), ownerScope.getAttribute('data-scope-kind')); return; }
   const copy = e.target.closest('[data-copy]');

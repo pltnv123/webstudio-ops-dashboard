@@ -47,6 +47,7 @@ CONTINUATION_CARD_TITLE = "[WEBSTUDIO][OPS] Continuation controller / no-partial
 AGENT_WORKFLOW_SCREENSHOT_PATH = OUTPUT / "webstudio-agent-workflow-screenshot.png"
 GITHUB_PR1_STATUS_PATH = OUTPUT / "webstudio-github-pr1-status.json"
 PRODUCT_PROGRESS_PATH = OUTPUT / "webstudio-product-progress-v1.json"
+CONTROL_HISTORY_PATH = PUBLIC_DATA / "webstudio-control-plane-history.json"
 
 FORBIDDEN_ACTIONS = [
     "dispatch", "run", "daemon", "unblock", "reclaim", "deploy", "release",
@@ -1043,6 +1044,7 @@ def build_state() -> dict[str, Any]:
     if kanban.get("duplicate_keys"):
         safety_status = "fail"
         safety_findings.append("duplicate mirror idempotency keys detected")
+    control_plane_history = load_json(CONTROL_HISTORY_PATH, {"snapshots": []})
     return {
         "schema_version": "webstudio-control-plane.v1",
         "generated_at": utc_now(),
@@ -1073,6 +1075,7 @@ def build_state() -> dict[str, Any]:
         "kanban": kanban,
         "production_pipeline": production_pipeline,
         "product_progress": product_progress,
+        "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
         "agent_workflow": agent_workflow,
@@ -1115,7 +1118,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "agent-workflow", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "agent-workflow", "capabilities", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)
@@ -1123,8 +1126,12 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
             shutil.copy2(SRC / name, route_dir / name)
         (route_dir / "data").mkdir(parents=True, exist_ok=True)
         shutil.copy2(CONTROL_STATE_PATH, route_dir / "data" / "webstudio-control-plane-state.json")
+        if CONTROL_HISTORY_PATH.exists():
+            shutil.copy2(CONTROL_HISTORY_PATH, route_dir / "data" / "webstudio-control-plane-history.json")
     (dist / "data").mkdir(parents=True, exist_ok=True)
     shutil.copy2(CONTROL_STATE_PATH, dist / "data" / "webstudio-control-plane-state.json")
+    if CONTROL_HISTORY_PATH.exists():
+        shutil.copy2(CONTROL_HISTORY_PATH, dist / "data" / "webstudio-control-plane-history.json")
 
 
 def main() -> int:

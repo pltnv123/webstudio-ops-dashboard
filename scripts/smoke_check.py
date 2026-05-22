@@ -30,7 +30,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'kanban', 'production', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'kanban', 'production', 'agent-workflow', 'capabilities', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -69,6 +69,11 @@ required_js_symbols = [
     'blocked_owner',
     'openDrawer',
     'copyText',
+    'capabilities',
+    'capabilityMatrix',
+    'progressAnalytics',
+    'visualLaneBoard',
+    'control_plane_history',
 ]
 for symbol in required_js_symbols:
     assert symbol in js, f'missing JS symbol {symbol}'
@@ -78,7 +83,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'control_plane_history']:
     assert key in state, f'missing state key {key}'
 controller = state['continuation_controller']
 assert controller['checkpoint_path'] == '/workspace/output/current-task-continuation-checkpoint.md'
@@ -102,6 +107,9 @@ assert state['d3_intake']['safety']['production_card_preserved'] is True
 progress = state['product_progress']
 assert progress['mode'] == 'safe_local_artifacts_only'
 assert {item['product_line'] for item in progress['items']} >= {'D1', 'D2', 'D3'}
+assert isinstance(state['control_plane_history'].get('snapshots', []), list), 'control plane history snapshots must be a list'
+assert 'capability-section' in css
+assert 'visual-kanban-board' in css
 if state['github_readiness'].get('status') == 'UPDATED':
     assert state['github_readiness'].get('latest_commit_sha'), 'UPDATED PR needs latest commit SHA'
     assert state['github_readiness'].get('pushed_at'), 'UPDATED PR needs pushed_at'
