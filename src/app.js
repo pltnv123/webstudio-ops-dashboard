@@ -771,8 +771,13 @@ function clientSimulationPanel(progress={}) {
 function compactLineCard(line, item={}) {
   const qa = item.qa_path || item.fixtures_path || '';
   const handoff = item.handoff_path || item.demo_script_path || '';
-  const body = `<p><b>Что клиент получает:</b> ${fmt(item.client_gets || '—')}</p><p><b>Следующий шаг:</b> ${fmt(item.next_action || '—')}</p><div class="toolbar">${openButton('Открыть демо', item.path || '')}${openButton('Открыть QA', qa)}${openButton('Открыть handoff', handoff)}${detailPayloadButton(item, 'Подробнее', 'line-details')}</div>`;
+  const body = `<p><b>Что клиент получает:</b> ${fmt(item.client_gets || '—')}</p><p><b>Следующий шаг:</b> ${fmt(item.next_action || '—')}</p><div class="toolbar">${openButton('Открыть демо', item.path || '')}${openButton('Открыть QA', qa)}${openButton('Открыть handoff', handoff)}${item.motion_spec_path ? openButton('Motion spec', item.motion_spec_path) : ''}${item.fixtures_csv_path ? openButton('CSV fixtures', item.fixtures_csv_path) : ''}${detailPayloadButton(item, 'Подробнее', 'line-details')}</div>`;
   return card(`${line} — ${productLineName(line)}`, body, 'span-4');
+}
+function readinessTimeline(progress={}) {
+  const timeline = asArray(progress.analytics?.readiness_timeline || progress.readiness_timeline);
+  if (!timeline.length) return '';
+  return `<section class="card span-12 readiness-timeline-card"><h3>Delivery readiness timeline</h3><p class="label">Клиентский сценарий #001: каждый шаг имеет артефакт, QA и no-live-write gate.</p><div class="readiness-timeline">${timeline.map((step, i) => `<article class="timeline-step ${statusClass(step.status)}"><span>${fmt(String(i + 1).padStart(2,'0'))}</span><b>${fmt(step.step || step.title)}</b>${badge(step.status || 'watch')}<small>${fmt(shortPath(step.artifact || step.path || '—'))}</small>${openButton('Открыть', step.artifact || step.path || '')}</article>`).join('')}</div></section>`;
 }
 function demoProducts() {
   const progress = state.product_progress || {};
@@ -787,6 +792,7 @@ function demoProducts() {
     ${metric('Передача готова', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
     <section class="card span-12 demo-products-hero showcase-hero"><p class="eyebrow">WebStudio Showcase</p><h3>Витрина WebStudio</h3><p class="label">Клиентская витрина автоматизированной веб-студии: D1 сайты, D2 Telegram intake, D3 бизнес-автоматизации. Технические пути и raw/debug убраны в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
     ${clientSimulationPanel(progress)}
+    ${readinessTimeline(progress)}
     ${compactLineCard('D1', byLine.D1)}
     ${compactLineCard('D2', byLine.D2)}
     ${compactLineCard('D3', byLine.D3)}
