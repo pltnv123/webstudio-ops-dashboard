@@ -509,6 +509,7 @@ function overview() {
     ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
     ${card('Безопасность', `${kv({status: safety.status, read_only: safety.read_only, dispatch_allowed: safety.dispatch_allowed, worker_allowed: safety.worker_allowed, mirror_executable_count: safety.mirror_executable_count, duplicate_keys: Object.keys(safety.duplicate_keys || {}).length})}${toolbar([copyButton('Copy safety contract', `Безопасность:\nread_only=${safety.read_only}\ndispatch_allowed=${safety.dispatch_allowed}\nworker_allowed=${safety.worker_allowed}\nforbidden=${asArray(safety.forbidden_actions).join(', ')}`), copyButton('Copy owner summary', ownerSummary)])}`, 'span-6')}
     ${card('Система сейчас', kv({status: h.status, gateway_active: h.gateway_active, qmd_pending_embeddings: h.qmd?.pending_embeddings, primary_model: h.primary_model_line}), 'span-6')}
+    ${githubReadinessPanel()}
     ${staleExplanationCard()}
     ${card('Источник данных', `${kv(sourceSummary())}${toolbar([copyButton('Copy state path', '/workspace/output/webstudio-control-plane-state.json'), copyButton('Copy dist path', '/workspace/output/webstudio-ops-dashboard-static'), copyButton('Copy local serve', 'cd /workspace/projects/webstudio-ops-dashboard && python3 -m http.server 4173 -d src')])}`, 'span-12')}
     ${card('Продуктовые линии', rows(asArray(state.product_lines), p => row('', LINE_RU[p.id] || ownerText(p.name), p.status, 'Автономия: ' + asArray(p.autonomy_levels).join(', '), 'json', jsonCopy(p))), 'span-12')}
@@ -1142,19 +1143,21 @@ function githubReadinessPanel() {
   const gh = state.github_readiness || {};
   const ap = gh.autopush || {};
   const pr = gh.pr_status || {};
-  const ownerNeeded = ap.status === 'blocked' || gh.status === 'AUTO_PUSH_BLOCKED' || gh.wrapper_broken;
+  const ownerNeeded = (ap.owner_action_required === false || ap.owner_action_required === 'no') ? false : (ap.owner_action_required === true || ap.owner_action_required === 'yes' || ap.status === 'blocked' || gh.status === 'AUTO_PUSH_BLOCKED' || gh.wrapper_broken);
   const prUrl = gh.pr_url || pr.pr_url || ap.pr_url || gh.completion_result?.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1';
-  const latestCommit = ap.latest_local_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
-  const latestPrHead = ap.latest_remote_commit || pr.latest_remote_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
-  const checks = ap.checks_status || pr.checks_status || gh.pr_status?.checks_status || 'unknown';
+  const latestCommit = ap.latest_pushed_commit || ap.latest_local_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
+  const latestPrHead = ap.latest_pr_head || ap.latest_remote_commit || pr.latest_remote_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
+  const checks = ap.gitguardian_status || ap.checks_status || pr.gitguardian_status || pr.checks_status || gh.pr_status?.checks_status || 'unknown';
+  const nextPush = ap.next_push_candidate || gh.next_push_candidate || 'none until next useful code change';
   return card('GitHub Auto-Push', `${kv({
       auto_push_status: ap.status || gh.status || 'unknown',
-      latest_push_time: pr.pushed_at || ap.generated_at || gh.pushed_at || '—',
-      latest_commit: latestCommit,
+      latest_push_time: pr.pushed_at || ap.pushed_at || ap.generated_at || gh.pushed_at || '—',
+      latest_pushed_commit: latestCommit,
       latest_pr_head: latestPrHead,
-      checks_status: checks,
+      pr_status: ap.pr_status || pr.status || gh.status || 'unknown',
+      gitguardian: checks,
       last_autopush_error: gh.last_autopush_error || ap.reason || '—',
-      next_push_candidate: gh.next_push_candidate || latestCommit,
+      next_push_candidate: nextPush,
       owner_action_required: ownerNeeded ? 'yes' : 'no',
       script: gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh'
     })}<div class="toolbar"><a class="copy" href="${esc(prUrl)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Copy autopush script', gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh')}${copyButton('Copy PR URL', prUrl)}</div>`, 'span-6');

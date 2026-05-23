@@ -705,8 +705,8 @@ def build_github_readiness() -> dict[str, Any]:
     if isinstance(pr1_status, dict) and pr1_status.get("status") == "UPDATED":
         status = "UPDATED"
     if isinstance(autopush_result, dict) and autopush_result.get("status"):
-        if autopush_result.get("status") in {"pushed", "already_up_to_date", "no_changes"}:
-            status = "AUTO_PUSH_READY"
+        if autopush_result.get("status") in {"PASS", "pushed", "already_up_to_date", "no_changes"}:
+            status = "AUTO_PUSH_PASS" if autopush_result.get("status") == "PASS" else "AUTO_PUSH_READY"
         elif autopush_result.get("status") == "blocked":
             status = "AUTO_PUSH_BLOCKED"
     return {
@@ -726,7 +726,7 @@ def build_github_readiness() -> dict[str, Any]:
         "autopush": autopush_result if isinstance(autopush_result, dict) else {},
         "autopush_source": stat_info(autopush_result_path),
         "autopush_script": "/workspace/output/webstudio-github-autopush-v1.sh",
-        "next_push_candidate": (autopush_result.get("latest_local_commit") if isinstance(autopush_result, dict) else None) or pr1_status.get("latest_local_commit") if isinstance(pr1_status, dict) else None,
+        "next_push_candidate": (autopush_result.get("next_push_candidate") if isinstance(autopush_result, dict) else None) or (pr1_status.get("next_push_candidate") if isinstance(pr1_status, dict) else None),
         "last_autopush_error": (autopush_result.get("reason") if isinstance(autopush_result, dict) and autopush_result.get("status") == "blocked" else None),
         "checks": {k: {"ok": v.get("ok"), "returncode": v.get("returncode"), "stdout": v.get("stdout", "")[:2000], "stderr": v.get("stderr", "")[:1000]} for k, v in checks.items()},
         "repair_packet": "/workspace/output/github-clone-copy-pr-v3-3.sh" if wrapper_broken else None,
