@@ -751,6 +751,7 @@ def build_product_progress() -> dict[str, Any]:
         "pr_url": data.get("pr_url"),
         "items": items,
         "client_simulation": data.get("client_simulation", {}),
+        "system_layer": data.get("system_layer", {}),
         "analytics": data.get("analytics", {}),
         "report": data.get("report"),
         "by_line": {line: [x for x in items if x.get("product_line") == line] for line in ["D1", "D2", "D3"]},

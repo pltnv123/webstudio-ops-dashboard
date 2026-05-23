@@ -780,6 +780,14 @@ function readinessTimeline(progress={}) {
   if (!timeline.length) return '';
   return `<section class="card span-12 readiness-timeline-card"><h3>Delivery readiness timeline</h3><p class="label">Клиентский сценарий #001: каждый шаг имеет артефакт, QA и no-live-write gate.</p><div class="readiness-timeline">${timeline.map((step, i) => `<article class="timeline-step ${statusClass(step.status)}"><span>${fmt(String(i + 1).padStart(2,'0'))}</span><b>${fmt(step.step || step.title)}</b>${badge(step.status || 'watch')}<small>${fmt(shortPath(step.artifact || step.path || '—'))}</small>${openButton('Открыть', step.artifact || step.path || '')}</article>`).join('')}</div></section>`;
 }
+function systemContinuationPanel(progress={}) {
+  const sys = progress.system_layer || {};
+  if (!sys.status) return '';
+  const body = `<p><b>${fmt(sys.title || 'System continuation layer')}</b></p>
+    <div class="task-meta-grid owner-meta"><span>Status</span><b>${fmt(sys.status)}</b><span>No chat-cron</span><b>${sys.no_chat_cron ? 'yes' : 'check'}</b><span>Work Factory</span><b>${fmt(sys.work_factory_job_id || '—')}</b><span>Kanban anchor</span><b>${fmt(shortText(sys.kanban_anchor || '—', 84))}</b><span>Next push</span><b>${fmt(shortText(sys.next_push_candidate || '—', 16))}</b></div>
+    <div class="toolbar">${openButton('Manifest', sys.manifest_path || '')}${openButton('Operator runbook', sys.operator_runbook_path || '')}${openButton('Acceptance', sys.acceptance_path || '')}${copyButton('Host autopush command', 'cd /home/hermes/workspace && WEBSTUDIO_STAGE=autopush-v17 bash /home/hermes/workspace/output/webstudio-github-autopush-v1.sh')}${detailPayloadButton(sys, 'Подробнее', 'system-v17')}</div>`;
+  return card('System v17 — host continuation layer', body, 'span-12 system-layer-card');
+}
 function demoProducts() {
   const progress = state.product_progress || {};
   const items = asArray(progress.items);
@@ -793,6 +801,7 @@ function demoProducts() {
     ${metric('Передача готова', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
     <section class="card span-12 demo-products-hero showcase-hero"><p class="eyebrow">WebStudio Showcase</p><h3>Витрина WebStudio</h3><p class="label">Клиентская витрина автоматизированной веб-студии: D1 сайты, D2 Telegram intake, D3 бизнес-автоматизации. Технические пути и raw/debug убраны в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
     ${clientSimulationPanel(progress)}
+    ${systemContinuationPanel(progress)}
     ${readinessTimeline(progress)}
     ${compactLineCard('D1', byLine.D1)}
     ${compactLineCard('D2', byLine.D2)}
