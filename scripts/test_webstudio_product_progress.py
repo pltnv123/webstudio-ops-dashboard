@@ -14,13 +14,13 @@ def test_product_progress_generator_preserves_current_showcase_and_simulation():
     result = subprocess.run(["python3", str(SCRIPT), "--json"], text=True, capture_output=True, check=True)
     payload = json.loads(result.stdout)
     assert payload["mode"] == "safe_local_artifacts_only"
-    assert payload["schema_version"] in {"webstudio.product-progress.v12", "webstudio.product-progress.v13", "webstudio.product-progress.v14"}
-    assert payload.get("phase") in {"v12", "v13", "v14"}
+    assert payload["schema_version"] in {"webstudio.product-progress.v12", "webstudio.product-progress.v13", "webstudio.product-progress.v14", "webstudio.product-progress.v15"}
+    assert payload.get("phase") in {"v12", "v13", "v14", "v15"}
     lines = {item["product_line"]: item for item in payload["items"]}
     assert set(lines) == {"D1", "D2", "D3"}
-    assert lines["D1"]["artifact_type"] in {"client_showcase_landing_sites", "client_landing_full_prototype", "client_ready_landing_package"}
-    assert lines["D2"]["artifact_type"] in {"client_showcase_ai_intake_bot", "executable_transcript_runner", "executable_transcript_runner_v2"}
-    assert lines["D3"]["artifact_type"] in {"client_showcase_business_automation", "integration_readiness_dry_run_demo", "integration_readiness_executable_fixtures"}
+    assert lines["D1"]["artifact_type"] in {"client_showcase_landing_sites", "client_landing_full_prototype", "client_ready_landing_package", "client_facing_rich_prototype"}
+    assert lines["D2"]["artifact_type"] in {"client_showcase_ai_intake_bot", "executable_transcript_runner", "executable_transcript_runner_v2", "runner_assertions_reporting"}
+    assert lines["D3"]["artifact_type"] in {"client_showcase_business_automation", "integration_readiness_dry_run_demo", "integration_readiness_executable_fixtures", "sandbox_target_adapter_spec"}
     for item in payload["items"]:
         for key in ["path", "qa_path", "handoff_path"]:
             if item.get(key):

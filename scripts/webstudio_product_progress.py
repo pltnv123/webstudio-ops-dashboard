@@ -153,7 +153,7 @@ def generate() -> dict[str, Any]:
             current = json.loads(progress_path.read_text())
             schema = str(current.get("schema_version", ""))
             phase = str(current.get("phase", ""))
-            if schema in {"webstudio.product-progress.v12", "webstudio.product-progress.v13", "webstudio.product-progress.v14"} or phase in {"v12", "v13", "v14"}:
+            if schema in {"webstudio.product-progress.v12", "webstudio.product-progress.v13", "webstudio.product-progress.v14", "webstudio.product-progress.v15"} or phase in {"v12", "v13", "v14", "v15"}:
                 for item in current.get("items", []):
                     for key in ["path", "qa_path", "handoff_path", "motion_spec_path", "fixtures_csv_path"]:
                         value = item.get(key)
