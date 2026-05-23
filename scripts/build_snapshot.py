@@ -687,6 +687,8 @@ def build_github_readiness() -> dict[str, Any]:
     completion_result_path = OUTPUT / "github-pr-completion-v3-3-result.json"
     completion_result = load_json(completion_result_path, {})
     pr1_status = load_json(GITHUB_PR1_STATUS_PATH, {})
+    autopush_result_path = OUTPUT / "webstudio-github-autopush-v1-result.json"
+    autopush_result = load_json(autopush_result_path, {})
     checks = {
         "command_v_gh": run_cmd(["bash", "-lc", "command -v gh || true"], timeout=10),
         "workspace_bin_gh": run_cmd(["bash", "-lc", "ls -l /workspace/bin/gh 2>&1 || true"], timeout=10),
@@ -702,6 +704,11 @@ def build_github_readiness() -> dict[str, Any]:
         status = "PR_CREATED"
     if isinstance(pr1_status, dict) and pr1_status.get("status") == "UPDATED":
         status = "UPDATED"
+    if isinstance(autopush_result, dict) and autopush_result.get("status"):
+        if autopush_result.get("status") in {"pushed", "already_up_to_date", "no_changes"}:
+            status = "AUTO_PUSH_READY"
+        elif autopush_result.get("status") == "blocked":
+            status = "AUTO_PUSH_BLOCKED"
     return {
         "account_expected": "pltnv123",
         "repo": "pltnv123/webstudio-ops-dashboard",
@@ -716,6 +723,11 @@ def build_github_readiness() -> dict[str, Any]:
         "wrapper_broken": wrapper_broken,
         "completion_result": completion_result if isinstance(completion_result, dict) else {},
         "completion_result_source": stat_info(completion_result_path),
+        "autopush": autopush_result if isinstance(autopush_result, dict) else {},
+        "autopush_source": stat_info(autopush_result_path),
+        "autopush_script": "/workspace/output/webstudio-github-autopush-v1.sh",
+        "next_push_candidate": (autopush_result.get("latest_local_commit") if isinstance(autopush_result, dict) else None) or pr1_status.get("latest_local_commit") if isinstance(pr1_status, dict) else None,
+        "last_autopush_error": (autopush_result.get("reason") if isinstance(autopush_result, dict) and autopush_result.get("status") == "blocked" else None),
         "checks": {k: {"ok": v.get("ok"), "returncode": v.get("returncode"), "stdout": v.get("stdout", "")[:2000], "stderr": v.get("stderr", "")[:1000]} for k, v in checks.items()},
         "repair_packet": "/workspace/output/github-clone-copy-pr-v3-3.sh" if wrapper_broken else None,
         "hardening_report": "/workspace/output/github-and-ops-worker-v3-status.md",

@@ -1132,10 +1132,32 @@ function health() {
     ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot: h.host_snapshot?.path, snapshot_mtime: h.host_snapshot?.mtime, status: h.status})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
     ${card('QMD', kv(h.qmd), 'span-6')}
     ${card('Bad config summary', `<pre class="code block">${fmt(h.bad_config_summary || 'none')}</pre>`, 'span-6')}
-    ${card('GitHub Readiness', `${kv(state.github_readiness || {})}${state.github_readiness?.completion_result?.pr_url ? `<div class="toolbar"><a class="copy" href="${esc(state.github_readiness.completion_result.pr_url)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Скопировать PR URL', state.github_readiness.completion_result.pr_url)}</div>` : ''}`, 'span-6')}
-    ${card('System hardening v3', `${kv(state.system_hardening || {})}${toolbar([copyButton('Copy snapshot processor', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD embed script', '/workspace/.hermes/scripts/qmd-auto-embed.sh'), copyButton('Copy GitHub repair packet', '/workspace/output/github-host-repair-and-pr-v3.sh')])}`, 'span-12')}
+    ${githubReadinessPanel()}
+    ${card('System hardening v3', `${kv(state.system_hardening || {})}${toolbar([copyButton('Copy snapshot processor', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD embed script', '/workspace/.hermes/scripts/qmd-auto-embed.sh'), copyButton('Copy GitHub autopush script', '/workspace/output/webstudio-github-autopush-v1.sh'), copyButton('Copy GitHub repair packet', '/workspace/output/github-host-repair-and-pr-v3.sh')])}`, 'span-12')}
     ${card('Sources', rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s))), 'span-12')}
   </div>`;
+}
+
+function githubReadinessPanel() {
+  const gh = state.github_readiness || {};
+  const ap = gh.autopush || {};
+  const pr = gh.pr_status || {};
+  const ownerNeeded = ap.status === 'blocked' || gh.status === 'AUTO_PUSH_BLOCKED' || gh.wrapper_broken;
+  const prUrl = gh.pr_url || pr.pr_url || ap.pr_url || gh.completion_result?.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1';
+  const latestCommit = ap.latest_local_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
+  const latestPrHead = ap.latest_remote_commit || pr.latest_remote_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
+  const checks = ap.checks_status || pr.checks_status || gh.pr_status?.checks_status || 'unknown';
+  return card('GitHub Auto-Push', `${kv({
+      auto_push_status: ap.status || gh.status || 'unknown',
+      latest_push_time: pr.pushed_at || ap.generated_at || gh.pushed_at || '—',
+      latest_commit: latestCommit,
+      latest_pr_head: latestPrHead,
+      checks_status: checks,
+      last_autopush_error: gh.last_autopush_error || ap.reason || '—',
+      next_push_candidate: gh.next_push_candidate || latestCommit,
+      owner_action_required: ownerNeeded ? 'yes' : 'no',
+      script: gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh'
+    })}<div class="toolbar"><a class="copy" href="${esc(prUrl)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Copy autopush script', gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh')}${copyButton('Copy PR URL', prUrl)}</div>`, 'span-6');
 }
 
 function artifactRow(a) {
