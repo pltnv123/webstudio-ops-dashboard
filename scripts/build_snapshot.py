@@ -917,6 +917,70 @@ def build_motion_factory(product_progress: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
+def build_client_intake_v27() -> dict[str, Any]:
+    """Owner-facing WebStudio Client Intake / Order Builder v27 status."""
+    wizard = load_json(OUTPUT / "webstudio-client-intake-wizard-v27.json", {})
+    orders = load_json(OUTPUT / "webstudio-order-builder-v27.json", {})
+    blueprint = load_json(OUTPUT / "webstudio-premium-site-production-blueprint-v27.json", {})
+    packages = orders.get("packages") if isinstance(orders.get("packages"), list) else []
+    steps = wizard.get("steps") if isinstance(wizard.get("steps"), list) else []
+    pipeline = blueprint.get("pipeline") if isinstance(blueprint.get("pipeline"), list) else []
+    example_files = [
+        OUTPUT / "webstudio-client-example-002-brief.md",
+        OUTPUT / "webstudio-client-example-002-strategy.md",
+        OUTPUT / "webstudio-client-example-002-design-directions.md",
+        OUTPUT / "webstudio-client-example-002-motion-plan.md",
+        OUTPUT / "webstudio-client-example-002-production-plan.md",
+        OUTPUT / "webstudio-client-example-002-concept-a.html",
+        OUTPUT / "webstudio-client-example-002-concept-b.html",
+        OUTPUT / "webstudio-client-example-002-concept-c.html",
+    ]
+    return {
+        "schema": "webstudio.client_intake_order_builder.v27",
+        "status": "PASS" if steps and packages and pipeline and all(p.exists() for p in example_files[:5]) else "IN_PROGRESS",
+        "owner_action_required": "no",
+        "wizard": {
+            "status": "READY" if steps else "missing",
+            "questions": len(steps),
+            "mode": wizard.get("mode") or "adaptive_one_step_at_a_time",
+            "md": str(OUTPUT / "webstudio-client-intake-wizard-v27.md"),
+            "json": str(OUTPUT / "webstudio-client-intake-wizard-v27.json"),
+            "html": str(OUTPUT / "webstudio-client-intake-wizard-v27.html"),
+        },
+        "order_builder": {
+            "status": "READY" if packages else "missing",
+            "packages": len(packages),
+            "md": str(OUTPUT / "webstudio-order-builder-v27.md"),
+            "json": str(OUTPUT / "webstudio-order-builder-v27.json"),
+            "html": str(OUTPUT / "webstudio-order-builder-v27.html"),
+            "available_packages": [p.get("name") for p in packages[:15]],
+            "package_details": packages[:15],
+        },
+        "premium_site_factory": {
+            "status": "READY" if pipeline else "missing",
+            "steps": len(pipeline),
+            "blueprint_md": str(OUTPUT / "webstudio-premium-site-production-blueprint-v27.md"),
+            "blueprint_json": str(OUTPUT / "webstudio-premium-site-production-blueprint-v27.json"),
+        },
+        "examples": [
+            {"id": "001", "name": "Premium renovation", "status": "PASS", "artifacts": ["/workspace/output/webstudio-premium-site-example-001-motion-preview-v2.mp4", "/workspace/output/webstudio-premium-motion-factory-v26-report.md"]},
+            {"id": "002", "name": "Premium dental clinic Moscow", "status": "READY", "artifacts": [str(p) for p in example_files if p.exists()]},
+        ],
+        "links": [
+            str(OUTPUT / "webstudio-client-intake-order-builder-v27-report.md"),
+            str(OUTPUT / "webstudio-client-intake-wizard-v27.html"),
+            str(OUTPUT / "webstudio-order-builder-v27.html"),
+            str(OUTPUT / "webstudio-client-example-002-concept-a.html"),
+            str(OUTPUT / "webstudio-client-example-002-concept-b.html"),
+            str(OUTPUT / "webstudio-client-example-002-concept-c.html"),
+        ],
+        "next_action": "Use adaptive wizard to qualify first real client, then route to package and production blueprint.",
+        "approvals": ["live Telegram", "CRM/payment/analytics integrations", "medical/legal claims", "deploy/preview"],
+        "readiness": "READY_FOR_CLIENT_SIMULATION",
+    }
+
+
 def build_marathon_status() -> dict[str, Any]:
     index = OUTPUT / "webstudio-12h-marathon-index.md"
     state = load_json(OUTPUT / "work-factory-supervisor-state.json", {})
@@ -1204,6 +1268,7 @@ def build_state() -> dict[str, Any]:
     production_pipeline = build_production_pipeline(kanban)
     product_progress = build_product_progress()
     motion_factory = build_motion_factory(product_progress)
+    client_intake_v27 = build_client_intake_v27()
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1254,6 +1319,7 @@ def build_state() -> dict[str, Any]:
         "production_pipeline": production_pipeline,
         "product_progress": product_progress,
         "motion_factory": motion_factory,
+        "client_intake_v27": client_intake_v27,
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
@@ -1297,7 +1363,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

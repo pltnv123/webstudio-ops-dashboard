@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -505,6 +505,7 @@ function overview() {
     ${metric('Активные зависшие', ownerKpiStale().active, 'span-3', 'kanban')}
     ${metric('GitHub', gh.status || 'unknown', 'span-3', 'health')}
     ${metric('Motion Factory', state.motion_factory?.status || 'unknown', 'span-3', 'motion-factory')}
+    ${metric('Заказы / Intake', state.client_intake_v27?.status || 'unknown', 'span-3', 'intake-orders')}
     ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
     ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
     ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
@@ -735,6 +736,38 @@ function motionFactory() {
     ${card('QA / reports', rows(asArray(mf.reports).map((path, i) => ({id: 'R' + (i + 1), title: path, status: 'report', output: path})), wfTaskRow, 'No reports'), 'span-12')}
   </div>`;
 }
+function artifactLink(path, label='Открыть') {
+  if (!path) return '';
+  return `<a class="copy secondary" href="file://${fmt(path)}" target="_blank" rel="noreferrer">${fmt(label)}</a>`;
+}
+function servicePackageCard(pkg, idx) {
+  return `<article class="capability-card"><div class="capability-top"><h4>${fmt(pkg.name || ('Пакет ' + (idx + 1)))}</h4>${badge(pkg.timeline_complexity || 'package')}</div><p>${fmt(pkg.description)}</p><div class="capability-meta"><span>Артефакты: ${fmt(asArray(pkg.artifacts).slice(0,3).join(', '))}</span><span>Approval: ${fmt(asArray(pkg.approval_gates).slice(0,2).join(', '))}</span></div><details><summary>Подробнее</summary><pre class="code mini">${fmt(jsonCopy(pkg))}</pre></details></article>`;
+}
+function intakeOrders() {
+  const ci = state.client_intake_v27 || {};
+  const wizard = ci.wizard || {};
+  const ob = ci.order_builder || {};
+  const factory = ci.premium_site_factory || {};
+  const examples = asArray(ci.examples);
+  const links = asArray(ci.links);
+  const packages = asArray(ob.package_details).length ? asArray(ob.package_details) : asArray(ob.available_packages).map((name, i) => ({name, timeline_complexity: i < 2 ? 'primary' : 'available', description: 'Доступный пакет WebStudio v27', artifacts: [], approval_gates: []}));
+  return `<div class="grid intake-orders">
+    ${metric('Intake Wizard', wizard.status || 'unknown', 'span-3')}
+    ${metric('Вопросов', wizard.questions ?? '—', 'span-3')}
+    ${metric('Пакетов услуг', ob.packages ?? '—', 'span-3')}
+    ${metric('Blueprint шагов', factory.steps ?? '—', 'span-3')}
+    ${metric('Readiness', ci.readiness || 'unknown', 'span-3')}
+    ${metric('Owner approvals', asArray(ci.approvals).length, 'span-3')}
+    ${card('Client Intake Wizard', `${kv({status: wizard.status, mode: wizard.mode, questions: wizard.questions})}<div class="toolbar">${copyButton('Copy wizard JSON', wizard.json || '')}${artifactLink(wizard.html, 'Wizard HTML')}</div>`, 'span-6')}
+    ${card('Order Builder', `${kv({status: ob.status, packages: ob.packages})}<div class="toolbar">${copyButton('Copy order JSON', ob.json || '')}${artifactLink(ob.html, 'Order HTML')}</div>`, 'span-6')}
+    ${card('Premium Website Factory', `${kv({status: factory.status, steps: factory.steps, blueprint: factory.blueprint_md})}`, 'span-6')}
+    ${card('Motion Factory', `${kv({status: state.motion_factory?.status, engine: state.motion_factory?.runtime?.motion_engine, next: state.motion_factory?.next_action})}`, 'span-6')}
+    <section class="card span-12"><h3>Пакеты услуг</h3><div class="capability-grid">${packages.map(servicePackageCard).join('')}</div></section>
+    <section class="card span-12"><h3>Примеры клиентов</h3><div class="capability-grid">${examples.map(ex => `<article class="capability-card"><div class="capability-top"><h4>${fmt(ex.name)}</h4>${badge(ex.status)}</div><p>Example Client #${fmt(ex.id)}</p><div class="toolbar">${copyButton('Copy artifacts', asArray(ex.artifacts).join('\n'))}${detailPayloadButton(ex, 'Артефакты', 'client-example')}</div></article>`).join('')}</div></section>
+    ${card('Следующее действие', `<p>${fmt(ci.next_action)}</p><div class="toolbar">${links.map((x,i)=>copyButton('Copy link '+(i+1), x, 'secondary')).join('')}</div>`, 'span-12')}
+  </div>`;
+}
+
 function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
 
 function demoThumbnail(item, score, line) {
@@ -1398,7 +1431,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

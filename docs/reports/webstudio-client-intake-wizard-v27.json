@@ -1,0 +1,291 @@
+{
+  "schema": "webstudio.client_intake_wizard.v27",
+  "updated_at": "2026-05-24T21:26:06Z",
+  "mode": "adaptive_one_step_at_a_time",
+  "steps": [
+    {
+      "id": "business_offer",
+      "question": "Что продаёте?",
+      "why": "Понять категорию бизнеса и язык продукта.",
+      "adaptive_next": [
+        "audience",
+        "main_product"
+      ],
+      "signals": [
+        "ниша",
+        "тип предложения",
+        "B2B/B2C"
+      ]
+    },
+    {
+      "id": "audience",
+      "question": "Кому продаёте?",
+      "why": "Сформировать сегменты и тон коммуникации.",
+      "adaptive_next": [
+        "profitable_clients",
+        "pain_points"
+      ],
+      "signals": [
+        "ЛПР",
+        "возраст/доход",
+        "роль",
+        "контекст покупки"
+      ]
+    },
+    {
+      "id": "main_product",
+      "question": "Какая главная услуга/продукт?",
+      "why": "Выбрать hero-offer и структуру первого экрана.",
+      "adaptive_next": [
+        "avg_check",
+        "geo"
+      ],
+      "signals": [
+        "основная услуга",
+        "маржинальность",
+        "частота покупки"
+      ]
+    },
+    {
+      "id": "geo",
+      "question": "География?",
+      "why": "Определить локальные доверительные факторы, SEO и юридические формулировки.",
+      "adaptive_next": [
+        "proof",
+        "target_action"
+      ],
+      "signals": [
+        "город",
+        "район",
+        "доставка/онлайн",
+        "локальные ограничения"
+      ]
+    },
+    {
+      "id": "avg_check",
+      "question": "Средний чек?",
+      "why": "Выбрать стиль продаж: быстрый лид vs премиальная консультация.",
+      "adaptive_next": [
+        "profitable_clients",
+        "objections"
+      ],
+      "signals": [
+        "чек",
+        "LTV",
+        "рассрочка/депозит"
+      ]
+    },
+    {
+      "id": "profitable_clients",
+      "question": "Какие клиенты самые выгодные?",
+      "why": "Сместить сайт к лучшему сегменту, а не ко всем подряд.",
+      "adaptive_next": [
+        "pain_points",
+        "proof"
+      ],
+      "signals": [
+        "идеальный клиент",
+        "нежелательные клиенты",
+        "приоритет"
+      ]
+    },
+    {
+      "id": "pain_points",
+      "question": "Главные боли клиента?",
+      "why": "Собрать блоки проблемы/решения и сценарии квиза.",
+      "adaptive_next": [
+        "objections",
+        "proof"
+      ],
+      "signals": [
+        "страхи",
+        "потери",
+        "триггеры обращения"
+      ]
+    },
+    {
+      "id": "objections",
+      "question": "Главные возражения?",
+      "why": "Подготовить блоки доверия, FAQ и контраргументы.",
+      "adaptive_next": [
+        "proof",
+        "forbidden_claims"
+      ],
+      "signals": [
+        "дорого",
+        "не верю",
+        "страшно",
+        "долго",
+        "не сейчас"
+      ]
+    },
+    {
+      "id": "proof",
+      "question": "Какие доказательства есть?",
+      "why": "Не использовать фейковые отзывы/логотипы; строить доверие на реальных артефактах.",
+      "adaptive_next": [
+        "target_action",
+        "style"
+      ],
+      "signals": [
+        "кейсы",
+        "фото",
+        "сертификаты",
+        "цифры",
+        "до/после"
+      ]
+    },
+    {
+      "id": "target_action",
+      "question": "Какой целевой action: заявка / звонок / Telegram / оплата / запись?",
+      "why": "Настроить CTA, форму и интеграции.",
+      "adaptive_next": [
+        "telegram_intake",
+        "automation"
+      ],
+      "signals": [
+        "основной CTA",
+        "резервный CTA",
+        "скорость ответа"
+      ]
+    },
+    {
+      "id": "telegram_intake",
+      "question": "Нужен ли Telegram AI-intake?",
+      "why": "Определить D2: квалификация лида, авто-вопросы, handoff менеджеру.",
+      "adaptive_next": [
+        "automation",
+        "motion_needed"
+      ],
+      "signals": [
+        "скрипт продаж",
+        "оператор",
+        "квалификация",
+        "уведомления"
+      ]
+    },
+    {
+      "id": "automation",
+      "question": "Нужна ли автоматизация заявок?",
+      "why": "Определить D3: CRM/таблицы/уведомления/статусы.",
+      "adaptive_next": [
+        "live_integrations",
+        "motion_needed"
+      ],
+      "signals": [
+        "куда падают заявки",
+        "кто обрабатывает",
+        "SLA",
+        "статусы"
+      ]
+    },
+    {
+      "id": "motion_needed",
+      "question": "Нужны ли анимации / видео / motion?",
+      "why": "Подключить Motion Factory и HyperFrames-ready план.",
+      "adaptive_next": [
+        "style",
+        "references"
+      ],
+      "signals": [
+        "hero video",
+        "social teaser",
+        "reduced motion",
+        "poster"
+      ]
+    },
+    {
+      "id": "style",
+      "question": "Какой стиль нужен: premium / tech / editorial / luxury / bold / minimal?",
+      "why": "Выбрать дизайн-направления и motion language.",
+      "adaptive_next": [
+        "references",
+        "forbidden_claims"
+      ],
+      "signals": [
+        "визуальный тон",
+        "цвет",
+        "типографика",
+        "ощущение бренда"
+      ]
+    },
+    {
+      "id": "references",
+      "question": "Какие референсы нравятся?",
+      "why": "Собрать визуальные ограничения и анти-референсы.",
+      "adaptive_next": [
+        "forbidden_claims",
+        "live_integrations"
+      ],
+      "signals": [
+        "сайты",
+        "бренды",
+        "что нравится",
+        "что нельзя"
+      ]
+    },
+    {
+      "id": "forbidden_claims",
+      "question": "Что нельзя обещать?",
+      "why": "Соблюсти proof policy и юридическую безопасность.",
+      "adaptive_next": [
+        "live_integrations",
+        "readiness"
+      ],
+      "signals": [
+        "медицинские/финансовые claims",
+        "гарантии",
+        "сертификаты"
+      ]
+    },
+    {
+      "id": "live_integrations",
+      "question": "Какие live integrations требуют approval?",
+      "why": "Отделить proposal/demo от production writes.",
+      "adaptive_next": [
+        "readiness"
+      ],
+      "signals": [
+        "Telegram",
+        "CRM",
+        "оплата",
+        "аналитика",
+        "доступы"
+      ]
+    }
+  ],
+  "routing_rules": [
+    {
+      "if": "motion_needed=yes",
+      "recommend": [
+        "Premium Landing + Motion Hero",
+        "Motion / Video Hero Package"
+      ]
+    },
+    {
+      "if": "telegram_intake=yes",
+      "recommend": [
+        "Landing + Telegram AI Intake"
+      ]
+    },
+    {
+      "if": "automation=yes",
+      "recommend": [
+        "Website + Automation",
+        "Full WebStudio Package"
+      ]
+    },
+    {
+      "if": "avg_check=high and proof=strong",
+      "recommend": [
+        "Premium Landing",
+        "Premium Landing + Motion Hero"
+      ]
+    }
+  ],
+  "safety": {
+    "ask_adaptively": true,
+    "do_not_request_secrets": true,
+    "live_integrations_require_approval": true
+  }
+}

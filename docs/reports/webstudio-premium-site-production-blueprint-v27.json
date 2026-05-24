@@ -1,0 +1,158 @@
+{
+  "schema": "webstudio.premium_site_blueprint.v27",
+  "updated_at": "2026-05-24T21:26:06Z",
+  "pipeline": [
+    {
+      "step": 1,
+      "name": "Intake",
+      "owner": "CTO / intake agent",
+      "artifact": "client-intake-wizard-v27.json",
+      "kanban_stage": "Разбор",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "17 questions answered/adapted",
+        "risks and missing assets known"
+      ]
+    },
+    {
+      "step": 2,
+      "name": "Strategy brief",
+      "owner": "CTO",
+      "artifact": "strategy brief markdown/json",
+      "kanban_stage": "Подготовка",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "offer/audience/proof/CTA chosen",
+        "no forbidden claims"
+      ]
+    },
+    {
+      "step": 3,
+      "name": "Design direction",
+      "owner": "Design Agent",
+      "artifact": "3 design directions",
+      "kanban_stage": "Запланировано",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "style tokens",
+        "anti-reference list",
+        "owner selects direction"
+      ]
+    },
+    {
+      "step": 4,
+      "name": "3 concepts",
+      "owner": "Design+Frontend Agents",
+      "artifact": "concept-a/b/c.html",
+      "kanban_stage": "Готово к запуску",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "3 distinct concepts",
+        "proof-safe content",
+        "responsive first pass"
+      ]
+    },
+    {
+      "step": 5,
+      "name": "Selected concept",
+      "owner": "Owner + CTO",
+      "artifact": "selected concept report",
+      "kanban_stage": "На проверке",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "winner rationale",
+        "rejected options recorded"
+      ]
+    },
+    {
+      "step": 6,
+      "name": "Site prototype",
+      "owner": "Frontend Agent",
+      "artifact": "static prototype",
+      "kanban_stage": "Выполняется",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "CTA works",
+        "responsive layout",
+        "content blocks complete"
+      ]
+    },
+    {
+      "step": 7,
+      "name": "Motion / HyperFrames asset",
+      "owner": "Motion Agent",
+      "artifact": "MP4/poster/reduced-motion pack",
+      "kanban_stage": "Выполняется",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "ffprobe metadata",
+        "poster picked",
+        "reduced motion fallback"
+      ]
+    },
+    {
+      "step": 8,
+      "name": "Responsive QA",
+      "owner": "QA Agent",
+      "artifact": "browser QA report",
+      "kanban_stage": "На проверке",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "desktop/tablet/mobile checked",
+        "console errors zero"
+      ]
+    },
+    {
+      "step": 9,
+      "name": "Conversion QA",
+      "owner": "CRO Agent",
+      "artifact": "conversion QA checklist",
+      "kanban_stage": "На проверке",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "hero clarity",
+        "objections handled",
+        "CTA path clear"
+      ]
+    },
+    {
+      "step": 10,
+      "name": "Performance QA",
+      "owner": "QA Agent",
+      "artifact": "performance notes",
+      "kanban_stage": "На проверке",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "static safe",
+        "no heavy external scripts",
+        "media optimized"
+      ]
+    },
+    {
+      "step": 11,
+      "name": "Handoff",
+      "owner": "Orchestrator",
+      "artifact": "client handoff pack",
+      "kanban_stage": "Готово",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "files listed",
+        "approval text ready",
+        "risks explicit"
+      ]
+    },
+    {
+      "step": 12,
+      "name": "PR / preview",
+      "owner": "Host Runner + CTO",
+      "artifact": "PR status + preview plan",
+      "kanban_stage": "Готово",
+      "terminal_protocol": "PASS/BLOCKED only; no silent partial; evidence path required",
+      "acceptance_criteria": [
+        "PR head verified",
+        "checks no failed",
+        "deploy requires explicit approval"
+      ]
+    }
+  ]
+}
