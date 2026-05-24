@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -504,6 +504,7 @@ function overview() {
     ${metric('QMD очередь', h.qmd?.pending_embeddings, 'span-3', 'health')}
     ${metric('Активные зависшие', ownerKpiStale().active, 'span-3', 'kanban')}
     ${metric('GitHub', gh.status || 'unknown', 'span-3', 'health')}
+    ${metric('Motion Factory', state.motion_factory?.status || 'unknown', 'span-3', 'motion-factory')}
     ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
     ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
     ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
@@ -706,6 +707,33 @@ function progressAnalytics() {
 }
 function capabilityMatrix() {
   return `<section class="card span-12 capability-section"><h3>Навыки агентов</h3><p class="label">Capability matrix показывает, какие навыки реально используются в production pipeline. Raw skill names спрятаны в «Подробнее».</p><div class="capability-grid">${CAPABILITY_ROWS.map(c => `<article class="capability-card ${statusClass(c.status)}"><div class="capability-top"><h4>${fmt(c.domain)}</h4>${badge(c.status)}</div><p>${fmt(c.gives)}</p><div class="capability-meta"><span>Агенты: ${fmt(c.agents.join(', '))}</span><span>Линии: ${fmt(c.lines.join(', '))}</span><span>Источник: ${fmt(c.source)}</span></div><details><summary>Подробнее</summary><pre class="code mini">${fmt(jsonCopy(c))}</pre></details></article>`).join('')}</div></section>`;
+}
+function motionVideoCard(v) {
+  const res = v.width && v.height ? `${v.width}×${v.height}` : '—';
+  const fps = v.r_frame_rate || '—';
+  const dur = v.duration || '—';
+  const size = v.size ? `${Math.round(Number(v.size) / 1024)} KB` : '—';
+  return `<article class="capability-card motion-video-card"><div class="capability-top"><h4>${fmt(shortPath(v.path))}</h4>${badge(v.exists ? 'PASS' : 'missing')}</div><div class="task-meta-grid owner-meta"><span>Duration</span><b>${fmt(dur)}</b><span>Resolution</span><b>${fmt(res)}</b><span>FPS</span><b>${fmt(fps)}</b><span>Size</span><b>${fmt(size)}</b></div><div class="toolbar">${copyButton('Copy MP4 path', v.path || '')}${detailPayloadButton(v, 'Metadata', 'motion-video')}</div></article>`;
+}
+function motionFactory() {
+  const mf = state.motion_factory || {};
+  const runtime = mf.runtime || {};
+  const repo = mf.repo_sync || {};
+  const videos = asArray(mf.latest_videos);
+  return `<div class="grid motion-factory">
+    ${metric('Production generator', mf.production_generator_status || 'unknown', 'span-3')}
+    ${metric('Template pack', mf.template_pack_status || 'unknown', 'span-3')}
+    ${metric('Batch render', mf.batch_render_status || 'unknown', 'span-3')}
+    ${metric('Poster auto-pick', mf.poster_status || 'unknown', 'span-3')}
+    ${metric('Reduced motion', mf.reduced_motion_status || 'unknown', 'span-3')}
+    ${metric('Handoff pack', mf.handoff_pack_status || 'unknown', 'span-3')}
+    ${metric('Motion Engine', runtime.motion_engine || 'unknown', 'span-3')}
+    ${metric('Owner action', runtime.owner_action_required || 'unknown', 'span-3')}
+    ${card('HyperFrames / Motion Engine', `${kv({factory_status: mf.status, hyperframes_runtime: runtime.hyperframes_runtime, motion_engine: runtime.motion_engine, owner_action_required: runtime.owner_action_required, next_action: mf.next_action})}`, 'span-6')}
+    ${card('Repo sync', `${kv({meaningful_changes_needed: repo.meaningful_changes_needed, worktree: repo.worktree, reason: repo.reason})}`, 'span-6')}
+    <section class="card span-12"><h3>Latest videos</h3><div class="capability-grid">${videos.length ? videos.map(motionVideoCard).join('') : '<div class="empty">No video metadata yet.</div>'}</div></section>
+    ${card('QA / reports', rows(asArray(mf.reports).map((path, i) => ({id: 'R' + (i + 1), title: path, status: 'report', output: path})), wfTaskRow, 'No reports'), 'span-12')}
+  </div>`;
 }
 function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
 
@@ -1370,7 +1398,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

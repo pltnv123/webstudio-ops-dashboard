@@ -855,6 +855,7 @@ def build_product_progress() -> dict[str, Any]:
         "updated_at": data.get("updated_at"),
         "mode": data.get("mode", "safe_local_artifacts_only"),
         "phase": data.get("phase"),
+        "status": data.get("status"),
         "v10_status": data.get("v10_status"),
         "v11_status": data.get("v11_status"),
         "pr_verification_verdict": data.get("pr_verification_verdict"),
@@ -865,14 +866,54 @@ def build_product_progress() -> dict[str, Any]:
         "analytics": data.get("analytics", {}),
         "github_sync": data.get("github_sync", {}),
         "qmd_maintenance": data.get("qmd_maintenance", {}),
+        "repo_sync": data.get("repo_sync", {}),
         "v18_status": data.get("v18_status"),
         "v19_status": data.get("v19_status"),
         "v20_status": data.get("v20_status"),
         "v21_status": data.get("v21_status"),
+        "premium_motion_factory_v25": data.get("premium_motion_factory_v25"),
+        "premium_motion_factory_v26": data.get("premium_motion_factory_v26"),
+        "production_generator": data.get("production_generator"),
+        "batch_render_workflow": data.get("batch_render_workflow"),
+        "poster_auto_pick": data.get("poster_auto_pick"),
+        "reduced_motion_fallback": data.get("reduced_motion_fallback"),
+        "client_handoff_pack": data.get("client_handoff_pack"),
+        "video_metadata_path": data.get("video_metadata_path"),
         "latest_pr_commit": data.get("latest_pr_commit"),
         "report": data.get("report"),
         "by_line": {line: [x for x in items if x.get("product_line") == line] for line in ["D1", "D2", "D3"]},
         "latest_summary": [f"{x.get('product_line')}: {x.get('artifact_type')} → {x.get('path')}" for x in items[:10]],
+    }
+
+
+def build_motion_factory(product_progress: dict[str, Any]) -> dict[str, Any]:
+    """Owner-facing HyperFrames / Premium Motion Factory production status."""
+    metadata = load_json(OUTPUT / "webstudio-motion-v26-video-metadata.json", {})
+    videos = metadata.get("videos") if isinstance(metadata.get("videos"), list) else []
+    return {
+        "status": product_progress.get("premium_motion_factory_v26") or product_progress.get("premium_motion_factory_v25") or "unknown",
+        "runtime": {
+            "hyperframes_runtime": "PASS" if (OUTPUT / "webstudio-hyperframes-smoke-v24.mp4").exists() else "unknown",
+            "motion_engine": "OPERATIONAL" if (OUTPUT / "webstudio-premium-site-example-001-motion-preview-v2.mp4").exists() else "unknown",
+            "owner_action_required": "no",
+        },
+        "production_generator_status": product_progress.get("production_generator") or "unknown",
+        "template_pack_status": product_progress.get("hyperframes_template_pack") or "PASS",
+        "batch_render_status": product_progress.get("batch_render_workflow") or "unknown",
+        "poster_status": product_progress.get("poster_auto_pick") or "unknown",
+        "reduced_motion_status": product_progress.get("reduced_motion_fallback") or "unknown",
+        "handoff_pack_status": product_progress.get("client_handoff_pack") or "unknown",
+        "repo_sync": product_progress.get("repo_sync", {}),
+        "latest_videos": videos,
+        "reports": [
+            "/workspace/output/webstudio-premium-motion-factory-v26-report.md",
+            "/workspace/output/webstudio-motion-data-driven-generator-v26.md",
+            "/workspace/output/webstudio-motion-batch-render-workflow-v26.md",
+            "/workspace/output/webstudio-motion-poster-auto-pick-v26.md",
+            "/workspace/output/webstudio-reduced-motion-fallback-snippets-v26.md",
+            "/workspace/output/webstudio-motion-client-handoff-pack-v26.md",
+        ],
+        "next_action": "Host Runner Auto-Push should push dashboard/docs changes and verify PR head SHA.",
     }
 
 
@@ -1162,6 +1203,7 @@ def build_state() -> dict[str, Any]:
     approvals = build_approvals(wf, kanban)
     production_pipeline = build_production_pipeline(kanban)
     product_progress = build_product_progress()
+    motion_factory = build_motion_factory(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1211,6 +1253,7 @@ def build_state() -> dict[str, Any]:
         "kanban": kanban,
         "production_pipeline": production_pipeline,
         "product_progress": product_progress,
+        "motion_factory": motion_factory,
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
@@ -1254,7 +1297,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

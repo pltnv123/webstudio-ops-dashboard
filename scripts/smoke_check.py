@@ -30,7 +30,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -73,6 +73,8 @@ required_js_symbols = [
     'copyText',
     'capabilities',
     'capabilityMatrix',
+    'motionFactory',
+    'Production generator',
     'progressAnalytics',
     'visualLaneBoard',
     'control_plane_history',
@@ -91,7 +93,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
