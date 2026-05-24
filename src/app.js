@@ -1143,6 +1143,7 @@ function approvals() {
 function health() {
   const h = state.health || {};
   return `<div class="grid">
+    ${hostAutonomyPanel()}
     ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot: h.host_snapshot?.path, snapshot_mtime: h.host_snapshot?.mtime, status: h.status})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
     ${card('QMD', kv(h.qmd), 'span-6')}
     ${card('Bad config summary', `<pre class="code block">${fmt(h.bad_config_summary || 'none')}</pre>`, 'span-6')}
@@ -1150,6 +1151,26 @@ function health() {
     ${card('System hardening v3', `${kv(state.system_hardening || {})}${toolbar([copyButton('Copy snapshot processor', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD embed script', '/workspace/.hermes/scripts/qmd-auto-embed.sh'), copyButton('Copy GitHub autopush script', '/workspace/output/webstudio-github-autopush-v1.sh'), copyButton('Copy GitHub repair packet', '/workspace/output/github-host-repair-and-pr-v3.sh')])}`, 'span-12')}
     ${card('Sources', rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s))), 'span-12')}
   </div>`;
+}
+
+function hostAutonomyPanel() {
+  const a = state.host_autonomy || {};
+  const ap = a.auto_push || state.github_readiness?.autopush || {};
+  const q = a.qmd || state.health?.qmd || {};
+  const hf = a.hfinalize || {};
+  return card('Host Autonomy', `${kv({
+    host_autonomy: a.status || 'unknown',
+    approvals_mode: a.approvals_mode || 'unknown',
+    owner_approved_autonomy: a.owner_approved_autonomy ?? '—',
+    auto_push: ap.status || a.auto_push_available || 'unknown',
+    last_auto_push_result: ap.verification_verdict || ap.status || '—',
+    latest_pr_commit: a.latest_pr_commit || ap.latest_remote_commit || '—',
+    checks_status: a.checks_status || ap.checks_status || '—',
+    owner_action_required: a.owner_action_required === false ? 'false' : (a.owner_action_required ?? '—'),
+    qmd_status: q.status || (q.available ? 'OK' : 'unknown'),
+    pending_embeddings: q.pending_embeddings ?? '—',
+    hfinalize: hf.status || 'pending'
+  })}${toolbar([copyButton('Copy autonomy verification report', '/workspace/output/webstudio-host-autonomy-verification-v1.md'), copyButton('Copy QMD maintenance plan', '/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md')])}`, 'span-6');
 }
 
 function githubReadinessPanel() {

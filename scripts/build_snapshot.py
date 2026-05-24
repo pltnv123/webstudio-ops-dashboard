@@ -437,9 +437,9 @@ def build_system_hardening_status() -> dict[str, Any]:
         "qmd_embed_verdict": "DEGRADED: qmd update/search work, qmd embed crashes/times out under Bun on this VPS",
         "root_cause_summary": "snapshot request backlog was stale; v3 bounded processor processed pending flags and cron job hermes-auto-snapshot-processor-v3 is scheduled. qmd index updates but embeddings remain pending because `qmd embed` crashes/times out under Bun; bounded auto-embed script records degraded status instead of runaway execution.",
         "owner_actions": [
-            "If GitHub PR is needed, run /workspace/output/github-host-repair-and-pr-v3.sh on the host where real gh exists.",
-            "Do not claim ops worker PASS until host profile/dispatcher lifecycle canary finishes with kanban_complete/kanban_block.",
-            "Approve deeper qmd embed remediation separately if vector search is required; keyword qmd update/search remain safe.",
+            "None for safe local/PR-branch workflow: Auto-Push, qmd update, hfinalize, build/smoke, reports and dry-runs are owner-approved autonomy.",
+            "Owner action is required only for live secrets, live Telegram token, CRM/Sheets writes, Supabase write migrations, deploy/release, payments/live external actions, or private client-data approval.",
+            "Do not run unlimited qmd embed; use bounded maintenance plan and stop on OOM/exit 137.",
         ],
     }
 
@@ -731,6 +731,40 @@ def build_github_readiness() -> dict[str, Any]:
         "checks": {k: {"ok": v.get("ok"), "returncode": v.get("returncode"), "stdout": v.get("stdout", "")[:2000], "stderr": v.get("stderr", "")[:1000]} for k, v in checks.items()},
         "repair_packet": "/workspace/output/github-clone-copy-pr-v3-3.sh" if wrapper_broken else None,
         "hardening_report": "/workspace/output/github-and-ops-worker-v3-status.md",
+    }
+
+
+def build_host_autonomy(health: dict[str, Any], github: dict[str, Any]) -> dict[str, Any]:
+    ap = github.get("autopush") if isinstance(github.get("autopush"), dict) else {}
+    pr = github.get("pr_status") if isinstance(github.get("pr_status"), dict) else {}
+    qmd = health.get("qmd") if isinstance(health.get("qmd"), dict) else {}
+    latest_finalizer = latest_file_info("finalizer/hfinalize-*.md")
+    latest_commit = pr.get("latest_commit_sha") or pr.get("headRefOid") or ap.get("latest_remote_commit") or github.get("latest_commit_sha")
+    checks_status = pr.get("checks_status") or ap.get("checks_status") or "unknown"
+    return {
+        "schema_version": "webstudio.host-autonomy.v1",
+        "updated_at": utc_now(),
+        "status": "ON" if health.get("gateway_active") and not github.get("wrapper_broken") else "WATCH",
+        "approvals_mode": "OFF / owner-approved autonomy",
+        "owner_approved_autonomy": True,
+        "auto_push_available": True,
+        "auto_push": ap,
+        "latest_pr_commit": latest_commit,
+        "checks_status": checks_status,
+        "owner_action_required": False,
+        "qmd": {**qmd, "status": "OK" if qmd.get("available") else "UNKNOWN"},
+        "hfinalize": {"status": "available", "latest_report": latest_finalizer},
+        "owner_action_required_only_for": [
+            "live production secrets",
+            "live Telegram token",
+            "live CRM/Sheets writes",
+            "Supabase migrations with writes",
+            "deploy/release",
+            "payment/live external actions",
+            "private client data approval",
+        ],
+        "owner_not_required_for": ["git commit", "git push to PR branch", "qmd update", "hfinalize", "build/smoke", "browser QA", "docs/reports/artifacts", "safe local dry-run"],
+        "reports": {"verification": "/workspace/output/webstudio-host-autonomy-verification-v1.md", "qmd_plan": "/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md"},
     }
 
 
@@ -1071,14 +1105,12 @@ def build_state() -> dict[str, Any]:
         safety_findings.append("duplicate mirror idempotency keys detected")
     control_plane_history = load_json(CONTROL_HISTORY_PATH, {"snapshots": []})
     return {
-        "schema_version": "webstudio-control-plane.v1",
+        "schema_version":"webstudio-control-plane.v1",
         "generated_at": utc_now(),
-        "mode": "read_only_ops_cockpit",
-        "notification_policy": {"mode": "quiet", "notify_on": ["owner_decision", "error", "blocked", "material_milestone", "sla_breach"]},
-        "autonomy_policy": {
-            "approved_levels": ["A_report_planning_only", "B_local_artifacts_only", "C_branches_pr_after_approval", "D_deploy_after_approval"],
-            "approval_required_for": ["deploy", "production_db_write", "secrets_env_change", "provider_routing_change", "cron_schedule_change", "systemd_change", "public_release"],
-        },
+        "mode":"read_only_ops_cockpit",
+        "notification_policy":{"mode":"quiet","notify_on":["owner_decision","error","blocked","material_milestone","sla_breach"]},
+        "autonomy_policy":{"approved_levels":["A_report_planning_only","B_local_artifacts_only","C_branches_pr_owner_approved","D_deploy_after_explicit_approval"],"approval_required_for":["live_production_secrets","live_telegram_token","live_crm_or_sheets_writes","supabase_write_migration","deploy_or_release","payment_or_live_external_action","private_client_data_approval"]},
+        "host_autonomy": build_host_autonomy(health, github_readiness),
         "product_lines": PRODUCT_LINES,
         "safety": {
             "status": safety_status,
