@@ -315,16 +315,24 @@ def build_health() -> dict[str, Any]:
     qmd = run_cmd(["qmd", "status"], timeout=30)
     qmd_text = qmd["stdout"] if qmd["ok"] else qmd["stderr"]
     qmd_pending = None
+    qmd_total = None
+    qmd_vectors = None
     m = re.search(r"Pending:\s+([0-9]+)", qmd_text)
     if m:
         qmd_pending = int(m.group(1))
+    mt = re.search(r"Total:\s+([0-9]+)", qmd_text)
+    if mt:
+        qmd_total = int(mt.group(1))
+    mv = re.search(r"Vectors:\s+([0-9]+)", qmd_text)
+    if mv:
+        qmd_vectors = int(mv.group(1))
     return {
         "source_of_truth": str(HOST_SNAPSHOT_PATH),
         "host_snapshot": stat_info(HOST_SNAPSHOT_PATH),
         "gateway_active": gateway_active,
         "primary_model_line": fallback_match.group(1).strip() if fallback_match else None,
         "bad_config_summary": bad_config[0].strip()[:2000] if bad_config else "",
-        "qmd": {"available": qmd["ok"], "pending_embeddings": qmd_pending, "status_excerpt": qmd_text[:3000]},
+        "qmd": {"available": qmd["ok"], "total_documents": qmd_total, "vectors": qmd_vectors, "pending_embeddings": qmd_pending, "status_excerpt": qmd_text[:3000]},
         "status": "warning" if (not gateway_active or bad_config or (qmd_pending or 0) > 0) else "ok",
     }
 
@@ -687,8 +695,15 @@ def build_github_readiness() -> dict[str, Any]:
     completion_result_path = OUTPUT / "github-pr-completion-v3-3-result.json"
     completion_result = load_json(completion_result_path, {})
     pr1_status = load_json(GITHUB_PR1_STATUS_PATH, {})
-    autopush_result_path = OUTPUT / "webstudio-github-autopush-v1-result.json"
+    autopush_candidates = [
+        OUTPUT / "webstudio-system-maintenance-autopush-result.json",
+        OUTPUT / "webstudio-continuation-autopush-result.json",
+        OUTPUT / "webstudio-github-autopush-v1-result.json",
+    ]
+    autopush_result_path = next((x for x in autopush_candidates if x.exists()), autopush_candidates[-1])
     autopush_result = load_json(autopush_result_path, {})
+    host_runner_latest_path = OUTPUT / "host-job-runner" / "latest.json"
+    host_runner_latest = load_json(host_runner_latest_path, {})
     checks = {
         "command_v_gh": run_cmd(["bash", "-lc", "command -v gh || true"], timeout=10),
         "workspace_bin_gh": run_cmd(["bash", "-lc", "ls -l /workspace/bin/gh 2>&1 || true"], timeout=10),
@@ -730,6 +745,8 @@ def build_github_readiness() -> dict[str, Any]:
         "last_autopush_error": (autopush_result.get("reason") if isinstance(autopush_result, dict) and autopush_result.get("status") == "blocked" else None),
         "checks": {k: {"ok": v.get("ok"), "returncode": v.get("returncode"), "stdout": v.get("stdout", "")[:2000], "stderr": v.get("stderr", "")[:1000]} for k, v in checks.items()},
         "repair_packet": "/workspace/output/github-clone-copy-pr-v3-3.sh" if wrapper_broken else None,
+        "host_runner": host_runner_latest if isinstance(host_runner_latest, dict) else {},
+        "host_runner_latest_source": stat_info(host_runner_latest_path),
         "hardening_report": "/workspace/output/github-and-ops-worker-v3-status.md",
     }
 
@@ -744,12 +761,15 @@ def build_host_autonomy(health: dict[str, Any], github: dict[str, Any]) -> dict[
     continuation_latest = load_json(OUTPUT / "webstudio-continuation-supervisor" / "latest.json", {})
     pending_jobs = sorted((WORKSPACE / ".hermes-workqueue" / "webstudio" / "pending").glob("*.json"))
     first_pending_job = load_json(pending_jobs[0], {}) if pending_jobs else {}
+    queue_root = WORKSPACE / ".hermes-workqueue" / "webstudio"
+    queue_counts = {name: len(list((queue_root / name).glob("*.json*"))) if (queue_root / name).exists() else 0 for name in ["pending", "running", "done", "failed"]}
     continuation_engine = {
         "schema_version": "webstudio.continuation-engine.v1",
         "updated_at": utc_now(),
         "status": "PASS" if continuation_latest.get("status") in {"PASS", "NOOP"} and pending_jobs else "WATCH",
         "iteration_budget_protocol_created": (OUTPUT / "webstudio-budget-exhaustion-protocol-v1.md").exists(),
-        "queue_root": str(WORKSPACE / ".hermes-workqueue" / "webstudio"),
+        "queue_root": str(queue_root),
+        "queue_counts": queue_counts,
         "supervisor_path": str(WORKSPACE / ".hermes" / "scripts" / "webstudio-continuation-supervisor.sh"),
         "work_factory_integration": "webstudio-continuation-supervisor.sh" in read_text(WORKSPACE / ".hermes" / "scripts" / "work-factory-supervisor-tick.sh", 4000),
         "chat_cron_used": False,

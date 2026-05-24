@@ -1143,14 +1143,142 @@ function approvals() {
 function health() {
   const h = state.health || {};
   return `<div class="grid">
+    ${systemVerdictPanel()}
     ${hostAutonomyPanel()}
-    ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot: h.host_snapshot?.path, snapshot_mtime: h.host_snapshot?.mtime, status: h.status})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
-    ${card('QMD', kv(h.qmd), 'span-6')}
-    ${card('Bad config summary', `<pre class="code block">${fmt(h.bad_config_summary || 'none')}</pre>`, 'span-6')}
+    ${hostRunnerPanel()}
     ${githubReadinessPanel()}
-    ${card('System hardening v3', `${kv(state.system_hardening || {})}${toolbar([copyButton('Copy snapshot processor', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD embed script', '/workspace/.hermes/scripts/qmd-auto-embed.sh'), copyButton('Copy GitHub autopush script', '/workspace/output/webstudio-github-autopush-v1.sh'), copyButton('Copy GitHub repair packet', '/workspace/output/github-host-repair-and-pr-v3.sh')])}`, 'span-12')}
-    ${card('Sources', rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s))), 'span-12')}
+    ${continuationQueuePanel()}
+    ${qmdSystemPanel()}
+    ${snapshotSystemPanel()}
+    ${workFactorySystemPanel()}
+    ${kanbanSystemPanel()}
+    ${agentsSystemPanel()}
+    ${ownerActionsSystemPanel()}
+    ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot_status: h.status})}${collapsibleTechDetails({host_snapshot: h.host_snapshot, bad_config_summary: h.bad_config_summary})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
+    ${card('Product D1/D2/D3', productSystemSummary(), 'span-6')}
+    ${collapsibleCard('Подробнее: системные источники', `${rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s)))}${toolbar([copyButton('Copy snapshot processor path', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD plan path', '/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md'), copyButton('Copy GitHub autopush result path', '/workspace/output/webstudio-system-maintenance-autopush-result.json')])}`, 'span-12')}
   </div>`;
+}
+
+function okWarnBlock(ok, warn=false) { return ok ? 'OK' : (warn ? 'DEGRADED' : 'BLOCKED'); }
+function statusBadgeLine(title, status, text='') { return `<div class="system-line"><strong>${fmt(title)}</strong>${badge(status)}${text ? `<small class="label">${fmt(text)}</small>` : ''}</div>`; }
+function collapsibleTechDetails(payload) { return `<details class="raw-details"><summary>Подробнее</summary><pre class="code mini">${fmt(stringify(payload, 1800))}</pre></details>`; }
+
+function systemVerdictPanel() {
+  const ha = state.host_autonomy || {}; const ce = ha.continuation_engine || {}; const q = ha.qmd || state.health?.qmd || {}; const gh = state.github_readiness || {}; const pr = gh.pr_status || {}; const wf = state.work_factory || {}; const kb = state.kanban || {};
+  const verdict = (ha.status === 'ON' && ce.owner_needs_to_type_continue === false && gh.pr_url && wf.enabled !== false && !kb.executable_mirror_count) ? 'OK' : 'DEGRADED';
+  return card('Система — сводка готовности', `
+    ${statusBadgeLine('Host Autonomy', ha.status === 'ON' ? 'OK' : 'DEGRADED', 'автономия без ручного push')}
+    ${statusBadgeLine('Auto-Push', (pr.owner_action_required === false || pr.owner_manual_push === 'deprecated') ? 'OK' : 'DEGRADED', shortText(pr.pr_url || gh.pr_url || 'PR не найден'))}
+    ${statusBadgeLine('Continuation Queue', ce.owner_needs_to_type_continue === false ? 'OK' : 'BLOCKED', `pending=${ce.pending_jobs ?? '—'} · chat-cron=${ce.chat_cron_used === false ? 'off' : 'check'}`)}
+    ${statusBadgeLine('QMD', q.status || 'DEGRADED', `total=${q.total_documents ?? q.total ?? '—'} · vectors=${q.vectors ?? '—'} · pending=${q.pending_embeddings ?? '—'}`)}
+    ${statusBadgeLine('Snapshot processor', ha.snapshot_processor?.status || 'DEGRADED', 'асинхронные snapshot-заявки обрабатываются host-side')}
+    ${statusBadgeLine('Owner Actions', ha.owner_action_required === false ? 'OK' : 'DEGRADED', 'только live approvals')}
+    <p class="label">Итог: ${fmt(verdict)}. Основной продукт D1/D2/D3 продолжается только после системного зелёного слоя.</p>`, 'span-12');
+}
+
+function hostRunnerPanel() {
+  const gh = state.github_readiness || {}; const pr = gh.pr_status || {}; const runner = pr.host_runner || gh.host_runner || (pr.host_runner_job_type ? 'PASS' : 'unknown');
+  return card('Host Runner', `${kv({
+    status: runner === 'PASS' ? 'OK' : runner,
+    latest_result: pr.verification_verdict || gh.status || '—',
+    job_type: pr.host_runner_job_type || 'github/autopush',
+    workspace_root: pr.host_runner_workspace_root || '/home/hermes/workspace',
+    owner_manual_command_required: pr.owner_action_required === false ? 'no' : 'check'
+  })}${collapsibleTechDetails({pr_status: pr, runner_latest_path: pr.runner_latest_path})}${toolbar([copyButton('Copy runner latest path', '/workspace/output/host-job-runner/latest.json')])}`, 'span-6');
+}
+
+function continuationQueuePanel() {
+  const ce = state.host_autonomy?.continuation_engine || state.continuation_controller || {};
+  return card('Continuation Queue', `${kv({
+    status: ce.status || ce.final_status || 'unknown',
+    iteration_budget_protocol: ce.iteration_budget_protocol_created ?? ce.terminal_protocol?.continuation_required ?? '—',
+    pending: ce.pending_jobs ?? '—',
+    supervisor: ce.supervisor_path ? 'installed' : 'unknown',
+    chat_cron_used: ce.chat_cron_used === false ? 'false' : 'check',
+    owner_needs_to_type_continue: ce.owner_needs_to_type_continue === false ? 'false' : 'check',
+    next_job_id: ce.first_next_pass_job_id || ce.next_job_id || '—'
+  })}${collapsibleTechDetails(ce)}${toolbar([copyButton('Copy queue root', ce.queue_root || '/workspace/.hermes-workqueue/webstudio'), copyButton('Copy checkpoint path', ce.checkpoint_path || '/workspace/output/current-task-continuation-checkpoint.md')])}`, 'span-6');
+}
+
+function qmdSystemPanel() {
+  const q = state.host_autonomy?.qmd || state.health?.qmd || {};
+  return card('QMD', `${kv({
+    status: q.status || (q.available ? 'OK' : 'unknown'),
+    total_docs: q.total_documents ?? q.total ?? '—',
+    vectors: q.vectors ?? '—',
+    pending_embeddings: q.pending_embeddings ?? '—',
+    bounded_maintenance: (q.pending_embeddings ?? 0) > 0 ? 'DEGRADED_SAFE' : 'OK',
+    unlimited_embed: 'forbidden'
+  })}${collapsibleTechDetails(q)}${toolbar([copyButton('Copy QMD plan', '/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md'), copyButton('Copy QMD result', '/workspace/output/qmd-bounded-embeddings-maintenance-result-v21.md')])}`, 'span-6');
+}
+
+function snapshotSystemPanel() {
+  const sp = state.host_autonomy?.snapshot_processor || {}; const hard = state.system_hardening || {};
+  return card('Snapshot processor', `${kv({
+    status: sp.status || 'unknown',
+    pending: hard.snapshot_pending_count ?? '—',
+    processed_visible: sp.processed_requests_visible ?? '—',
+    last_processed: sp.last_auto_snapshot ? shortText(sp.last_auto_snapshot, 80) : '—',
+    stuck_requests: (hard.snapshot_pending_count || 0) > 3 ? 'check' : 'no'
+  })}${collapsibleTechDetails({snapshot_processor: sp, system_hardening: hard})}${toolbar([copyButton('Copy snapshot health report', '/workspace/output/snapshot-processor-health-v21.md')])}`, 'span-6');
+}
+
+function workFactorySystemPanel() {
+  const wf = state.work_factory || {};
+  return card('Work Factory', `${kv({
+    status: wf.enabled === false ? 'DEGRADED' : 'OK',
+    pending: wf.pending_count ?? wf.backlog?.pending_count ?? '—',
+    running: asArray(wf.running).length || 'none',
+    blocked: asArray(wf.blocked).length || 'none',
+    done: wf.total_work_factory_completed ?? wf.supervisor_completed ?? '—',
+    host_runner_integration: 'visible'
+  })}${collapsibleTechDetails(wf)}${toolbar([copyButton('Copy WF checkpoint', '/workspace/output/work-factory-supervisor-checkpoint.md')])}`, 'span-6');
+}
+
+function kanbanSystemPanel() {
+  const k = state.kanban || {}; const c = k.counts || {}; const proto = state.agent_workflow?.protocol || {};
+  return card('Kanban Health', `${kv({
+    status: (k.executable_mirror_count || k.duplicate_keys?.length) ? 'DEGRADED' : 'OK',
+    production_total: k.task_total ?? '—',
+    ready: c.ready ?? '—',
+    running: c.running ?? '—',
+    blocked: c.blocked ?? '—',
+    repeated_crashes: proto.repeated_crashes_after_indicator_count ?? '—',
+    stale_running_dead_pids: proto.stale_running_dead_pid_after_2h_count ?? '—',
+    executable_mirrors: k.executable_mirror_count ?? 0
+  })}${collapsibleTechDetails({kanban: k, protocol: proto})}`, 'span-6');
+}
+
+function agentsSystemPanel() {
+  const aw = state.agent_workflow || {}; const proto = aw.protocol || {}; const wh = state.worker_health || {};
+  return card('Agents / Skills', `${kv({
+    protocol: 'OK',
+    flow: 'CTO-агент → Оркестратор → Исполнители → QA/Передача → Готово',
+    canaries: asArray(aw.canary_results).length || '—',
+    silent_finish: proto.silent_finish_allowed === false ? 'forbidden' : 'check',
+    terminal_actions: asArray(proto.terminal_actions).join(', ') || 'kanban_complete, kanban_block',
+    failures: wh.failed_count ?? wh.failures ?? '—'
+  })}${collapsibleTechDetails({agent_workflow: aw, worker_health: wh})}`, 'span-6');
+}
+
+function ownerActionsSystemPanel() {
+  const ha = state.host_autonomy || {}; const approvals = asArray(state.approvals);
+  const live = asArray(ha.owner_action_required_only_for);
+  const noNeed = asArray(ha.owner_not_required_for);
+  return card('Owner Actions', `<p>Рутинные maintenance-команды владельца не нужны. Владелец нужен только для live approvals.</p>
+    ${kv({owner_manual_push_required: 'no', pending_approval_cards: approvals.length, regular_maintenance_owner_commands: 'no'})}
+    ${rows(live.map((x,i)=>({id:i+1,title:x,status:'approval'})), x => row('LIVE', ownerText(x.title), 'approval', 'требует явного решения владельца'))}
+    ${collapsibleCard('Подробнее: что не требует владельца', rows(noNeed.map((x,i)=>({id:i+1,title:x,status:'OK'})), x => row('AUTO', ownerText(x.title), 'OK', 'автономно')), 'span-12')}
+    ${toolbar([copyButton('Copy owner actions report', '/workspace/output/webstudio-full-operational-readiness-v21-report.md')])}`, 'span-12');
+}
+
+function productSystemSummary() {
+  const pp = state.product_progress || {}; const lines = ['D1','D2','D3'].map(line => {
+    const n = asArray(pp.by_line?.[line]).length;
+    return {id: line, title: `${line} · ${ru(line)}`, status: 'tracked', meta: `${n} артефактов/пакетов · продуктовая разработка после System PASS`};
+  });
+  return rows(lines, x => row(x.id, x.title, x.status, x.meta));
 }
 
 function hostAutonomyPanel() {

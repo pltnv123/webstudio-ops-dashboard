@@ -76,6 +76,12 @@ required_js_symbols = [
     'progressAnalytics',
     'visualLaneBoard',
     'control_plane_history',
+    'Host Runner',
+    'Continuation Queue',
+    'Snapshot processor',
+    'Owner Actions',
+    'chat_cron_used',
+    'owner_needs_to_type_continue',
 ]
 for symbol in required_js_symbols:
     assert symbol in js, f'missing JS symbol {symbol}'
@@ -85,8 +91,16 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'control_plane_history']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening']:
     assert key in state, f'missing state key {key}'
+ha = state['host_autonomy']
+ce = ha['continuation_engine']
+assert ce['chat_cron_used'] is False
+assert ce['owner_needs_to_type_continue'] is False
+assert 'snapshot_pending_count' in state['system_hardening']
+assert state['github_readiness'].get('pr_url'), 'GitHub PR URL required'
+assert 'enabled' in state['work_factory']
+assert state['kanban'].get('executable_mirror_count', 0) == 0
 controller = state['continuation_controller']
 assert controller['checkpoint_path'] == '/workspace/output/current-task-continuation-checkpoint.md'
 assert controller['terminal_protocol']['silent_exit_allowed'] is False
