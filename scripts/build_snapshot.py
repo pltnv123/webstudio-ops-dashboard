@@ -326,13 +326,42 @@ def build_health() -> dict[str, Any]:
     mv = re.search(r"Vectors:\s+([0-9]+)", qmd_text)
     if mv:
         qmd_vectors = int(mv.group(1))
+    qmd_help = run_cmd(["qmd", "--help"], timeout=30)
+    qmd_help_text = qmd_help["stdout"] if qmd_help["ok"] else qmd_help["stderr"]
+    bounded_available = "--limit" in qmd_help_text and "--collection" in qmd_help_text and "--max-memory-mb" in qmd_help_text
+    bounded_report = OUTPUT / "qmd-bounded-embeddings-maintenance-result-v21-1.md"
+    bounded_raw = OUTPUT / "qmd-bounded-embeddings-maintenance-result-v21-1.raw.log"
+    auto_embed_report = OUTPUT / "qmd-auto-embed-v21-1-last-run.md"
     return {
         "source_of_truth": str(HOST_SNAPSHOT_PATH),
         "host_snapshot": stat_info(HOST_SNAPSHOT_PATH),
         "gateway_active": gateway_active,
         "primary_model_line": fallback_match.group(1).strip() if fallback_match else None,
         "bad_config_summary": bad_config[0].strip()[:2000] if bad_config else "",
-        "qmd": {"available": qmd["ok"], "total_documents": qmd_total, "vectors": qmd_vectors, "pending_embeddings": qmd_pending, "status_excerpt": qmd_text[:3000]},
+        "qmd": {
+            "available": qmd["ok"],
+            "total_documents": qmd_total,
+            "vectors": qmd_vectors,
+            "pending_embeddings": qmd_pending,
+            "status_excerpt": qmd_text[:3000],
+            "bounded_mode": "available" if bounded_available else "missing",
+            "bounded_mode_available": bounded_available,
+            "last_bounded_batch": {
+                "status": "PASS" if bounded_report.exists() and bounded_raw.exists() else "unknown",
+                "evidence": str(bounded_raw),
+                "report": str(bounded_report),
+                "auto_embed_report": str(auto_embed_report),
+            },
+            "last_error": None if bounded_available else "bounded CLI flags missing",
+            "next_safe_action": "continue tiny bounded batches only; do not run unlimited qmd embed" if bounded_available else "implement bounded CLI before embedding",
+            "owner_action_required": False,
+            "owner_facing_text": "QMD поиск работает. Векторные embeddings требуют безопасного bounded режима; unlimited embed не запускается.",
+            "reports": {
+                "investigation": str(OUTPUT / "qmd-true-bounded-embed-investigation-v21-1.md"),
+                "maintenance": str(bounded_report),
+                "implementation": str(OUTPUT / "qmd-bounded-embed-implementation-plan-v21-1.md"),
+            },
+        },
         "status": "warning" if (not gateway_active or bad_config or (qmd_pending or 0) > 0) else "ok",
     }
 
@@ -396,7 +425,7 @@ def build_worker_health(kanban: dict[str, Any]) -> dict[str, Any]:
         },
         "remaining_blockers": [
             "ops lane repair: profile ops exits cleanly without terminal Kanban action",
-            "QMD embeddings: Bun 1.3.13 segfaults during bounded qmd embed maintenance",
+            "QMD durability follow-up: keep bounded patch in maintained package/overlay so reinstall cannot remove CLI flags",
             "optional Supabase authenticated check remains approval/credential scoped",
         ],
         "running_cards": running[:40],
@@ -780,7 +809,7 @@ def build_host_autonomy(health: dict[str, Any], github: dict[str, Any]) -> dict[
         "latest_status": continuation_latest.get("status"),
         "owner_needs_to_type_continue": False,
     }
-    qmd_status = "DEGRADED_SAFE" if (qmd.get("pending_embeddings") or 0) > 1300 else ("OK" if qmd.get("available") else "UNKNOWN")
+    qmd_status = "PASS_BOUNDED" if qmd.get("bounded_mode_available") else ("OK" if qmd.get("available") and not (qmd.get("pending_embeddings") or 0) else "DEGRADED_SAFE")
     snapshot_processor = {
         "status": "PASS" if (RUNTIME / "last-auto-snapshot.txt").exists() else "WATCH",
         "last_auto_snapshot": read_text(RUNTIME / "last-auto-snapshot.txt", 500),

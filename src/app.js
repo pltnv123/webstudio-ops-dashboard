@@ -1165,16 +1165,19 @@ function statusBadgeLine(title, status, text='') { return `<div class="system-li
 function collapsibleTechDetails(payload) { return `<details class="raw-details"><summary>Подробнее</summary><pre class="code mini">${fmt(stringify(payload, 1800))}</pre></details>`; }
 
 function systemVerdictPanel() {
-  const ha = state.host_autonomy || {}; const ce = ha.continuation_engine || {}; const q = ha.qmd || state.health?.qmd || {}; const gh = state.github_readiness || {}; const pr = gh.pr_status || {}; const wf = state.work_factory || {}; const kb = state.kanban || {};
-  const verdict = (ha.status === 'ON' && ce.owner_needs_to_type_continue === false && gh.pr_url && wf.enabled !== false && !kb.executable_mirror_count) ? 'OK' : 'DEGRADED';
+  const ha = state.host_autonomy || {}; const ce = ha.continuation_engine || {}; const q = ha.qmd || state.health?.qmd || {}; const gh = state.github_readiness || {}; const pr = gh.pr_status || {}; const wf = state.work_factory || {}; const kb = state.kanban || {}; const aw = state.agent_workflow || {};
+  const qmdOk = q.bounded_mode_available === true || String(q.status || '').includes('BOUNDED');
+  const opsWatch = String(aw.status || aw.protocol?.ops_lane_status || '').includes('WATCH');
+  const verdict = (ha.status === 'ON' && ce.owner_needs_to_type_continue === false && gh.pr_url && wf.enabled !== false && !kb.executable_mirror_count && qmdOk) ? (opsWatch ? 'WATCH' : 'OK') : 'DEGRADED';
   return card('Система — сводка готовности', `
     ${statusBadgeLine('Host Autonomy', ha.status === 'ON' ? 'OK' : 'DEGRADED', 'автономия без ручного push')}
     ${statusBadgeLine('Auto-Push', (pr.owner_action_required === false || pr.owner_manual_push === 'deprecated') ? 'OK' : 'DEGRADED', shortText(pr.pr_url || gh.pr_url || 'PR не найден'))}
     ${statusBadgeLine('Continuation Queue', ce.owner_needs_to_type_continue === false ? 'OK' : 'BLOCKED', `pending=${ce.pending_jobs ?? '—'} · chat-cron=${ce.chat_cron_used === false ? 'off' : 'check'}`)}
-    ${statusBadgeLine('QMD', q.status || 'DEGRADED', `total=${q.total_documents ?? q.total ?? '—'} · vectors=${q.vectors ?? '—'} · pending=${q.pending_embeddings ?? '—'}`)}
+    ${statusBadgeLine('QMD', qmdOk ? 'OK' : (q.status || 'DEGRADED'), `bounded=${q.bounded_mode || (qmdOk ? 'available' : 'missing')} · total=${q.total_documents ?? q.total ?? '—'} · vectors=${q.vectors ?? '—'} · pending=${q.pending_embeddings ?? '—'}`)}
     ${statusBadgeLine('Snapshot processor', ha.snapshot_processor?.status || 'DEGRADED', 'асинхронные snapshot-заявки обрабатываются host-side')}
+    ${statusBadgeLine('Agents / Skills', opsWatch ? 'WATCH' : 'OK', aw.protocol?.ops_lane_status || 'terminator contract visible')}
     ${statusBadgeLine('Owner Actions', ha.owner_action_required === false ? 'OK' : 'DEGRADED', 'только live approvals')}
-    <p class="label">Итог: ${fmt(verdict)}. Основной продукт D1/D2/D3 продолжается только после системного зелёного слоя.</p>`, 'span-12');
+    <p class="label">Итог: ${fmt(verdict)}. QMD bounded режим доступен; продукт D1/D2/D3 возвращается после ops-lane canary или честной фиксации WATCH.</p>`, 'span-12');
 }
 
 function hostRunnerPanel() {
@@ -1203,14 +1206,20 @@ function continuationQueuePanel() {
 
 function qmdSystemPanel() {
   const q = state.host_autonomy?.qmd || state.health?.qmd || {};
-  return card('QMD', `${kv({
+  const batch = q.last_bounded_batch || {};
+  const ownerText = q.owner_facing_text || 'QMD поиск работает. Векторные embeddings требуют безопасного bounded режима; unlimited embed не запускается.';
+  return card('QMD', `<p>${fmt(ownerText)}</p>${kv({
     status: q.status || (q.available ? 'OK' : 'unknown'),
     total_docs: q.total_documents ?? q.total ?? '—',
     vectors: q.vectors ?? '—',
     pending_embeddings: q.pending_embeddings ?? '—',
-    bounded_maintenance: (q.pending_embeddings ?? 0) > 0 ? 'DEGRADED_SAFE' : 'OK',
+    bounded_mode: q.bounded_mode || (q.bounded_mode_available ? 'available' : 'missing'),
+    last_bounded_batch: batch.status || '—',
+    last_error: q.last_error || 'none',
+    next_safe_action: q.next_safe_action || 'bounded batches only',
+    owner_action_required: q.owner_action_required === false ? 'no' : (q.owner_action_required ?? 'check'),
     unlimited_embed: 'forbidden'
-  })}${collapsibleTechDetails(q)}${toolbar([copyButton('Copy QMD plan', '/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md'), copyButton('Copy QMD result', '/workspace/output/qmd-bounded-embeddings-maintenance-result-v21.md')])}`, 'span-6');
+  })}${collapsibleTechDetails(q)}${toolbar([copyButton('Copy QMD investigation', '/workspace/output/qmd-true-bounded-embed-investigation-v21-1.md'), copyButton('Copy QMD result', '/workspace/output/qmd-bounded-embeddings-maintenance-result-v21-1.md'), copyButton('Copy QMD implementation note', '/workspace/output/qmd-bounded-embed-implementation-plan-v21-1.md')])}`, 'span-6');
 }
 
 function snapshotSystemPanel() {
