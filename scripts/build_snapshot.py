@@ -725,6 +725,8 @@ def build_github_readiness() -> dict[str, Any]:
     completion_result = load_json(completion_result_path, {})
     pr1_status = load_json(GITHUB_PR1_STATUS_PATH, {})
     autopush_candidates = [
+        OUTPUT / "webstudio-v28-github-mainline-result.json",
+        OUTPUT / "webstudio-client-intake-order-builder-v27-github-pr-status.json",
         OUTPUT / "webstudio-system-maintenance-autopush-result.json",
         OUTPUT / "webstudio-continuation-autopush-result.json",
         OUTPUT / "webstudio-github-autopush-v1-result.json",
@@ -890,19 +892,25 @@ def build_motion_factory(product_progress: dict[str, Any]) -> dict[str, Any]:
     """Owner-facing HyperFrames / Premium Motion Factory production status."""
     metadata = load_json(OUTPUT / "webstudio-motion-v26-video-metadata.json", {})
     videos = metadata.get("videos") if isinstance(metadata.get("videos"), list) else []
+    v28_reports = [
+        "/workspace/output/webstudio-hyperframes-reusable-templates-v28.md",
+        "/workspace/output/webstudio-client-example-003-motion-plan.md",
+        "/workspace/output/webstudio-client-example-003-motion-composition.html",
+    ]
+    has_v28 = any(Path(p).exists() for p in v28_reports)
     return {
-        "status": product_progress.get("premium_motion_factory_v26") or product_progress.get("premium_motion_factory_v25") or "unknown",
+        "status": "V28_TEMPLATES_READY" if has_v28 else (product_progress.get("premium_motion_factory_v26") or product_progress.get("premium_motion_factory_v25") or "unknown"),
         "runtime": {
             "hyperframes_runtime": "PASS" if (OUTPUT / "webstudio-hyperframes-smoke-v24.mp4").exists() else "unknown",
-            "motion_engine": "OPERATIONAL" if (OUTPUT / "webstudio-premium-site-example-001-motion-preview-v2.mp4").exists() else "unknown",
+            "motion_engine": "OPERATIONAL" if (OUTPUT / "webstudio-premium-site-example-001-motion-preview-v2.mp4").exists() else "HTML_COMPOSITION_READY" if has_v28 else "unknown",
             "owner_action_required": "no",
         },
-        "production_generator_status": product_progress.get("production_generator") or "unknown",
-        "template_pack_status": product_progress.get("hyperframes_template_pack") or "PASS",
-        "batch_render_status": product_progress.get("batch_render_workflow") or "unknown",
-        "poster_status": product_progress.get("poster_auto_pick") or "unknown",
-        "reduced_motion_status": product_progress.get("reduced_motion_fallback") or "unknown",
-        "handoff_pack_status": product_progress.get("client_handoff_pack") or "unknown",
+        "production_generator_status": "READY" if has_v28 else (product_progress.get("production_generator") or "unknown"),
+        "template_pack_status": "V28_READY" if has_v28 else (product_progress.get("hyperframes_template_pack") or "PASS"),
+        "batch_render_status": "HTML_COMPOSITION_READY" if has_v28 else (product_progress.get("batch_render_workflow") or "unknown"),
+        "poster_status": "WORKFLOW_READY" if has_v28 else (product_progress.get("poster_auto_pick") or "unknown"),
+        "reduced_motion_status": "SNIPPETS_READY" if has_v28 else (product_progress.get("reduced_motion_fallback") or "unknown"),
+        "handoff_pack_status": "READY" if has_v28 else (product_progress.get("client_handoff_pack") or "unknown"),
         "repo_sync": product_progress.get("repo_sync", {}),
         "latest_videos": videos,
         "reports": [
@@ -912,8 +920,9 @@ def build_motion_factory(product_progress: dict[str, Any]) -> dict[str, Any]:
             "/workspace/output/webstudio-motion-poster-auto-pick-v26.md",
             "/workspace/output/webstudio-reduced-motion-fallback-snippets-v26.md",
             "/workspace/output/webstudio-motion-client-handoff-pack-v26.md",
+            *[p for p in v28_reports if Path(p).exists()],
         ],
-        "next_action": "Host Runner Auto-Push should push dashboard/docs changes and verify PR head SHA.",
+        "next_action": "Render Example #003 MP4 when HyperFrames/ffmpeg runtime is available." if has_v28 else "Host Runner Auto-Push should push dashboard/docs changes and verify PR head SHA.",
     }
 
 
@@ -935,6 +944,16 @@ def build_client_intake_v27() -> dict[str, Any]:
         OUTPUT / "webstudio-client-example-002-concept-a.html",
         OUTPUT / "webstudio-client-example-002-concept-b.html",
         OUTPUT / "webstudio-client-example-002-concept-c.html",
+    ]
+    example_003_files = [
+        OUTPUT / "webstudio-client-example-003-brief.md",
+        OUTPUT / "webstudio-client-example-003-strategy.md",
+        OUTPUT / "webstudio-client-example-003-design-directions.md",
+        OUTPUT / "webstudio-client-example-003-concept-a.html",
+        OUTPUT / "webstudio-client-example-003-concept-b.html",
+        OUTPUT / "webstudio-client-example-003-concept-c.html",
+        OUTPUT / "webstudio-client-example-003-motion-plan.md",
+        OUTPUT / "webstudio-client-example-003-delivery-pack.md",
     ]
     return {
         "schema": "webstudio.client_intake_order_builder.v27",
@@ -966,6 +985,7 @@ def build_client_intake_v27() -> dict[str, Any]:
         "examples": [
             {"id": "001", "name": "Premium renovation", "status": "PASS", "artifacts": ["/workspace/output/webstudio-premium-site-example-001-motion-preview-v2.mp4", "/workspace/output/webstudio-premium-motion-factory-v26-report.md"]},
             {"id": "002", "name": "Premium dental clinic Moscow", "status": "READY", "artifacts": [str(p) for p in example_files if p.exists()]},
+            {"id": "003", "name": "Премиальный барбершоп / мужской салон Москва", "status": "READY" if all(p.exists() for p in example_003_files) else "IN_PROGRESS", "artifacts": [str(p) for p in example_003_files if p.exists()]},
         ],
         "links": [
             str(OUTPUT / "webstudio-client-intake-order-builder-v27-report.md"),
@@ -974,8 +994,11 @@ def build_client_intake_v27() -> dict[str, Any]:
             str(OUTPUT / "webstudio-client-example-002-concept-a.html"),
             str(OUTPUT / "webstudio-client-example-002-concept-b.html"),
             str(OUTPUT / "webstudio-client-example-002-concept-c.html"),
+            str(OUTPUT / "webstudio-client-example-003-concept-a.html"),
+            str(OUTPUT / "webstudio-client-example-003-concept-b.html"),
+            str(OUTPUT / "webstudio-client-example-003-concept-c.html"),
         ],
-        "next_action": "Use adaptive wizard to qualify first real client, then route to package and production blueprint.",
+        "next_action": "Use adaptive wizard to qualify first real client, then route to package and production blueprint. V28: continue Example #003 selected direction and host-verified mainline visibility.",
         "approvals": ["live Telegram", "CRM/payment/analytics integrations", "medical/legal claims", "deploy/preview"],
         "readiness": "READY_FOR_CLIENT_SIMULATION",
     }
