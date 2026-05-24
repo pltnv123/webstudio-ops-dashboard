@@ -31,32 +31,33 @@
   },
   "host_autonomy": {
     "schema_version": "webstudio.host-autonomy.v1",
-    "updated_at": "2026-05-24T09:55:06Z",
-    "status": "WATCH",
+    "updated_at": "2026-05-24T11:04:06Z",
+    "status": "ON",
     "approvals_mode": "OFF / owner-approved autonomy",
     "owner_approved_autonomy": true,
     "auto_push_available": true,
     "auto_push": {
-      "schema_version": "webstudio-github-autopush-v1",
-      "generated_at": "2026-05-24T09:00:22Z",
-      "status": "WATCH",
-      "reason": "push_dry_run_failed",
-      "stage": "v21",
-      "repo_path": "/workspace/tmp/webstudio-ops-dashboard-pr",
+      "schema_version": "webstudio-github-autopush-v2",
+      "generated_at": "2026-05-24T11:04:06Z",
+      "status": "SELF_EXECUTING",
+      "reason": "host_runner_verified",
+      "stage": "system-maintenance-host-runner-proof",
       "repo": "pltnv123/webstudio-ops-dashboard",
       "branch": "webstudio/hardening-v3-host-completion",
       "pr_number": 1,
       "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
-      "latest_local_commit": "94cc740510fa0391a73153020a21f6393c057ea0",
-      "latest_remote_commit": "6d44794a04f661272cacdc91584be67ff31c93de",
-      "pr": {},
+      "latest_local_commit": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7",
+      "latest_remote_commit": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7",
+      "headRefOid": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7",
+      "pr_head_sha": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7",
       "checks_status": "none",
-      "verification_verdict": "BLOCKED",
-      "owner_action_required": true,
-      "latest_host_pass": "2026-05-24T08:27:00Z v19 UPDATED local=remote 84a718b7...",
-      "latest_sandbox_v1": "BLOCKED push_dry_run_failed; host credential boundary required"
+      "verification_verdict": "UPDATED_REMOTE_VERIFIED",
+      "owner_action_required": false,
+      "owner_manual_push": "deprecated",
+      "future_push_policy": "queue_host_job_then_host_runner_executes_then_pr_verify",
+      "runner_latest": "/workspace/output/host-job-runner/latest.json"
     },
-    "latest_pr_commit": "6d44794a04f661272cacdc91584be67ff31c93de",
+    "latest_pr_commit": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7",
     "checks_status": "none",
     "owner_action_required": false,
     "qmd": {
@@ -66,7 +67,13 @@
       "update": "PASS",
       "search": "PASS",
       "bounded_embed_batch_mode": "not_available",
-      "blocker": "no native batch/limit mode; unlimited embed not run"
+      "blocker": "no native batch/limit mode; unlimited embed not run",
+      "bounded_maintenance_status": "BLOCKED_IMPLEMENTATION_REQUIRED",
+      "pending_embeddings_before": 1958,
+      "pending_embeddings_after": 1958,
+      "embed_unlimited": "FORBIDDEN_NOT_RUN",
+      "bounded_card": "t_5ac9bfea",
+      "safe_update": "PASS"
     },
     "hfinalize": {
       "status": "available",
@@ -104,7 +111,7 @@
     },
     "continuation_engine": {
       "schema_version": "webstudio.continuation-engine.v1",
-      "updated_at": "2026-05-24T09:55:06Z",
+      "updated_at": "2026-05-24T11:04:06Z",
       "status": "PASS",
       "iteration_budget_protocol_created": true,
       "queue_root": "/workspace/.hermes-workqueue/webstudio",
@@ -114,12 +121,38 @@
       "first_next_pass_job_id": "webstudio-continuation-next-system-maintenance-20260524T095332Z",
       "checkpoint_path": "/workspace/output/current-task-continuation-checkpoint.md",
       "latest_result": "/workspace/output/webstudio-continuation-supervisor/latest.json",
-      "owner_needs_to_type_continue": false
+      "owner_needs_to_type_continue": false,
+      "pending_jobs": 1,
+      "running_jobs": 0,
+      "done_jobs": 1,
+      "failed_jobs": 0,
+      "next_job": "webstudio-continuation-next-system-maintenance-20260524T095332Z.json",
+      "latest_pr_commit": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7"
     },
     "snapshot_processor": {
       "status": "PASS",
       "last_auto_snapshot": "2026-05-24T09:49:27Z",
       "processed_requests_visible": true
+    },
+    "host_runner": "PASS",
+    "auto_push_status": "SELF_EXECUTING",
+    "owner_manual_push": "deprecated",
+    "host_runner_queue": {
+      "status": "PASS",
+      "pending_github_jobs": 0,
+      "latest_runner_status": "NOOP",
+      "last_pass_job": "webstudio-autopush-continuation-v2.sh.done-20260524-104002",
+      "workspace_root": "/home/hermes/workspace"
+    },
+    "ops_cockpit": {
+      "host_runner": "PASS",
+      "auto_push": "SELF_EXECUTING",
+      "owner_manual_push": "deprecated",
+      "latest_pr_commit": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7",
+      "pending_jobs": 1,
+      "done_jobs": 1,
+      "failed_jobs": 0,
+      "next_job": "webstudio-continuation-next-system-maintenance-20260524T095332Z.json"
     }
   },
   "product_lines": [
@@ -1973,6 +2006,11 @@
       "tick_interval_minutes": 15,
       "version": "v4-time-aware-deep-work",
       "final_12h_report_path": "/workspace/output/work-factory-12h-final-report-20260520T220657Z.md"
+    },
+    "host_runner_integration": {
+      "status": "PASS",
+      "auto_push": "SELF_EXECUTING",
+      "owner_manual_push": "deprecated"
     }
   },
   "kanban": {
@@ -14039,6 +14077,11 @@
     "read_errors": {
       "list": "",
       "stats": ""
+    },
+    "qmd_bounded_card": {
+      "id": "t_5ac9bfea",
+      "status": "blocked",
+      "reason": "current qmd embed has no true bounded options"
     }
   },
   "production_pipeline": {
@@ -30274,7 +30317,7 @@
       "mtime": "2026-05-24T09:27:26Z",
       "sha256": "4c22da4178d0230e5beab98e5fb309344c34cd218dedc7272f6d5d1ce09298c9"
     },
-    "updated_at": "2026-05-24T09:29:00Z",
+    "updated_at": "2026-05-24T11:04:06Z",
     "mode": "safe_local_artifacts_only",
     "phase": null,
     "v10_status": null,
@@ -30304,13 +30347,23 @@
     "client_simulation": {},
     "system_layer": {},
     "analytics": {},
-    "github_sync": {},
-    "qmd_maintenance": {},
+    "github_sync": {
+      "status": "SELF_EXECUTING",
+      "host_runner": "PASS",
+      "owner_manual_push": "deprecated",
+      "latest_pr_commit": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7"
+    },
+    "qmd_maintenance": {
+      "status": "BLOCKED_IMPLEMENTATION_REQUIRED",
+      "pending_before": 1958,
+      "pending_after": 1958,
+      "unlimited_embed_run": false
+    },
     "v18_status": null,
     "v19_status": null,
     "v20_status": null,
     "v21_status": null,
-    "latest_pr_commit": null,
+    "latest_pr_commit": "5981d0d2eaa886f503a4a916117f5cae8b04a5c7",
     "report": null,
     "by_line": {
       "D1": [
@@ -30342,7 +30395,9 @@
       "D1: maintenance_gate → /workspace/output/webstudio-full-system-maintenance-v20-1-report.md",
       "D2: maintenance_gate → /workspace/output/webstudio-full-system-maintenance-v20-1-report.md",
       "D3: maintenance_gate → /workspace/output/webstudio-full-system-maintenance-v20-1-report.md"
-    ]
+    ],
+    "next_product_task": "D1 client-ready landing package after maintenance finalization",
+    "autopush_mode": "host_runner_self_executing"
   },
   "control_plane_history": {
     "schema_version": "webstudio-control-plane-history.v1",
@@ -40385,7 +40440,20 @@
       "pending_embeddings": 1987,
       "status_excerpt": "QMD Status\n\nIndex: /workspace/.cache/qmd/index.sqlite\nSize:  34.1 MB\n\nDocuments\n  Total:    2416 files indexed\n  Vectors:  379 embedded\n  Pending:  1987 need embedding (run 'qmd embed')\n  Updated:  24m ago\n\nCollections\n  runbooks (qmd://runbooks/)\n    Pattern:  **/*.md\n    Files:    20 (updated 10d ago)\n    Contexts: 1\n      /: Hermes Web Studio operating runbooks: intake, implementat...\n  reports (qmd://reports/)\n    Pattern:  **/*.md\n    Files:    49 (updated 16h ago)\n    Contexts: 1\n      /: Generated technical reports, QA reviews, runtime audits, ...\n  knowledge (qmd://knowledge/)\n    Pattern:  **/*.md\n    Files:    15 (updated 2d ago)\n    Contexts: 1\n      /: Reusable knowledge base for web studio decisions, pattern...\n  clients (qmd://clients/)\n    Pattern:  **/*.md\n    Files:    0 (updated never)\n    Contexts: 1\n      /: Client-specific briefs, requirements, constraints, notes,...\n  deliverables (qmd://deliverables/)\n    Pattern:  **/*.md\n    Files:    224 (updated 15d ago)\n    Contexts: 1\n      /: Final deliverables and packaged outputs prepared for clie...\n  autonomy-output (qmd://autonomy-output/)\n    Pattern:  **/*.md\n    Files:    2108 (updated 24m ago)\n    Contexts: 1\n      /: Generated autonomous outputs, finalizer reports, audits, ...\n\nExamples\n  # List files in a collection\n  qmd ls runbooks\n  # Get a document\n  qmd get qmd://runbooks/path/to/file.md\n  # Search within a collection\n  qmd search \"query\" -c runbooks\n"
     },
-    "status": "warning"
+    "status": "warning",
+    "system_maintenance": {
+      "updated_at": "2026-05-24T11:04:06Z",
+      "status": "PASS_WITH_QMD_BOUNDED_BLOCKED",
+      "snapshot_processor": "PASS",
+      "work_factory": "PASS",
+      "kanban": "PASS",
+      "host_runner": "PASS",
+      "github_autopush": "SELF_EXECUTING",
+      "qmd_bounded": "BLOCKED_IMPLEMENTATION_REQUIRED",
+      "supabase_liveness": "PASS_REACHABLE_401_EXPECTED_WITHOUT_ANON_KEY",
+      "session_search": "PASS",
+      "stale_pidfiles": "ARCHIVED"
+    }
   },
   "artifacts": [
     {
