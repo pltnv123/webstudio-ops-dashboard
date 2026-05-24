@@ -741,6 +741,31 @@ def build_host_autonomy(health: dict[str, Any], github: dict[str, Any]) -> dict[
     latest_finalizer = latest_file_info("finalizer/hfinalize-*.md")
     latest_commit = pr.get("latest_commit_sha") or pr.get("headRefOid") or ap.get("latest_remote_commit") or github.get("latest_commit_sha")
     checks_status = pr.get("checks_status") or ap.get("checks_status") or "unknown"
+    continuation_latest = load_json(OUTPUT / "webstudio-continuation-supervisor" / "latest.json", {})
+    pending_jobs = sorted((WORKSPACE / ".hermes-workqueue" / "webstudio" / "pending").glob("*.json"))
+    first_pending_job = load_json(pending_jobs[0], {}) if pending_jobs else {}
+    continuation_engine = {
+        "schema_version": "webstudio.continuation-engine.v1",
+        "updated_at": utc_now(),
+        "status": "PASS" if continuation_latest.get("status") in {"PASS", "NOOP"} and pending_jobs else "WATCH",
+        "iteration_budget_protocol_created": (OUTPUT / "webstudio-budget-exhaustion-protocol-v1.md").exists(),
+        "queue_root": str(WORKSPACE / ".hermes-workqueue" / "webstudio"),
+        "supervisor_path": str(WORKSPACE / ".hermes" / "scripts" / "webstudio-continuation-supervisor.sh"),
+        "work_factory_integration": "webstudio-continuation-supervisor.sh" in read_text(WORKSPACE / ".hermes" / "scripts" / "work-factory-supervisor-tick.sh", 4000),
+        "chat_cron_used": False,
+        "first_next_pass_job_id": first_pending_job.get("id"),
+        "pending_jobs": len(pending_jobs),
+        "checkpoint_path": str(CONTINUATION_CHECKPOINT_PATH),
+        "latest_result": str(OUTPUT / "webstudio-continuation-supervisor" / "latest.json"),
+        "latest_status": continuation_latest.get("status"),
+        "owner_needs_to_type_continue": False,
+    }
+    qmd_status = "DEGRADED_SAFE" if (qmd.get("pending_embeddings") or 0) > 1300 else ("OK" if qmd.get("available") else "UNKNOWN")
+    snapshot_processor = {
+        "status": "PASS" if (RUNTIME / "last-auto-snapshot.txt").exists() else "WATCH",
+        "last_auto_snapshot": read_text(RUNTIME / "last-auto-snapshot.txt", 500),
+        "processed_requests_visible": (RUNTIME / "snapshot-requests" / "processed").exists(),
+    }
     return {
         "schema_version": "webstudio.host-autonomy.v1",
         "updated_at": utc_now(),
@@ -752,7 +777,9 @@ def build_host_autonomy(health: dict[str, Any], github: dict[str, Any]) -> dict[
         "latest_pr_commit": latest_commit,
         "checks_status": checks_status,
         "owner_action_required": False,
-        "qmd": {**qmd, "status": "OK" if qmd.get("available") else "UNKNOWN"},
+        "continuation_engine": continuation_engine,
+        "snapshot_processor": snapshot_processor,
+        "qmd": {**qmd, "status": qmd_status},
         "hfinalize": {"status": "available", "latest_report": latest_finalizer},
         "owner_action_required_only_for": [
             "live production secrets",
