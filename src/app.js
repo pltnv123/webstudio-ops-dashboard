@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -32,7 +32,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator',
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -519,6 +519,7 @@ function overview() {
     ${metric('Motion Factory', state.motion_factory?.status || 'unknown', 'span-3', 'motion-factory')}
     ${metric('Заказы / Intake', state.client_intake_v27?.status || 'unknown', 'span-3', 'intake-orders')}
     ${metric('Premium Generator v32', state.premium_website_generator_v32?.status || 'unknown', 'span-3', 'premium-generator')}
+    ${metric('Premium Factory v34', state.premium_factory_v34?.status || 'unknown', 'span-3', 'premium-factory-v34')}
     ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
     ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
     ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
@@ -749,7 +750,7 @@ function motionFactory() {
     ${card('QA / reports', rows(asArray(mf.reports).map((path, i) => ({id: 'R' + (i + 1), title: path, status: 'report', output: path})), wfTaskRow, 'No reports'), 'span-12')}
   </div>`;
 }
-function artifactLink(path, label='Открыть') {
+function artifactPathLink(path, label='Открыть') {
   if (!path) return '';
   return `<a class="copy secondary" href="file://${fmt(path)}" target="_blank" rel="noreferrer">${fmt(label)}</a>`;
 }
@@ -771,8 +772,8 @@ function intakeOrders() {
     ${metric('Blueprint шагов', factory.steps ?? '—', 'span-3')}
     ${metric('Readiness', ci.readiness || 'unknown', 'span-3')}
     ${metric('Owner approvals', asArray(ci.approvals).length, 'span-3')}
-    ${card('Client Intake Wizard', `${kv({status: wizard.status, mode: wizard.mode, questions: wizard.questions})}<div class="toolbar">${copyButton('Copy wizard JSON', wizard.json || '')}${artifactLink(wizard.html, 'Wizard HTML')}</div>`, 'span-6')}
-    ${card('Order Builder', `${kv({status: ob.status, packages: ob.packages})}<div class="toolbar">${copyButton('Copy order JSON', ob.json || '')}${artifactLink(ob.html, 'Order HTML')}</div>`, 'span-6')}
+    ${card('Client Intake Wizard', `${kv({status: wizard.status, mode: wizard.mode, questions: wizard.questions})}<div class="toolbar">${copyButton('Copy wizard JSON', wizard.json || '')}${artifactPathLink(wizard.html, 'Wizard HTML')}</div>`, 'span-6')}
+    ${card('Order Builder', `${kv({status: ob.status, packages: ob.packages})}<div class="toolbar">${copyButton('Copy order JSON', ob.json || '')}${artifactPathLink(ob.html, 'Order HTML')}</div>`, 'span-6')}
     ${card('Premium Website Factory', `${kv({status: factory.status, steps: factory.steps, blueprint: factory.blueprint_md})}`, 'span-6')}
     ${card('Motion Factory', `${kv({status: state.motion_factory?.status, engine: state.motion_factory?.runtime?.motion_engine, next: state.motion_factory?.next_action})}`, 'span-6')}
     <section class="card span-12"><h3>Пакеты услуг</h3><div class="capability-grid">${packages.map(servicePackageCard).join('')}</div></section>
@@ -875,6 +876,24 @@ function premiumWebsiteGenerator() {
     <section class="card span-6"><h3>Pipeline</h3><div class="capability-grid">${pipeline.map(x => `<article class="mini-card"><b>${fmt(x)}</b><p>production gate</p></article>`).join('')}</div></section>
     <section class="card span-6"><h3>Inputs / Outputs</h3><p><b>Inputs:</b> ${inputs.map(fmt).join(', ')}</p><p><b>Outputs:</b> ${outputs.map(fmt).join(', ')}</p><details><summary>Подробнее</summary><pre>${fmt(jsonCopy({inputs, outputs}))}</pre></details></section>
     <section class="card span-12"><h3>Owner action required</h3><div class="capability-grid">${actionRequired.map(x => `<article class="mini-card"><b>${fmt(x)}</b><p>только после отдельного approval</p></article>`).join('')}</div></section>
+  </div>`;
+}
+
+function premiumFactoryV34() {
+  const v34 = state.premium_factory_v34 || {};
+  const paths = v34.paths || {};
+  const approvals = asArray(v34.owner_action_required);
+  const kanbanCards = asArray(v34.kanban_cards);
+  return `<div class="grid premium-factory-v34">
+    ${metric('Factory', humanStatus(v34.status || 'unknown'), 'span-3')}
+    ${metric('QA score', v34.qa_score ? `${v34.qa_score}/100` : '—', 'span-3')}
+    ${metric('Iteration Guard', v34.iteration_guard || 'unknown', 'span-3')}
+    ${metric('Ops Cockpit', v34.ops_cockpit || 'unknown', 'span-3')}
+    ${card('Premium Website Factory v34', `${kv({research:v34.research, design_system:v34.design_system, skills:v34.skills, visual_sourcing:v34.visual_sourcing, interview:v34.interview, order_builder:v34.order_builder, site:v34.client_004_site, motion:v34.motion_hyperframes, visuals:v34.image_assets, mp4:v34.mp4_status})}<div class="toolbar">${openButton('Client #004 site', paths.site || '')}${openButton('Fallback', paths.fallback || '')}${openButton('Research', paths.research || '')}${openButton('QA', paths.qa || '')}${detailPayloadButton(v34, 'Подробнее', 'v34-premium-factory')}</div>`, 'span-12')}
+    ${card('Iteration Budget Guard v34.1', `${kv({status:v34.iteration_guard || 'ITERATION_GUARD_PASS', max_turns:'600', auto_extend:'120 × 5', effective_ceiling:'1200', gateway:'active after restart'})}<div class="toolbar">${openButton('Proof', v34.iteration_guard_proof || '/workspace/output/iteration-budget-guard-v34-proof.md')}${openButton('Runtime JSON', v34.iteration_guard_runtime || '/workspace/output/iteration-budget-guard-v34-runtime.json')}${openButton('Auto-extend report', '/workspace/output/iteration-budget-auto-extend-v34-report.md')}</div>`, 'span-12')}
+    ${card('Visual Sourcing Engine', `${kv({asset_registry:'real/generated/planned/approval required', medical_guardrails:'no fake doctors/certificates/before-after', shotlist:'hero/team/process/proof/interior/social'})}<div class="toolbar">${openButton('Asset registry', '/workspace/output/webstudio-client-004-asset-registry-v34.json')}${openButton('Shotlist', '/workspace/output/webstudio-client-004-shotlist-v34.md')}${openButton('Visual direction', '/workspace/output/webstudio-client-004-visual-direction-v34.md')}</div>`, 'span-6')}
+    ${card('Motion / HyperFrames / 3D', `${kv({composition:'HTML ready', mp4:v34.mp4_status || 'render command ready', background_video:'policy ready', threejs:'policy ready', reduced_motion:'ready'})}<div class="toolbar">${openButton('Composition', '/workspace/output/webstudio-client-004-motion-composition-v34.html')}${openButton('Render command', '/workspace/output/webstudio-client-004-hyperframes-render-command-v34.md')}${openButton('3D policy', '/workspace/output/webstudio-3d-scene-policy-v34.md')}</div>`, 'span-6')}
+    ${card('Kanban / Owner Approval Mirrors', `<div class="capability-grid">${kanbanCards.map(x => `<article class="mini-card"><b>${fmt(x.title || x.idempotency_key)}</b><p>${fmt(x.status || 'blocked mirror')} · не запускается автоматически</p></article>`).join('') || approvals.map(x => `<article class="mini-card"><b>${fmt(x)}</b><p>только после отдельного approval</p></article>`).join('')}</div><div class="toolbar">${openButton('Kanban result', '/workspace/output/webstudio-v34-kanban-cards-result.json')}</div>`, 'span-12')}
   </div>`;
 }
 
@@ -1542,7 +1561,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

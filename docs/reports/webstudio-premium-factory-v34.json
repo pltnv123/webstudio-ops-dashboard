@@ -1,0 +1,62 @@
+{
+  "schema": "webstudio.premium_factory.v34",
+  "updated_at": "2026-05-25T19:54:56Z",
+  "status": "PASS",
+  "phase": "v34 premium website factory current",
+  "guard": {
+    "status": "ITERATION_GUARD_PASS",
+    "max_turns": 600,
+    "auto_extend": true,
+    "effective_ceiling": 1200
+  },
+  "production_lane": "default/known-good",
+  "ops_lane": "isolated watch; not blocking product work",
+  "client_004": {
+    "status": "PASS_PREMIUM_PROTOTYPE",
+    "qa_score": 98,
+    "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
+    "standalone": "/workspace/output/webstudio-client-004-premium-site-v34.html"
+  },
+  "visual_assets": {
+    "status": "PASS",
+    "state_model": [
+      "generated",
+      "planned",
+      "real",
+      "approval_required"
+    ],
+    "registry": "/workspace/output/webstudio-client-004-asset-registry-v34.json"
+  },
+  "motion": {
+    "status": "MP4_RENDERED_PUBLICATION_APPROVAL_REQUIRED",
+    "html_ready": true,
+    "fallback": "READY",
+    "hero_mp4_exists": true,
+    "social_mp4_exists": true
+  },
+  "concepts": {
+    "A": "Editorial Premium PASS",
+    "B": "Clinical Luxury PASS",
+    "C": "Modern Trust Motion PASS"
+  },
+  "owner_action_required": {
+    "local_artifacts": "no",
+    "guard_proof": "no",
+    "real_medical_assets_approval": "yes",
+    "mp4_publication_approval": "yes",
+    "pr_merge_static_launch_approval": "yes"
+  },
+  "paths": {
+    "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
+    "standalone": "/workspace/output/webstudio-client-004-premium-site-v34.html",
+    "qa": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md",
+    "motion": "/workspace/output/webstudio-client-004-motion-composition-v34.html",
+    "concept_a": "/workspace/output/webstudio-client-004-concept-a-v34.html",
+    "concept_b": "/workspace/output/webstudio-client-004-concept-b-v34.html",
+    "concept_c": "/workspace/output/webstudio-client-004-concept-c-v34.html"
+  },
+  "qa_score": 98,
+  "client_004_premium_site_status": "PASS_PREMIUM_PROTOTYPE",
+  "hyperframes_runtime": "operational",
+  "host_runner_autopush": "operational"
+}

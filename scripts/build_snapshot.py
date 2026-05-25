@@ -876,6 +876,7 @@ def build_product_progress() -> dict[str, Any]:
         "premium_motion_factory_v25": data.get("premium_motion_factory_v25"),
         "premium_motion_factory_v26": data.get("premium_motion_factory_v26"),
         "premium_website_generator_v32": data.get("premium_website_generator_v32", {}),
+        "premium_factory_v34": data.get("premium_factory_v34", {}),
         "production_generator": data.get("production_generator"),
         "batch_render_workflow": data.get("batch_render_workflow"),
         "poster_auto_pick": data.get("poster_auto_pick"),
@@ -1402,6 +1403,17 @@ def build_premium_website_generator_v32(product_progress: dict[str, Any]) -> dic
         return merged
     return v32
 
+def build_premium_factory_v34(product_progress: dict[str, Any]) -> dict[str, Any]:
+    v34 = product_progress.get("premium_factory_v34", {}) if isinstance(product_progress, dict) else {}
+    external = load_json(OUTPUT / "webstudio-premium-factory-v34.json", {})
+    if isinstance(external, dict) and external:
+        merged = {**external, **v34}
+        merged["paths"] = {**external.get("paths", {}), **v34.get("paths", {})}
+        merged["owner_action_required"] = v34.get("owner_action_required") or external.get("owner_action_required", [])
+        return merged
+    return v34
+
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -1417,6 +1429,7 @@ def build_state() -> dict[str, Any]:
     real_client_execution_v30 = build_real_client_execution_v30(product_progress)
     premium_visual_motion_v31 = build_premium_visual_motion_v31(product_progress)
     premium_website_generator_v32 = build_premium_website_generator_v32(product_progress)
+    premium_factory_v34 = build_premium_factory_v34(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1473,6 +1486,7 @@ def build_state() -> dict[str, Any]:
         "real_client_execution_v30": real_client_execution_v30,
         "premium_visual_motion_v31": premium_visual_motion_v31,
         "premium_website_generator_v32": premium_website_generator_v32,
+        "premium_factory_v34": premium_factory_v34,
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
@@ -1516,7 +1530,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)
