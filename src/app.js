@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -768,6 +768,35 @@ function intakeOrders() {
   </div>`;
 }
 
+function deliveryStageCard(stage) {
+  return `<article class="capability-card delivery-stage-card"><div class="capability-top"><h4>${fmt(stage.id ? stage.id + '. ' + stage.name : stage.name)}</h4>${badge(stage.kanban_stage || 'stage')}</div><p><b>Agent:</b> ${fmt(stage.responsible_agent)}</p><p>${fmt(shortText(stage.acceptance_criteria, 150))}</p><div class="capability-meta"><span>Input: ${fmt(shortText(stage.inputs, 70))}</span><span>Output: ${fmt(shortText(stage.outputs, 70))}</span><span>Owner: ${fmt(stage.owner_approval_required)}</span></div><div class="toolbar">${copyButton('Copy artifact path', stage.artifact_path || '', 'secondary')}${detailPayloadButton(stage, 'Подробнее', 'delivery-stage')}</div></article>`;
+}
+function deliveryArtifactRow(path, idx) {
+  return row('A' + (idx + 1), path, 'artifact', 'v29 delivery registry', 'artifact', jsonCopy({path, status:'PASS'}));
+}
+function delivery() {
+  const ds = state.delivery_system_v29 || {};
+  const pipeline = ds.pipeline_stages || 0;
+  const artifacts = asArray(ds.artifacts);
+  const stages = asArray(state.product_progress?.delivery_system_v29?.stages || []);
+  const github = ds.github_mainline || {};
+  const ready = ds.readiness || {};
+  const renderedStages = stages.length ? stages : asArray((state.delivery_pipeline_v29 || {}).stages);
+  return `<div class="grid delivery-system">
+    ${metric('Delivery system', ds.status || 'unknown', 'span-3')}
+    ${metric('Pipeline stages', pipeline || renderedStages.length || '—', 'span-3')}
+    ${metric('QA blocks', ds.qa_blocks || '—', 'span-3')}
+    ${metric('Client #003', ds.client_003_status || 'unknown', 'span-3')}
+    ${card('Поставка клиенту — v29', `${kv({status: ds.status, pipeline: ds.pipeline_status, delivery_pack_template: ds.delivery_pack_template_status, client_003: ds.client_003_status, owner_action_required: ds.owner_action_required, next_action: ds.next_action})}${toolbar([copyButton('Copy delivery system', '/workspace/output/webstudio-premium-website-delivery-system-v29.md'), copyButton('Copy pipeline JSON', '/workspace/output/webstudio-client-delivery-pipeline-v29.json'), copyButton('Copy client #003 pack', '/workspace/output/webstudio-client-example-003-delivery-pack-v1.html')])}`, 'span-12')}
+    ${card('GitHub / mainline', `${kv({status: github.status || 'MAINLINE_MERGED', pr_1: github.pr_1 || 'MERGED', default_branch: github.default_branch || 'main', default_sha: github.default_sha || 'c72b1946ad8de01da4f1ce0b38026d05363f59b7', contribution_visibility: github.contribution_visibility_note || '1-24h graph delay possible'})}`, 'span-6')}
+    ${card('D1/D2/D3 readiness', `${kv(ready)}`, 'span-6')}
+    ${card('Motion Factory', `${kv({status: state.motion_factory?.status, video: ready.motion_video || state.motion_factory?.runtime?.motion_engine, reduced_motion: state.motion_factory?.reduced_motion_status, handoff: state.motion_factory?.handoff_pack_status})}`, 'span-6')}
+    ${card('Approval / launch readiness', `${rows(asArray(ds.approval_packets).map((path,i)=>({id:'P'+(i+1), title:path, status:'approval', output:path})), wfTaskRow, 'No approval packets')}${toolbar([copyButton('Copy launch readiness', ds.launch_readiness || '/workspace/output/webstudio-client-example-003-launch-readiness-v1.md')])}`, 'span-6')}
+    <section class="card span-12"><h3>Delivery pipeline</h3><div class="capability-grid">${renderedStages.length ? renderedStages.map(deliveryStageCard).join('') : '<div class="empty">Run snapshot after v29 pipeline JSON is created.</div>'}</div></section>
+    ${card('Artifact registry', rows(artifacts.map((path, i)=>({path, i})), x => deliveryArtifactRow(x.path, x.i), 'No v29 artifacts indexed'), 'span-12')}
+  </div>`;
+}
+
 function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
 
 function demoThumbnail(item, score, line) {
@@ -1431,7 +1460,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
