@@ -17,3 +17,6 @@ Client #004 moved from delivery-flow prototype to premium client-facing prototyp
 - Replaced English section labels with Russian labels.
 - Removed internal proof/art-direction wording from main preview.
 - Polished SVG microcopy to Russian patient-facing language.
+
+## Patient-facing polish v3
+- Replaced operational 'bot/manager' wording with softer consultation/team phrasing.
