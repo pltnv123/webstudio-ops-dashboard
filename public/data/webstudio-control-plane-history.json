@@ -1,0 +1,42 @@
+{
+  "schema_version": "webstudio-control-plane-history.v1",
+  "generated_at": "2026-05-21T22:09:08.274082+00:00",
+  "snapshots": [
+    {
+      "at": "2026-05-21T08:00:00Z",
+      "total": 160,
+      "active": 12,
+      "review": 2,
+      "blocked": 2,
+      "completed": 48,
+      "archived": 55
+    },
+    {
+      "at": "2026-05-21T14:00:00Z",
+      "total": 175,
+      "active": 17,
+      "review": 3,
+      "blocked": 2,
+      "completed": 53,
+      "archived": 70
+    },
+    {
+      "at": "2026-05-21T22:09:08.274082+00:00",
+      "total": 403,
+      "active": 30,
+      "review": 4,
+      "blocked": 2,
+      "completed": 57,
+      "archived": 299
+    },
+    {
+      "at": "2026-05-21T22:34:38.243Z",
+      "total": 403,
+      "active": 30,
+      "review": 4,
+      "blocked": 2,
+      "completed": 57,
+      "archived": 299
+    }
+  ]
+}

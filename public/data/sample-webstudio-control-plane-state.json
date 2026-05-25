@@ -1,0 +1,8 @@
+{
+  "schema_version": "webstudio-control-plane.sample.v1",
+  "mode": "redacted_sample",
+  "safety": {"status": "pass", "read_only": true},
+  "github_readiness": {"status": "UPDATED", "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1", "latest_commit_sha": "49cbcf4"},
+  "product_progress": {"items": []},
+  "note": "Runtime state is generated at build time and stored in /workspace/output/webstudio-control-plane-state.json; this sample contains no live runtime noise or secrets."
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>WebStudio — админка</title>
+  <link rel="stylesheet" href="./styles.css?v=webstudio-layout-fix-v12-1" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Hermes WebStudio</p>
+      <h1>Админка веб-студии</h1>
+      <p class="sub">Производство · Канбан · Агенты · Клиенты · Артефакты</p>
+    </div>
+    <div class="top-actions">
+      <span id="safetyPill" class="pill">загрузка</span>
+      <button id="refreshBtn" class="ghost" type="button">Обновить</button>
+      <button id="exportBtn" class="ghost" type="button">Экспорт JSON</button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Разделы админки">
+    <a href="#overview">Обзор</a>
+    <a href="#work-factory">Фабрика задач</a>
+    <a href="#kanban">Канбан</a>
+    <a href="#production">Производство</a>
+    <a href="#demo-products">Демо-продукты</a>
+    <a href="#agent-workflow">Агенты</a>
+    <a href="#capabilities">Навыки</a>
+    <a href="#motion-factory">Motion Factory</a>
+    <a href="#intake-orders">Заказы / Intake</a>
+    <a href="#owner-feedback">Решения владельца</a>
+    <a href="#d3-intake">D3 заявки</a>
+    <a href="#clients">Клиенты / Заказы</a>
+    <a href="#sales-pack">Продажи</a>
+    <a href="#morning-desk">Утренний обзор</a>
+    <a href="#approvals">Согласования</a>
+    <a href="#health">Система</a>
+    <a href="#artifacts">Артефакты</a>
+    <a href="#marathon">Автономный цикл</a>
+    <a href="#audit">Аудит</a>
+  </nav>
+
+  <main id="app" class="shell">
+    <section class="loading">Загружаю состояние админки…</section>
+  </main>
+
+  <aside id="drawer" class="drawer" aria-hidden="true" aria-label="Подробности">
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <section class="drawer-panel">
+      <div class="drawer-head">
+        <h2 id="drawerTitle">Подробнее</h2>
+        <button id="drawerClose" type="button" aria-label="Закрыть подробности">Закрыть</button>
+      </div>
+      <div id="drawerBody" class="drawer-body"></div>
+    </section>
+  </aside>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">
+    <strong>Безопасность:</strong> только чтение · без запуска задач · без записи в production.
+    <span id="footerState"></span>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>

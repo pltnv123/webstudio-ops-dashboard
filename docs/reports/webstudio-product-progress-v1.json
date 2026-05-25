@@ -1,0 +1,236 @@
+{
+  "source_of_truth": "/workspace/output/webstudio-product-progress-v1.json",
+  "source": {
+    "path": "/workspace/output/webstudio-product-progress-v1.json",
+    "exists": true,
+    "size": 4771,
+    "mtime": "2026-05-24T21:28:10Z",
+    "sha256": "b3fc1fab3ccfd25853fe8ee0d13838331440d38676edd464eec3bb73bd48141e"
+  },
+  "updated_at": "2026-05-24T22:10:41Z",
+  "mode": "safe_local_artifacts_only",
+  "phase": "WebStudio Premium Motion Factory v26 — Production Hardening + Repo Sync",
+  "status": "PASS_LOCAL_READY_REPO_SYNC_PENDING_HOST_RUNNER",
+  "v10_status": null,
+  "v11_status": null,
+  "pr_verification_verdict": null,
+  "pr_url": null,
+  "items": [
+    {
+      "product_line": "D3",
+      "artifact_type": "automation_readiness",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-order-builder-v27.json",
+      "updated_at": "2026-05-24T21:28:10Z"
+    },
+    {
+      "product_line": "D2",
+      "artifact_type": "telegram_intake_planning",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-client-example-002-production-plan.md",
+      "updated_at": "2026-05-24T21:28:10Z"
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "client_example_002_concepts",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-client-example-002-concept-a.html",
+      "updated_at": "2026-05-24T21:28:10Z"
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "premium_site_blueprint",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-premium-site-production-blueprint-v27.md",
+      "updated_at": "2026-05-24T21:28:10Z"
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "order_builder",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-order-builder-v27.md",
+      "updated_at": "2026-05-24T21:28:10Z"
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "intake_wizard",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-client-intake-wizard-v27.md",
+      "updated_at": "2026-05-24T21:28:10Z"
+    },
+    {
+      "product_line": "OPS",
+      "artifact_type": "motion_generator_v26",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-motion-data-driven-generator-v26.md"
+    },
+    {
+      "product_line": "D3",
+      "artifact_type": "motion_bundle_v26",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-d3-motion-bundle-v26.md"
+    },
+    {
+      "product_line": "D2",
+      "artifact_type": "motion_bundle_v26",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-d2-motion-bundle-v26.md"
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "motion_bundle_v26",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-d1-motion-bundle-v26.md"
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "client_showcase",
+      "title": "Example #003 brief",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-client-example-003-brief.md",
+      "updated_at": "2026-05-24T22:10:41Z",
+      "readiness_score": 92
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "premium_site_concept",
+      "title": "Example #003 concept A",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-client-example-003-concept-a.html",
+      "updated_at": "2026-05-24T22:10:41Z",
+      "readiness_score": 92
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "motion_plan",
+      "title": "Example #003 motion plan",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-client-example-003-motion-plan.md",
+      "updated_at": "2026-05-24T22:10:41Z",
+      "readiness_score": 92
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "service_package",
+      "title": "D1/D2/D3 service packages",
+      "status": "READY",
+      "path": "/workspace/output/webstudio-d1-d2-d3-service-packages-v28.md",
+      "updated_at": "2026-05-24T22:10:41Z",
+      "readiness_score": 92
+    },
+    {
+      "product_line": "OPS",
+      "artifact_type": "github_audit",
+      "title": "GitHub contribution visibility audit v28",
+      "status": "READY",
+      "path": "/workspace/output/github-contribution-visibility-audit-v28.md",
+      "updated_at": "2026-05-24T22:10:41Z",
+      "readiness_score": 92
+    }
+  ],
+  "client_simulation": {},
+  "system_layer": {},
+  "analytics": {},
+  "github_sync": {},
+  "qmd_maintenance": {},
+  "repo_sync": {
+    "worktree": "/workspace/tmp/webstudio-ops-dashboard-pr",
+    "meaningful_changes_needed": true,
+    "reason": "Ops Cockpit/dashboard source should expose Premium Motion Factory v25/v26 capability and docs/reports should be tracked in PR; v25 output-only MP4 assets remain /workspace/output deliverables."
+  },
+  "v18_status": null,
+  "v19_status": null,
+  "v20_status": null,
+  "v21_status": null,
+  "premium_motion_factory_v25": "PASS",
+  "premium_motion_factory_v26": "PASS_LOCAL",
+  "production_generator": "READY",
+  "batch_render_workflow": "READY",
+  "poster_auto_pick": "PASS",
+  "reduced_motion_fallback": "READY",
+  "client_handoff_pack": "READY",
+  "video_metadata_path": "/workspace/output/webstudio-motion-v26-video-metadata.json",
+  "latest_pr_commit": null,
+  "report": "/workspace/output/webstudio-client-intake-order-builder-v27-report.md",
+  "by_line": {
+    "D1": [
+      {
+        "product_line": "D1",
+        "artifact_type": "client_example_002_concepts",
+        "status": "PASS",
+        "path": "/workspace/output/webstudio-client-example-002-concept-a.html",
+        "updated_at": "2026-05-24T21:28:10Z"
+      },
+      {
+        "product_line": "D1",
+        "artifact_type": "premium_site_blueprint",
+        "status": "PASS",
+        "path": "/workspace/output/webstudio-premium-site-production-blueprint-v27.md",
+        "updated_at": "2026-05-24T21:28:10Z"
+      },
+      {
+        "product_line": "D1",
+        "artifact_type": "order_builder",
+        "status": "PASS",
+        "path": "/workspace/output/webstudio-order-builder-v27.md",
+        "updated_at": "2026-05-24T21:28:10Z"
+      },
+      {
+        "product_line": "D1",
+        "artifact_type": "intake_wizard",
+        "status": "PASS",
+        "path": "/workspace/output/webstudio-client-intake-wizard-v27.md",
+        "updated_at": "2026-05-24T21:28:10Z"
+      },
+      {
+        "product_line": "D1",
+        "artifact_type": "motion_bundle_v26",
+        "status": "READY",
+        "path": "/workspace/output/webstudio-d1-motion-bundle-v26.md"
+      }
+    ],
+    "D2": [
+      {
+        "product_line": "D2",
+        "artifact_type": "telegram_intake_planning",
+        "status": "PASS",
+        "path": "/workspace/output/webstudio-client-example-002-production-plan.md",
+        "updated_at": "2026-05-24T21:28:10Z"
+      },
+      {
+        "product_line": "D2",
+        "artifact_type": "motion_bundle_v26",
+        "status": "READY",
+        "path": "/workspace/output/webstudio-d2-motion-bundle-v26.md"
+      }
+    ],
+    "D3": [
+      {
+        "product_line": "D3",
+        "artifact_type": "automation_readiness",
+        "status": "PASS",
+        "path": "/workspace/output/webstudio-order-builder-v27.json",
+        "updated_at": "2026-05-24T21:28:10Z"
+      },
+      {
+        "product_line": "D3",
+        "artifact_type": "motion_bundle_v26",
+        "status": "READY",
+        "path": "/workspace/output/webstudio-d3-motion-bundle-v26.md"
+      }
+    ]
+  },
+  "latest_summary": [
+    "D3: automation_readiness → /workspace/output/webstudio-order-builder-v27.json",
+    "D2: telegram_intake_planning → /workspace/output/webstudio-client-example-002-production-plan.md",
+    "D1: client_example_002_concepts → /workspace/output/webstudio-client-example-002-concept-a.html",
+    "D1: premium_site_blueprint → /workspace/output/webstudio-premium-site-production-blueprint-v27.md",
+    "D1: order_builder → /workspace/output/webstudio-order-builder-v27.md",
+    "D1: intake_wizard → /workspace/output/webstudio-client-intake-wizard-v27.md",
+    "OPS: motion_generator_v26 → /workspace/output/webstudio-motion-data-driven-generator-v26.md",
+    "D3: motion_bundle_v26 → /workspace/output/webstudio-d3-motion-bundle-v26.md",
+    "D2: motion_bundle_v26 → /workspace/output/webstudio-d2-motion-bundle-v26.md",
+    "D1: motion_bundle_v26 → /workspace/output/webstudio-d1-motion-bundle-v26.md"
+  ],
+  "v28_status": "CONTINUING_OVERNIGHT"
+}

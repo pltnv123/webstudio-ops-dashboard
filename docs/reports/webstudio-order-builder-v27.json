@@ -1,0 +1,654 @@
+{
+  "schema": "webstudio.order_builder.v27",
+  "updated_at": "2026-05-24T21:26:06Z",
+  "packages": [
+    {
+      "id": "premium_landing",
+      "name": "Premium Landing",
+      "description": "Премиальный лендинг под одну главную услугу",
+      "includes": [
+        "strategy brief",
+        "3 concepts",
+        "responsive prototype",
+        "conversion QA"
+      ],
+      "client_gets": [
+        "готовый static artifact",
+        "handoff checklist",
+        "owner review bundle"
+      ],
+      "artifacts": [
+        "готовый static artifact",
+        "handoff checklist",
+        "owner review bundle"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "CTO",
+        "Design Agent",
+        "Frontend Agent",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-intake",
+        "webstudio-implementation",
+        "webstudio-qa-delivery"
+      ],
+      "approval_gates": [
+        "client approves brief",
+        "owner approves selected concept"
+      ],
+      "upsells": [
+        "Motion Hero",
+        "Telegram AI Intake"
+      ],
+      "readiness_requirements": [
+        "offer",
+        "audience",
+        "proof",
+        "CTA"
+      ]
+    },
+    {
+      "id": "premium_landing_motion",
+      "name": "Premium Landing + Motion Hero",
+      "description": "Лендинг плюс HyperFrames-ready hero/social motion",
+      "includes": [
+        "Premium Landing",
+        "motion plan",
+        "MP4/poster/reduced motion"
+      ],
+      "client_gets": [
+        "site + video asset pack",
+        "poster frames",
+        "motion handoff"
+      ],
+      "artifacts": [
+        "site + video asset pack",
+        "poster frames",
+        "motion handoff"
+      ],
+      "timeline_complexity": "high",
+      "agents": [
+        "CTO",
+        "Design Agent",
+        "Motion Agent",
+        "Frontend Agent",
+        "QA"
+      ],
+      "skills": [
+        "premium-motion-factory-hyperframes",
+        "webstudio-qa-delivery"
+      ],
+      "approval_gates": [
+        "motion style approval",
+        "asset rights approval"
+      ],
+      "upsells": [
+        "social teaser",
+        "content pack"
+      ],
+      "readiness_requirements": [
+        "visual refs",
+        "motion need",
+        "brand constraints"
+      ]
+    },
+    {
+      "id": "landing_telegram_ai",
+      "name": "Landing + Telegram AI Intake",
+      "description": "Сайт + Telegram qualification flow",
+      "includes": [
+        "landing",
+        "AI-intake script",
+        "handoff rules",
+        "lead summary format"
+      ],
+      "client_gets": [
+        "site",
+        "bot scenario",
+        "operator checklist"
+      ],
+      "artifacts": [
+        "site",
+        "bot scenario",
+        "operator checklist"
+      ],
+      "timeline_complexity": "high",
+      "agents": [
+        "CTO",
+        "Bot Agent",
+        "Frontend Agent",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-intake",
+        "telegram bot workflow"
+      ],
+      "approval_gates": [
+        "bot script approval",
+        "live Telegram token approval"
+      ],
+      "upsells": [
+        "CRM automation",
+        "analytics"
+      ],
+      "readiness_requirements": [
+        "questions",
+        "CTA",
+        "lead routing"
+      ]
+    },
+    {
+      "id": "website_automation",
+      "name": "Website + Automation",
+      "description": "Сайт и автоматизация заявок/статусов",
+      "includes": [
+        "multi-page site",
+        "form workflow",
+        "automation map",
+        "dry-run evidence"
+      ],
+      "client_gets": [
+        "site",
+        "automation spec",
+        "runbook"
+      ],
+      "artifacts": [
+        "site",
+        "automation spec",
+        "runbook"
+      ],
+      "timeline_complexity": "high",
+      "agents": [
+        "CTO",
+        "Frontend Agent",
+        "Automation Agent",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-implementation",
+        "devops"
+      ],
+      "approval_gates": [
+        "integration approval",
+        "data write approval"
+      ],
+      "upsells": [
+        "dashboard",
+        "AI-intake"
+      ],
+      "readiness_requirements": [
+        "process map",
+        "systems",
+        "access owners"
+      ]
+    },
+    {
+      "id": "full_webstudio",
+      "name": "Full WebStudio Package",
+      "description": "D1+D2+D3: сайт, intake, automation, motion",
+      "includes": [
+        "strategy",
+        "site",
+        "motion",
+        "bot",
+        "automation",
+        "dashboard"
+      ],
+      "client_gets": [
+        "full production pack",
+        "QA reports",
+        "handoff"
+      ],
+      "artifacts": [
+        "full production pack",
+        "QA reports",
+        "handoff"
+      ],
+      "timeline_complexity": "very_high",
+      "agents": [
+        "CTO",
+        "Orchestrator",
+        "Design",
+        "Frontend",
+        "Motion",
+        "Bot",
+        "Automation",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-intake",
+        "premium-motion-factory-hyperframes",
+        "kanban-orchestrator"
+      ],
+      "approval_gates": [
+        "every live integration",
+        "deploy approval",
+        "motion approval"
+      ],
+      "upsells": [
+        "monthly support",
+        "CRO"
+      ],
+      "readiness_requirements": [
+        "full brief",
+        "assets",
+        "access plan"
+      ]
+    },
+    {
+      "id": "motion_video_hero",
+      "name": "Motion / Video Hero Package",
+      "description": "Motion asset for existing or new site",
+      "includes": [
+        "motion brief",
+        "HyperFrames composition",
+        "MP4",
+        "poster",
+        "reduced motion"
+      ],
+      "client_gets": [
+        "video hero",
+        "social teaser",
+        "handoff"
+      ],
+      "artifacts": [
+        "video hero",
+        "social teaser",
+        "handoff"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "Motion Agent",
+        "QA"
+      ],
+      "skills": [
+        "premium-motion-factory-hyperframes"
+      ],
+      "approval_gates": [
+        "brand/style approval"
+      ],
+      "upsells": [
+        "landing refresh"
+      ],
+      "readiness_requirements": [
+        "style refs",
+        "duration",
+        "format"
+      ]
+    },
+    {
+      "id": "business_website",
+      "name": "Business Website",
+      "description": "Многостраничный сайт услуг/компании",
+      "includes": [
+        "structure",
+        "pages",
+        "content blocks",
+        "responsive QA"
+      ],
+      "client_gets": [
+        "site prototype",
+        "content map",
+        "SEO basics"
+      ],
+      "artifacts": [
+        "site prototype",
+        "content map",
+        "SEO basics"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "QA"
+      ],
+      "skills": [
+        "web-development",
+        "webstudio-qa-delivery"
+      ],
+      "approval_gates": [
+        "content approval"
+      ],
+      "upsells": [
+        "motion",
+        "analytics"
+      ],
+      "readiness_requirements": [
+        "services",
+        "proof",
+        "pages"
+      ]
+    },
+    {
+      "id": "dashboard_admin",
+      "name": "Dashboard / Admin Panel",
+      "description": "Внутренняя админка/панель операций",
+      "includes": [
+        "data model",
+        "read-only cockpit",
+        "filters",
+        "status cards"
+      ],
+      "client_gets": [
+        "dashboard static/app",
+        "QA report"
+      ],
+      "artifacts": [
+        "dashboard static/app",
+        "QA report"
+      ],
+      "timeline_complexity": "high",
+      "agents": [
+        "CTO",
+        "Frontend",
+        "Backend",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-implementation",
+        "ops-cockpit-responsive-qa"
+      ],
+      "approval_gates": [
+        "data access approval"
+      ],
+      "upsells": [
+        "automation"
+      ],
+      "readiness_requirements": [
+        "roles",
+        "data sources",
+        "actions"
+      ]
+    },
+    {
+      "id": "telegram_bot_only",
+      "name": "Telegram Bot Only",
+      "description": "Бот для заявок/квалификации/уведомлений",
+      "includes": [
+        "dialog flow",
+        "operator handoff",
+        "test transcript"
+      ],
+      "client_gets": [
+        "bot scenario",
+        "dry-run transcript"
+      ],
+      "artifacts": [
+        "bot scenario",
+        "dry-run transcript"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "Bot Agent",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-intake"
+      ],
+      "approval_gates": [
+        "bot token/live chat approval"
+      ],
+      "upsells": [
+        "landing"
+      ],
+      "readiness_requirements": [
+        "questions",
+        "routing",
+        "scripts"
+      ]
+    },
+    {
+      "id": "automation_only",
+      "name": "Automation Only",
+      "description": "Автоматизация бизнес-процесса без сайта",
+      "includes": [
+        "process audit",
+        "automation spec",
+        "dry-run"
+      ],
+      "client_gets": [
+        "workflow map",
+        "script/proposal",
+        "QA"
+      ],
+      "artifacts": [
+        "workflow map",
+        "script/proposal",
+        "QA"
+      ],
+      "timeline_complexity": "medium_high",
+      "agents": [
+        "Automation Agent",
+        "QA"
+      ],
+      "skills": [
+        "devops",
+        "webstudio-implementation"
+      ],
+      "approval_gates": [
+        "production writes approval"
+      ],
+      "upsells": [
+        "dashboard"
+      ],
+      "readiness_requirements": [
+        "current process",
+        "tools",
+        "exceptions"
+      ]
+    },
+    {
+      "id": "branding_design_system",
+      "name": "Branding / Design System",
+      "description": "Визуальная система и UI-kit",
+      "includes": [
+        "brand direction",
+        "tokens",
+        "components",
+        "usage"
+      ],
+      "client_gets": [
+        "DESIGN.md",
+        "style guide",
+        "components"
+      ],
+      "artifacts": [
+        "DESIGN.md",
+        "style guide",
+        "components"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "Design Agent",
+        "QA"
+      ],
+      "skills": [
+        "design-md",
+        "popular-web-designs"
+      ],
+      "approval_gates": [
+        "brand approval"
+      ],
+      "upsells": [
+        "landing"
+      ],
+      "readiness_requirements": [
+        "brand refs",
+        "constraints"
+      ]
+    },
+    {
+      "id": "sales_kit_pdf",
+      "name": "Sales Kit / Presentation / PDF",
+      "description": "Продающая презентация/коммерческое предложение",
+      "includes": [
+        "offer narrative",
+        "slides/pdf outline",
+        "proof policy"
+      ],
+      "client_gets": [
+        "sales kit",
+        "PDF/presentation plan"
+      ],
+      "artifacts": [
+        "sales kit",
+        "PDF/presentation plan"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "Strategy Agent",
+        "Design Agent",
+        "QA"
+      ],
+      "skills": [
+        "powerpoint",
+        "sales-offer-routing"
+      ],
+      "approval_gates": [
+        "claims approval"
+      ],
+      "upsells": [
+        "landing"
+      ],
+      "readiness_requirements": [
+        "offer",
+        "audience",
+        "proof"
+      ]
+    },
+    {
+      "id": "seo_content",
+      "name": "SEO / Content Pack",
+      "description": "Контент-структура и SEO briefs",
+      "includes": [
+        "keyword map",
+        "page briefs",
+        "FAQ",
+        "metadata"
+      ],
+      "client_gets": [
+        "content plan",
+        "SEO checklist"
+      ],
+      "artifacts": [
+        "content plan",
+        "SEO checklist"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "Content Agent",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-intake"
+      ],
+      "approval_gates": [
+        "medical/legal claim approval"
+      ],
+      "upsells": [
+        "site production"
+      ],
+      "readiness_requirements": [
+        "geo",
+        "services",
+        "proof"
+      ]
+    },
+    {
+      "id": "analytics_cro",
+      "name": "Analytics / CRO Pack",
+      "description": "Измерение конверсии и улучшения",
+      "includes": [
+        "events map",
+        "CRO hypotheses",
+        "dashboard plan"
+      ],
+      "client_gets": [
+        "analytics spec",
+        "CRO backlog"
+      ],
+      "artifacts": [
+        "analytics spec",
+        "CRO backlog"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "CRO Agent",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-qa-delivery"
+      ],
+      "approval_gates": [
+        "analytics integration approval"
+      ],
+      "upsells": [
+        "automation"
+      ],
+      "readiness_requirements": [
+        "goals",
+        "traffic",
+        "current data"
+      ]
+    },
+    {
+      "id": "mobile_app_planning",
+      "name": "Mobile App Planning",
+      "description": "План мобильного приложения без разработки в этом пакете",
+      "includes": [
+        "product brief",
+        "MVP scope",
+        "screens map",
+        "risks"
+      ],
+      "client_gets": [
+        "planning packet",
+        "estimate drivers"
+      ],
+      "artifacts": [
+        "planning packet",
+        "estimate drivers"
+      ],
+      "timeline_complexity": "medium",
+      "agents": [
+        "CTO",
+        "Product Agent",
+        "QA"
+      ],
+      "skills": [
+        "webstudio-intake",
+        "writing-plans"
+      ],
+      "approval_gates": [
+        "MVP approval"
+      ],
+      "upsells": [
+        "prototype"
+      ],
+      "readiness_requirements": [
+        "users",
+        "jobs",
+        "platform"
+      ]
+    }
+  ],
+  "selection_logic": {
+    "primary_axes": [
+      "business goal",
+      "CTA",
+      "motion need",
+      "Telegram intake",
+      "automation need",
+      "readiness/proof"
+    ],
+    "owner_approval_required_for": [
+      "live integrations",
+      "payments",
+      "deploy",
+      "production data writes"
+    ]
+  }
+}

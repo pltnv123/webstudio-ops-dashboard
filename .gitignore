@@ -1,0 +1,12 @@
+# Python cache/runtime byproducts
+__pycache__/
+pycache/
+*.py[cod]
+*$py.class
+
+# Generated runtime dashboard snapshots (canonical runtime copy lives in /workspace/output)
+public/data/webstudio-control-plane-state.json
+
+# Local logs and temp files
+*.log
+.DS_Store

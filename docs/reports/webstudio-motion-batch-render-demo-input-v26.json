@@ -1,0 +1,46 @@
+{
+  "schema_version": "webstudio.motion.generator.v26",
+  "client": {
+    "name": "Example #001 Renovation Studio",
+    "industry": "premium renovation",
+    "audience": "owners planning apartment renovation",
+    "source_brief_path": "/workspace/output/webstudio-premium-site-example-001-brief.json"
+  },
+  "product_service_name": "Premium apartment renovation package",
+  "offer": {
+    "headline": "Ремонт без хаоса и лишних решений",
+    "subheadline": "Показываем этапы, сроки и контроль качества до старта работ",
+    "primary_value": "Owner sees process, risks and handoff before signing",
+    "scope": "Landing hero + social teaser + proof reel + process explainer",
+    "constraints": ["no fake metrics", "no client logos without approval", "no heavy 3D"]
+  },
+  "proof_points": [
+    {"label": "Процесс по этапам", "evidence": "strategy/process map from website brief", "status": "verified"},
+    {"label": "Контроль качества", "evidence": "QA checklist in handoff pack", "status": "verified"},
+    {"label": "Премиальная подача", "evidence": "HyperFrames MP4 preview and poster assets", "status": "verified"}
+  ],
+  "objections": [
+    {"objection": "Будет ли видео тормозить сайт?", "answer": "Use optimized MP4 poster, preload=metadata, reduced-motion static fallback.", "risk": "low"},
+    {"objection": "Можно ли использовать в рекламе?", "answer": "Yes after client approval and rights check for all source assets.", "risk": "medium"}
+  ],
+  "cta": {"text": "Получить план ремонта", "destination": "hero CTA / Telegram demo", "approval_state": "draft"},
+  "brand": {
+    "style_direction": "premium editorial reveal",
+    "palette": ["#0b0d12", "#f5c37b", "#f6efe3", "#9aa4b2"],
+    "tone": "confident, quiet premium, not hype",
+    "forbidden_visuals": ["fake before/after", "fake testimonials", "generic blue SaaS gradient"],
+    "assets": []
+  },
+  "motion": {"style": "premium_editorial_reveal", "template": "premium-hero-reveal + social-vertical-teaser", "duration_seconds": 9, "fps": 30, "reduced_motion_required": true},
+  "outputs": [
+    {"type": "hero_video", "format": "16:9", "width": 1920, "height": 1080, "poster_required": true},
+    {"type": "social_teaser", "format": "9:16", "width": 1080, "height": 1920, "poster_required": true},
+    {"type": "proof_reel", "format": "1:1", "width": 1080, "height": 1080, "poster_required": true},
+    {"type": "process_explainer", "format": "16:9", "width": 1920, "height": 1080, "poster_required": true}
+  ],
+  "handoff": {
+    "usage_channels": ["hero", "social_ad", "presentation", "telegram_demo"],
+    "rights_status": "internal_demo",
+    "approval_next_action": "Owner reviews MP4/posters, then approves client-facing usage."
+  }
+}
