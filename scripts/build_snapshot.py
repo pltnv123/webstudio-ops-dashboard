@@ -875,6 +875,7 @@ def build_product_progress() -> dict[str, Any]:
         "v21_status": data.get("v21_status"),
         "premium_motion_factory_v25": data.get("premium_motion_factory_v25"),
         "premium_motion_factory_v26": data.get("premium_motion_factory_v26"),
+        "premium_website_generator_v32": data.get("premium_website_generator_v32", {}),
         "production_generator": data.get("production_generator"),
         "batch_render_workflow": data.get("batch_render_workflow"),
         "poster_auto_pick": data.get("poster_auto_pick"),
@@ -1386,6 +1387,21 @@ def build_premium_visual_motion_v31(product_progress: dict[str, Any]) -> dict[st
         return merged
     return v31
 
+
+def build_premium_website_generator_v32(product_progress: dict[str, Any]) -> dict[str, Any]:
+    v32 = product_progress.get("premium_website_generator_v32", {}) if isinstance(product_progress, dict) else {}
+    external = load_json(OUTPUT / "webstudio-premium-website-generator-v32.json", {})
+    if not external:
+        external = load_json(OUTPUT / "webstudio-premium-site-generator-v32.json", {})
+    if isinstance(external, dict) and external:
+        merged = {**external, **v32}
+        merged["paths"] = {**external.get("paths", {}), **v32.get("paths", {})}
+        merged["inputs"] = v32.get("inputs") or external.get("inputs", [])
+        merged["outputs"] = v32.get("outputs") or external.get("outputs", [])
+        merged["pipeline"] = v32.get("pipeline") or external.get("pipeline", [])
+        return merged
+    return v32
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -1400,6 +1416,7 @@ def build_state() -> dict[str, Any]:
     delivery_system_v29 = build_delivery_system_v29(product_progress)
     real_client_execution_v30 = build_real_client_execution_v30(product_progress)
     premium_visual_motion_v31 = build_premium_visual_motion_v31(product_progress)
+    premium_website_generator_v32 = build_premium_website_generator_v32(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1455,6 +1472,7 @@ def build_state() -> dict[str, Any]:
         "delivery_pipeline_v29": load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {}),
         "real_client_execution_v30": real_client_execution_v30,
         "premium_visual_motion_v31": premium_visual_motion_v31,
+        "premium_website_generator_v32": premium_website_generator_v32,
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
@@ -1498,7 +1516,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

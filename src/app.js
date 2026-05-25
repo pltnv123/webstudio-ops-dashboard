@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -32,7 +32,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -518,6 +518,7 @@ function overview() {
     ${metric('GitHub', gh.status || 'unknown', 'span-3', 'health')}
     ${metric('Motion Factory', state.motion_factory?.status || 'unknown', 'span-3', 'motion-factory')}
     ${metric('Заказы / Intake', state.client_intake_v27?.status || 'unknown', 'span-3', 'intake-orders')}
+    ${metric('Premium Generator v32', state.premium_website_generator_v32?.status || 'unknown', 'span-3', 'premium-generator')}
     ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
     ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
     ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
@@ -852,6 +853,28 @@ function premiumFactory() {
     ${card('Motion readiness', `${kv({status: v31.premium_motion_system_status, readiness: v31.motion_readiness})}<div class="toolbar">${openButton('Motion system', paths.motion_system || '')}${openButton('Preview', paths.preview || '')}</div>`, 'span-12')}
     <section class="card span-12"><h3>Concept A/B/C</h3><div class="capability-grid">${concepts.length ? concepts.map(premiumConceptCard).join('') : '<div class="empty">Concepts pending.</div>'}</div></section>
     <section class="card span-12"><h3>Image assets — real / generated / planned</h3><div class="capability-grid">${assets.length ? assets.map(premiumAssetCard).join('') : '<div class="empty">Assets pending.</div>'}</div></section>
+  </div>`;
+}
+
+function premiumWebsiteGenerator() {
+  const v32 = state.premium_website_generator_v32 || {};
+  const paths = v32.paths || {};
+  const inputs = asArray(v32.inputs);
+  const outputs = asArray(v32.outputs);
+  const pipeline = asArray(v32.pipeline);
+  const client = v32.client_004 || {};
+  const actionRequired = asArray(v32.owner_action_required);
+  return `<div class="grid premium-generator">
+    ${metric('Generator', humanStatus(v32.status || 'unknown'), 'span-3')}
+    ${metric('QA score', client.qa_score ? `${client.qa_score}/100` : '—', 'span-3')}
+    ${metric('Visuals', client.visuals || 'unknown', 'span-3')}
+    ${metric('HyperFrames', v32.mp4_status || client.motion || 'unknown', 'span-3')}
+    ${card('Premium Website Generator — v32', `${kv({status: humanStatus(v32.status), site: paths.premium_site ? 'готово' : 'нет', fallback: paths.fallback ? 'готово' : 'нет', qa: paths.qa ? 'готово' : 'нет', mp4: v32.mp4_status || 'не заявлен', next_action: 'approve merge chain / real assets / render gate'})}<div class="toolbar">${openButton('Premium site', paths.premium_site || '')}${openButton('Single file', paths.fallback || '')}${openButton('Generator spec', paths.generator || '')}${openButton('Research', paths.research || '')}${openButton('QA', paths.qa || '')}${detailPayloadButton(v32, 'Подробнее', 'v32-premium-generator')}</div>`, 'span-12')}
+    ${card('Client Interview + Order Builder', `${kv({interview: 'adaptive 10 questions + follow-up', order_builder: '18 packages', mobile_ready: 'wizard foundation'})}<div class="toolbar">${openButton('Interview master', '/workspace/output/webstudio-client-interview-master-v32.md')}${openButton('Interview JSON', '/workspace/output/webstudio-client-interview-master-v32.json')}${openButton('Order builder', '/workspace/output/webstudio-order-builder-v32.md')}${openButton('Service catalog', '/workspace/output/webstudio-service-catalog-v32.md')}</div>`, 'span-6')}
+    ${card('Client #004 Premium Site', `${kv({industry: client.industry, visuals: client.visuals, motion: client.motion, qa_score: client.qa_score ? `${client.qa_score}/100` : '—'})}<div class="toolbar">${openButton('Open site', paths.premium_site || '')}${openButton('Motion composition', '/workspace/output/webstudio-client-004-motion-composition-v32.html')}${openButton('Asset registry', '/workspace/output/webstudio-client-004-image-asset-registry-v32.json')}</div>`, 'span-6')}
+    <section class="card span-6"><h3>Pipeline</h3><div class="capability-grid">${pipeline.map(x => `<article class="mini-card"><b>${fmt(x)}</b><p>production gate</p></article>`).join('')}</div></section>
+    <section class="card span-6"><h3>Inputs / Outputs</h3><p><b>Inputs:</b> ${inputs.map(fmt).join(', ')}</p><p><b>Outputs:</b> ${outputs.map(fmt).join(', ')}</p><details><summary>Подробнее</summary><pre>${fmt(jsonCopy({inputs, outputs}))}</pre></details></section>
+    <section class="card span-12"><h3>Owner action required</h3><div class="capability-grid">${actionRequired.map(x => `<article class="mini-card"><b>${fmt(x)}</b><p>только после отдельного approval</p></article>`).join('')}</div></section>
   </div>`;
 }
 
@@ -1518,7 +1541,8 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
+    'premium-generator': premiumWebsiteGenerator, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
