@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-05-25T14:30:10Z",
+  "status": "PASS",
+  "branch": "webstudio/product-build-v30",
+  "commit": "8bdc1b16c189f2af1decf9fd99019389d9d55bac",
+  "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/3",
+  "pr_number": 3,
+  "pr_state": "OPEN",
+  "base_ref": "webstudio/product-build-v29",
+  "head_ref": "webstudio/product-build-v30",
+  "merge_state_status": "CLEAN",
+  "mergeable": "MERGEABLE",
+  "checks_failed": 0,
+  "checks_pending": 0,
+  "checks_raw_redacted": "GitGuardian Security Checks\tpass\t1s\thttps://dashboard.gitguardian.com\t\n",
+  "owner_action_required": "NO for PR creation; YES before merging/deploying/live integrations"
+}
