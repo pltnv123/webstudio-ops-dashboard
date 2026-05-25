@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" role="img" aria-label="Врачи и подход">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f7efe5"/><stop offset="1" stop-color="#e2d2c0"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#1d1712" flood-opacity=".18"/></filter></defs>
+<rect width="1400" height="900" fill="url(#g)"/>
+<circle cx="1110" cy="160" r="190" fill="#80684e" opacity=".18"/><circle cx="170" cy="760" r="240" fill="#fff" opacity=".24"/>
+<g filter="url(#shadow)"><rect x="120" y="120" width="1160" height="660" rx="44" fill="#fffaf1" opacity=".82"/>
+<rect x="170" y="170" width="510" height="560" rx="36" fill="#f4eadc"/>
+<path d="M220 620 C360 500 470 510 625 355" fill="none" stroke="#80684e" stroke-width="14" stroke-linecap="round" opacity=".55"/>
+<circle cx="340" cy="360" r="118" fill="#ffffff" opacity=".78"/><circle cx="340" cy="330" r="52" fill="#201914" opacity=".72"/><path d="M248 480c46-92 142-92 184 0" fill="#201914" opacity=".38"/>
+<rect x="740" y="225" width="430" height="30" rx="15" fill="#201914" opacity=".75"/><rect x="740" y="285" width="330" height="18" rx="9" fill="#201914" opacity=".34"/><rect x="740" y="327" width="390" height="18" rx="9" fill="#201914" opacity=".26"/>
+<g opacity=".92"><rect x="740" y="430" width="160" height="150" rx="24" fill="#fff"/><rect x="930" y="430" width="160" height="150" rx="24" fill="#fff"/><rect x="1120" y="430" width="70" height="150" rx="24" fill="#fff"/><path d="M775 512h90M775 546h64M965 512h88M965 546h54M1145 512h24M1145 546h24" stroke="#80684e" stroke-width="10" stroke-linecap="round"/></g>
+<text x="740" y="650" font-family="Georgia,serif" font-size="42" fill="#201914">Врачи и подход</text><text x="740" y="700" font-family="Arial,sans-serif" font-size="24" fill="#201914" opacity=".68">врачи и подход</text></g></svg>

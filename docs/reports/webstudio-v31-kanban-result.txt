@@ -1,0 +1,8 @@
+t_97618c3b DONE [WEBSTUDIO][V31][INTAKE] Client interview engine
+t_7be82c8e DONE [WEBSTUDIO][V31][VISUAL] Premium visual system
+t_5996154a DONE [WEBSTUDIO][V31][IMAGES] Client #004 image pipeline
+t_13df4af9 DONE [WEBSTUDIO][V31][MOTION] Client #004 premium motion system
+t_53a910ad DONE [WEBSTUDIO][V31][D1] Client #004 premium visual upgrade
+t_ba6cff09 DONE [WEBSTUDIO][V31][CONCEPTS] Client #004 concept A/B/C
+t_9af6237b DONE [WEBSTUDIO][V31][CATALOG] Service catalog foundation
+t_d0fba65c DONE [WEBSTUDIO][V31][OPS] Ops Cockpit visual/motion sections

@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -166,6 +166,18 @@ function updateChrome() {
 function card(title, body, span='span-4', extra='') {
   return `<section class="card ${span} ${extra}"><h3>${fmt(title)}</h3>${body}</section>`;
 }
+function humanStatus(value) {
+  const raw = String(value || 'unknown');
+  const map = {
+    PASS: 'Готово',
+    PASS_WITH_CONCEPT_VISUALS: 'Концепт-визуалы готовы',
+    PASS_WITH_HTML_MOTION: 'Motion-прототип готов',
+    PASS_LOCAL_READY_QA_PENDING: 'Локально готово, QA идёт',
+    unknown: 'Проверить'
+  };
+  return map[raw] || raw.replaceAll('_', ' ').toLowerCase();
+}
+
 function metric(label, value, span='span-3', target='') {
   const attr = target ? ` data-route="${esc(target)}"` : '';
   return `<section class="card metric-card ${span}"${attr}><p class="metric">${fmt(value)}</p><p class="label">${fmt(label)}</p></section>`;
@@ -815,6 +827,31 @@ function realClients() {
     ${card('PR #2 / branch strategy', `${kv({pr_2: pr2.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/2', state: pr2.pr_state || 'pending host check', head: pr2.head_sha, checks_failed: pr2.checks_failed, checks_pending: pr2.checks_pending, mergeability: pr2.merge_state_status, strategy: rc.branch_strategy})}`, 'span-6')}
     ${card('Preview package', `${kv({d1_preview: paths.d1_preview, d2_flow: paths.d2_flow, d3_map: paths.d3_map, motion: paths.motion_composition, registry: paths.artifact_registry})}<div class="toolbar">${openButton('D1 preview', paths.d1_preview || '')}${openButton('Motion composition', paths.motion_composition || '')}${openButton('Preview package', paths.preview_package || '')}</div>`, 'span-12')}
     <section class="card span-12"><h3>Execution flow progress</h3><div class="capability-grid">${flow.length ? flow.map(realClientStageCard).join('') : '<div class="empty">Run snapshot after v30 flow JSON is created.</div>'}</div></section>
+  </div>`;
+}
+
+function premiumConceptCard(concept) {
+  return `<article class="capability-card premium-concept"><div class="capability-top"><h4>Concept ${fmt(concept.id || '—')}</h4>${badge(concept.mood || 'concept')}</div><p><b>Motion:</b> ${fmt(concept.motion || '—')}</p><p>${fmt(concept.best_use_case || '—')}</p><div class="toolbar">${openButton('Открыть концепт', concept.path || '')}${detailPayloadButton(concept, 'Подробнее', 'v31-concept')}</div></article>`;
+}
+function premiumAssetCard(asset) {
+  return `<article class="capability-card premium-asset"><div class="capability-top"><h4>${fmt(asset.slot || 'asset')}</h4>${badge(asset.status === 'generated concept visual' ? 'concept visual' : (asset.status || 'planned'))}</div><p>${fmt(shortText(asset.path || '', 120))}</p><div class="toolbar">${openButton('Открыть визуал', asset.path || '')}${detailPayloadButton(asset, 'Подробнее', 'v31-asset')}</div></article>`;
+}
+function premiumFactory() {
+  const v31 = state.premium_visual_motion_v31 || {};
+  const paths = v31.paths || {};
+  const concepts = asArray(v31.concepts);
+  const assets = asArray(v31.visual_assets);
+  return `<div class="grid premium-factory">
+    ${metric('Interview Engine', humanStatus(v31.interview_engine_status || 'unknown'), 'span-3')}
+    ${metric('Visual System', humanStatus(v31.premium_visual_system_status || 'unknown'), 'span-3')}
+    ${metric('Image Pipeline', humanStatus(v31.image_pipeline_status || 'unknown'), 'span-3')}
+    ${metric('Motion System', humanStatus(v31.premium_motion_system_status || 'unknown'), 'span-3')}
+    ${card('Premium Website Factory — v31', `${kv({client: v31.client, visual_upgrade: v31.client_004_visual_upgrade_status, concepts: v31.concepts_status, service_catalog: v31.service_catalog_status, assets: v31.assets_real_generated_planned, owner_action_required: v31.owner_action_required, next_action: v31.next_action})}<div class="toolbar">${openButton('Client #004 preview', paths.preview || '')}${openButton('Interview engine', paths.interview_engine || '')}${openButton('Service catalog', paths.service_catalog || '')}${openButton('Order types', paths.order_types || '')}${detailPayloadButton(v31, 'Подробнее', 'v31-premium-factory')}</div>`, 'span-12')}
+    ${card('Client Interview Engine', `${kv({status: humanStatus(v31.interview_engine_status), questionnaire: paths.questionnaire ? 'готово' : 'нет', adaptive_flow: paths.adaptive_flow ? 'готово' : 'нет', client_004_example: paths.client_004_interview ? 'готово' : 'нет'})}<div class="toolbar">${openButton('Questionnaire', paths.questionnaire || '')}${openButton('Adaptive JSON', paths.adaptive_flow || '')}${openButton('Client #004 interview', paths.client_004_interview || '')}</div>${detailPayloadButton({paths}, 'Подробнее', 'v31-interview-paths')}`, 'span-6')}
+    ${card('Premium Visual + Image Pipeline', `${kv({visual_system: paths.visual_system ? 'готово' : 'нет', image_pipeline: paths.image_pipeline ? 'готово' : 'нет', asset_status: 'concept visuals готово; реальные фото запланированы'})}<div class="toolbar">${openButton('Visual system', paths.visual_system || '')}${openButton('Image pipeline', paths.image_pipeline || '')}</div>${detailPayloadButton({paths, assets: v31.visual_assets}, 'Подробнее', 'v31-visual-paths')}`, 'span-6')}
+    ${card('Motion readiness', `${kv({status: v31.premium_motion_system_status, readiness: v31.motion_readiness})}<div class="toolbar">${openButton('Motion system', paths.motion_system || '')}${openButton('Preview', paths.preview || '')}</div>`, 'span-12')}
+    <section class="card span-12"><h3>Concept A/B/C</h3><div class="capability-grid">${concepts.length ? concepts.map(premiumConceptCard).join('') : '<div class="empty">Concepts pending.</div>'}</div></section>
+    <section class="card span-12"><h3>Image assets — real / generated / planned</h3><div class="capability-grid">${assets.length ? assets.map(premiumAssetCard).join('') : '<div class="empty">Assets pending.</div>'}</div></section>
   </div>`;
 }
 
@@ -1481,7 +1518,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

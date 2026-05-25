@@ -1374,6 +1374,18 @@ def build_real_client_execution_v30(product_progress: dict[str, Any]) -> dict[st
         "next_action": "Review PR #2 separately; use v30 PR for real-client execution flow; approve live deploy/integrations only after client-safe QA."
     }
 
+
+def build_premium_visual_motion_v31(product_progress: dict[str, Any]) -> dict[str, Any]:
+    v31 = product_progress.get("premium_visual_motion_v31", {}) if isinstance(product_progress, dict) else {}
+    external = load_json(OUTPUT / "webstudio-premium-factory-v31.json", {})
+    if isinstance(external, dict) and external:
+        merged = {**external, **v31}
+        merged["paths"] = {**external.get("paths", {}), **v31.get("paths", {})}
+        merged["concepts"] = v31.get("concepts") or external.get("concepts", [])
+        merged["visual_assets"] = v31.get("visual_assets") or external.get("visual_assets", [])
+        return merged
+    return v31
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -1387,6 +1399,7 @@ def build_state() -> dict[str, Any]:
     client_intake_v27 = build_client_intake_v27()
     delivery_system_v29 = build_delivery_system_v29(product_progress)
     real_client_execution_v30 = build_real_client_execution_v30(product_progress)
+    premium_visual_motion_v31 = build_premium_visual_motion_v31(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1441,6 +1454,7 @@ def build_state() -> dict[str, Any]:
         "delivery_system_v29": delivery_system_v29,
         "delivery_pipeline_v29": load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {}),
         "real_client_execution_v30": real_client_execution_v30,
+        "premium_visual_motion_v31": premium_visual_motion_v31,
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,

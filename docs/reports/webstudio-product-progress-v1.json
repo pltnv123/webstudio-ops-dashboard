@@ -7,7 +7,7 @@
     "mtime": "2026-05-24T21:28:10Z",
     "sha256": "b3fc1fab3ccfd25853fe8ee0d13838331440d38676edd464eec3bb73bd48141e"
   },
-  "updated_at": "2026-05-25T14:07:37Z",
+  "updated_at": "2026-05-25T15:19:08Z",
   "mode": "safe_local_artifacts_only",
   "phase": "Product Build v29 — Premium Client-Facing Website Delivery System",
   "status": "PASS_LOCAL_READY_QA_PENDING",
@@ -435,6 +435,80 @@
       "t_e250c088",
       "t_22649d76",
       "t_70d47b35"
+    ]
+  },
+  "premium_visual_motion_v31": {
+    "version": "v31",
+    "generated_at": "2026-05-25T15:19:08Z",
+    "status": "PASS",
+    "client": "Client #004 premium dental clinic Moscow",
+    "interview_engine_status": "PASS",
+    "premium_visual_system_status": "PASS",
+    "image_pipeline_status": "PASS_WITH_CONCEPT_VISUALS",
+    "premium_motion_system_status": "PASS_WITH_HTML_MOTION",
+    "client_004_visual_upgrade_status": "PASS",
+    "concepts_status": "PASS",
+    "service_catalog_status": "PASS",
+    "assets_real_generated_planned": "concept SVG generated; real shoot planned; no fake proof",
+    "motion_readiness": "HTML/CSS motion + HyperFrames brief; MP4 render not executed",
+    "owner_action_required": "NO for v31 build/PR; YES before merge/deploy/client send/live integrations/real asset publication",
+    "next_action": "owner review of v31 visual upgrade and approve PR/merge path",
+    "paths": {
+      "interview_engine": "/workspace/output/webstudio-client-interview-engine-v31.md",
+      "questionnaire": "/workspace/output/webstudio-client-interview-master-questionnaire-v31.md",
+      "adaptive_flow": "/workspace/output/webstudio-client-interview-adaptive-flow-v31.json",
+      "client_004_interview": "/workspace/output/webstudio-client-004-interview-simulated-v31.md",
+      "visual_system": "/workspace/output/webstudio-premium-visual-system-v31.md",
+      "image_pipeline": "/workspace/output/webstudio-image-pipeline-v31.md",
+      "motion_system": "/workspace/output/webstudio-premium-motion-system-v31.md",
+      "preview": "/workspace/output/webstudio-client-004-d1-preview-v31.html",
+      "service_catalog": "/workspace/output/webstudio-service-catalog-v31.md",
+      "order_types": "/workspace/output/webstudio-order-types-v31.json"
+    },
+    "concepts": [
+      {
+        "id": "A",
+        "mood": "editorial premium",
+        "motion": "quiet reveal, editorial cuts",
+        "best_use_case": "best for high-check cosmetic positioning",
+        "path": "/workspace/output/webstudio-client-004-concept-a-v31.md"
+      },
+      {
+        "id": "B",
+        "mood": "clinical luxury",
+        "motion": "surgical calm, minimal motion",
+        "best_use_case": "best for implants and safety trust",
+        "path": "/workspace/output/webstudio-client-004-concept-b-v31.md"
+      },
+      {
+        "id": "C",
+        "mood": "calm modern trust",
+        "motion": "soft card reveal, Telegram journey",
+        "best_use_case": "best for broad paid traffic",
+        "path": "/workspace/output/webstudio-client-004-concept-c-v31.md"
+      }
+    ],
+    "visual_assets": [
+      {
+        "slot": "hero",
+        "path": "/workspace/output/webstudio-client-004-visual-hero-clinic-v31.svg",
+        "status": "generated concept visual"
+      },
+      {
+        "slot": "doctors",
+        "path": "/workspace/output/webstudio-client-004-visual-doctors-v31.svg",
+        "status": "generated concept visual"
+      },
+      {
+        "slot": "certificates",
+        "path": "/workspace/output/webstudio-client-004-visual-certificates-v31.svg",
+        "status": "generated concept visual"
+      },
+      {
+        "slot": "cases",
+        "path": "/workspace/output/webstudio-client-004-visual-cases-v31.svg",
+        "status": "generated concept visual"
+      }
     ]
   }
 }

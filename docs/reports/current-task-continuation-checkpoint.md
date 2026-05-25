@@ -65,3 +65,20 @@ hfinalize
 - PR #3 checks_failed: 0
 - PR #3 checks_pending: 0
 - latest commit: 8bdc1b16c189f2af1decf9fd99019389d9d55bac
+
+
+## Product Build v31 — 2026-05-25T15:19:08Z
+- status: PASS_LOCAL_READY_QA_PENDING
+- branch: webstudio/product-build-v31
+- preview: /workspace/output/webstudio-client-004-d1-preview-v31.html
+- next: Ops Cockpit, Kanban, QA, Auto-Push, hfinalize.
+
+## Kanban v31
+- t_97618c3b DONE intake
+- t_7be82c8e DONE visual
+- t_5996154a DONE images
+- t_13df4af9 DONE motion
+- t_53a910ad DONE D1 visual upgrade
+- t_ba6cff09 DONE concepts
+- t_9af6237b DONE catalog
+- t_d0fba65c DONE ops
