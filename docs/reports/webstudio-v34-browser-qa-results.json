@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "targets": [
+    {"path": "/workspace/output/webstudio-client-004-premium-site-v34/index.html", "title": "Премиальная стоматология в Москве — v34", "console_errors": 0, "verdict": "PASS"},
+    {"path": "/workspace/output/webstudio-client-004-concept-a-v34.html", "title": "Concept A — Client #004 v34", "console_errors": 0, "verdict": "PASS"},
+    {"path": "/workspace/output/webstudio-client-004-concept-b-v34.html", "title": "Concept B — Client #004 v34", "console_errors": 0, "verdict": "PASS"},
+    {"path": "/workspace/output/webstudio-client-004-concept-c-v34.html", "title": "Concept C — Client #004 v34", "console_errors": 0, "verdict": "PASS"},
+    {"path": "/workspace/output/webstudio-client-004-motion-composition-v34.html", "title": "Client #004 Motion Composition v34", "console_errors": 0, "verdict": "PASS"},
+    {"path": "/workspace/output/webstudio-ops-dashboard-static/index.html#premium-factory-v34", "title": "WebStudio — админка", "console_errors": 0, "verdict": "PASS", "no_horizontal_overflow_mobile": true, "mp4_state_visible": true}
+  ],
+  "qa_score": 97
+}

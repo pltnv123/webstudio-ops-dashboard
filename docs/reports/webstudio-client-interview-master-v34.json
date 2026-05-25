@@ -1,0 +1,43 @@
+{
+  "modes": {
+    "short_intake": [
+      "Что продаёте?",
+      "Кому продаёте?",
+      "Какая главная услуга?",
+      "География?",
+      "Средний чек?",
+      "Почему выбирают вас?",
+      "Главные возражения?",
+      "Какие proof есть?",
+      "Какой CTA нужен?",
+      "Нужны ли сайт / Telegram bot / automation / motion?"
+    ],
+    "deep_discovery": [
+      "business",
+      "product",
+      "audience",
+      "pains",
+      "objections",
+      "proof",
+      "cases",
+      "competitors",
+      "visual_preferences",
+      "tone",
+      "content",
+      "integrations",
+      "legal",
+      "future_services",
+      "mobile_app",
+      "upsells"
+    ],
+    "confirmation": [
+      "summary",
+      "selected_package",
+      "required_assets",
+      "approval_gates",
+      "production_plan",
+      "timeline",
+      "next_action"
+    ]
+  }
+}

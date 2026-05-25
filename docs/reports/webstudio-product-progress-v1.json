@@ -1,514 +1,127 @@
 {
-  "source_of_truth": "/workspace/output/webstudio-product-progress-v1.json",
-  "source": {
-    "path": "/workspace/output/webstudio-product-progress-v1.json",
-    "exists": true,
-    "size": 4771,
-    "mtime": "2026-05-24T21:28:10Z",
-    "sha256": "b3fc1fab3ccfd25853fe8ee0d13838331440d38676edd464eec3bb73bd48141e"
+  "premium_factory_v34": {
+    "status": "PASS",
+    "version": "v34.2",
+    "generated_at": "2026-05-25T19:21:01Z",
+    "research": "PASS",
+    "design_system": "PASS",
+    "skills": "PASS",
+    "visual_sourcing": "PASS",
+    "interview": "PASS",
+    "order_builder": "PASS",
+    "client_004_site": "PASS_READY_FOR_OWNER_REVIEW",
+    "image_assets": "PASS_GENERATED_CONCEPTS_MARKED_REAL_ASSETS_APPROVAL_REQUIRED",
+    "concepts": "PASS_A_B_C_DISTINCT",
+    "motion_hyperframes": "PASS_MP4_RENDERED_OWNER_PUBLICATION_GATE",
+    "mp4_status": "MP4_RENDERED_PUBLICATION_APPROVAL_REQUIRED",
+    "qa_score": 97,
+    "ops_cockpit": "PASS_INTEGRATED_PENDING_REBUILD",
+    "iteration_guard": "ITERATION_GUARD_PASS",
+    "max_turns": 600,
+    "auto_extend": "enabled",
+    "effective_ceiling": 1200,
+    "delegation_max_iterations": 180,
+    "asset_state": {
+      "real": "planned_approval_required",
+      "generated": "demo_allowed_with_labels",
+      "planned": "doctor/certificates/cases/interior",
+      "approval_required": [
+        "real medical assets",
+        "MP4 publication",
+        "PR merge/static launch"
+      ]
+    },
+    "motion_state": {
+      "html": "HTML-ready",
+      "mp4": "MP4-rendered",
+      "hero_loop": "/workspace/output/webstudio-client-004-hero-loop-v34.mp4",
+      "social_teaser": "/workspace/output/webstudio-client-004-social-teaser-v34.mp4",
+      "fallback": "reduced-motion ready",
+      "publication": "approval_required"
+    },
+    "owner_action_required": [
+      "real medical assets approval",
+      "MP4 publication approval",
+      "PR merge/static launch approval"
+    ],
+    "paths": {
+      "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
+      "styles": "/workspace/output/webstudio-client-004-premium-site-v34/styles.css",
+      "app": "/workspace/output/webstudio-client-004-premium-site-v34/app.js",
+      "fallback": "/workspace/output/webstudio-client-004-premium-site-v34.html",
+      "asset_registry": "/workspace/output/webstudio-client-004-asset-registry-v34.json",
+      "shotlist": "/workspace/output/webstudio-client-004-shotlist-v34.md",
+      "motion_composition": "/workspace/output/webstudio-client-004-motion-composition-v34.html",
+      "motion_brief": "/workspace/output/webstudio-client-004-motion-brief-v34.md",
+      "render_command": "/workspace/output/webstudio-client-004-hyperframes-render-command-v34.md",
+      "concept_a": "/workspace/output/webstudio-client-004-concept-a-v34.html",
+      "concept_b": "/workspace/output/webstudio-client-004-concept-b-v34.html",
+      "concept_c": "/workspace/output/webstudio-client-004-concept-c-v34.html",
+      "qa": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md",
+      "hero_loop_mp4": "/workspace/output/webstudio-client-004-hero-loop-v34.mp4",
+      "social_teaser_mp4": "/workspace/output/webstudio-client-004-social-teaser-v34.mp4",
+      "hero_loop_ffprobe": "/workspace/output/webstudio-client-004-hero-loop-v34-ffprobe.json",
+      "social_teaser_ffprobe": "/workspace/output/webstudio-client-004-social-teaser-v34-ffprobe.json"
+    },
+    "kanban_cards": [
+      {
+        "title": "[WEBSTUDIO][V34][SITE] Client #004 premium site",
+        "status": "completed"
+      },
+      {
+        "title": "[WEBSTUDIO][V34][VISUAL] Real medical assets approval",
+        "status": "blocked_owner_assets"
+      },
+      {
+        "title": "[WEBSTUDIO][V34][MOTION] MP4 publication approval",
+        "status": "blocked_owner_motion_publication"
+      },
+      {
+        "title": "[WEBSTUDIO][V34][LAUNCH] PR merge/static launch approval",
+        "status": "blocked_owner_launch"
+      }
+    ]
   },
-  "updated_at": "2026-05-25T15:19:08Z",
+  "updated_at": "2026-05-25T19:25:48Z",
+  "status": "PASS",
+  "phase": "v34.2_client004_premium_site_ready",
   "mode": "safe_local_artifacts_only",
-  "phase": "Product Build v29 — Premium Client-Facing Website Delivery System",
-  "status": "PASS_LOCAL_READY_QA_PENDING",
-  "v10_status": null,
-  "v11_status": null,
-  "pr_verification_verdict": "MAINLINE_MERGED",
-  "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
   "items": [
     {
       "product_line": "D1",
-      "artifact_type": "delivery_system_v29",
-      "title": "Premium website delivery system",
+      "title": "Premium dental website Client #004",
+      "artifact_type": "premium static site",
       "status": "PASS",
-      "path": "/workspace/output/webstudio-premium-website-delivery-system-v29.md",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 96
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "client_delivery_pipeline_v29",
-      "title": "Client delivery pipeline JSON",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-delivery-pipeline-v29.json",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 96
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "client_delivery_pack_template_v29",
-      "title": "Client delivery pack template",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-delivery-pack-template-v29.html",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 95
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "client_003_delivery_pack_v29",
-      "title": "Client #003 delivery pack",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-example-003-delivery-pack-v1.html",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 94
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "premium_website_qa_system_v29",
-      "title": "Premium website QA system",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-premium-website-qa-system-v29.md",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 95
-    },
-    {
-      "product_line": "D3",
-      "artifact_type": "automation_readiness",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-order-builder-v27.json",
-      "updated_at": "2026-05-24T21:28:10Z"
+      "readiness_score": 97,
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
+      "qa_path": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md",
+      "handoff_path": "/workspace/output/webstudio-client-004-premium-site-v34-report.md",
+      "client_gets": "Premium dental site with safe consultation CTA, trust path, generated concept visuals marked.",
+      "next_action": "owner review / approval gates"
     },
     {
       "product_line": "D2",
-      "artifact_type": "telegram_intake_planning",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-example-002-production-plan.md",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "client_example_002_concepts",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-example-002-concept-a.html",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "premium_site_blueprint",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-premium-site-production-blueprint-v27.md",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "order_builder",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-order-builder-v27.md",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "intake_wizard",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-intake-wizard-v27.md",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "OPS",
-      "artifact_type": "motion_generator_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-motion-data-driven-generator-v26.md"
+      "title": "Telegram consultation intake path",
+      "artifact_type": "intake flow",
+      "status": "DRY_RUN_READY",
+      "readiness_score": 92,
+      "path": "/workspace/output/webstudio-client-004-interview-v34.md",
+      "qa_path": "/workspace/output/webstudio-client-004-accessibility-qa-v34.md",
+      "handoff_path": "/workspace/output/webstudio-client-004-shotlist-v34.md",
+      "client_gets": "Safe consultation request path for Telegram without medical diagnosis claims.",
+      "next_action": "connect live Telegram only after approval"
     },
     {
       "product_line": "D3",
-      "artifact_type": "motion_bundle_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d3-motion-bundle-v26.md"
-    },
-    {
-      "product_line": "D2",
-      "artifact_type": "motion_bundle_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d2-motion-bundle-v26.md"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "motion_bundle_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d1-motion-bundle-v26.md"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "client_showcase",
-      "title": "Example #003 brief",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-client-example-003-brief.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "premium_site_concept",
-      "title": "Example #003 concept A",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-client-example-003-concept-a.html",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "motion_plan",
-      "title": "Example #003 motion plan",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-client-example-003-motion-plan.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "service_package",
-      "title": "D1/D2/D3 service packages",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d1-d2-d3-service-packages-v28.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "OPS",
-      "artifact_type": "github_audit",
-      "title": "GitHub contribution visibility audit v28",
-      "status": "READY",
-      "path": "/workspace/output/github-contribution-visibility-audit-v28.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
+      "title": "Clinic proof/assets approval workflow",
+      "artifact_type": "business automation map",
+      "status": "APPROVAL_GATED",
+      "readiness_score": 91,
+      "path": "/workspace/output/webstudio-client-004-asset-registry-v34.json",
+      "qa_path": "/workspace/output/webstudio-client-004-performance-qa-v34.md",
+      "handoff_path": "/workspace/output/webstudio-client-004-shotlist-v34.md",
+      "client_gets": "Asset registry and approval gates for doctors, certificates, cases, interior and MP4 publication.",
+      "next_action": "owner/client approval for real assets"
     }
-  ],
-  "client_simulation": {},
-  "system_layer": {},
-  "analytics": {},
-  "github_sync": {
-    "status": "MAINLINE_MERGED",
-    "pr_1": "MERGED",
-    "default_branch": "main",
-    "default_sha": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-    "contribution_visibility_note": "GitHub graph may update with 1-24h delay; check private contribution visibility and author email only if still empty later.",
-    "v29_pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/2",
-    "v29_branch": "webstudio/product-build-v29",
-    "v29_head_sha": "1433f9e7a2fab16506ccf56aab48da7ad7b4bcc5",
-    "v29_checks_failed": 0,
-    "v29_checks_pending": 0,
-    "v29_owner_action_required": false
-  },
-  "qmd_maintenance": {},
-  "repo_sync": {
-    "worktree": "/workspace/tmp/webstudio-ops-dashboard-pr",
-    "meaningful_changes_needed": true,
-    "reason": "Ops Cockpit/dashboard source should expose Premium Motion Factory v25/v26 capability and docs/reports should be tracked in PR; v25 output-only MP4 assets remain /workspace/output deliverables."
-  },
-  "v18_status": null,
-  "v19_status": null,
-  "v20_status": null,
-  "v21_status": null,
-  "premium_motion_factory_v25": "PASS",
-  "premium_motion_factory_v26": {
-    "status": "PASS_REPO_SYNCED_PRODUCTION_HARDENED",
-    "repo_sync": "PASS_VIA_PR_BRANCH",
-    "v26_commit": "dc806425cf5de0aec6e7981968e234821de90979",
-    "pr_latest_commit": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "auto_push_result": "N/A_THIS_PASS_ALREADY_PUSHED_BY_SUPERSET_BRANCH",
-    "production_generator": "PASS",
-    "batch_render": "PASS_EXISTING_ASSETS_VERIFIED_NO_HEAVY_RERENDER",
-    "poster_auto_pick": "PASS",
-    "reduced_motion_fallback": "PASS",
-    "handoff_pack": "PASS",
-    "d1_d2_d3_motion_bundles": "PASS",
-    "owner_action_required": false,
-    "report": "/workspace/output/webstudio-premium-motion-factory-v26-report.md"
-  },
-  "production_generator": "READY",
-  "batch_render_workflow": "READY",
-  "poster_auto_pick": "PASS",
-  "reduced_motion_fallback": "READY",
-  "client_handoff_pack": "READY",
-  "video_metadata_path": "/workspace/output/webstudio-motion-v26-video-metadata.json",
-  "latest_pr_commit": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-  "report": "/workspace/output/webstudio-client-intake-order-builder-v27-report.md",
-  "by_line": {
-    "D1": [
-      {
-        "product_line": "D1",
-        "artifact_type": "client_example_002_concepts",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-client-example-002-concept-a.html",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "premium_site_blueprint",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-premium-site-production-blueprint-v27.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "order_builder",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-order-builder-v27.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "intake_wizard",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-client-intake-wizard-v27.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "motion_bundle_v26",
-        "status": "READY",
-        "path": "/workspace/output/webstudio-d1-motion-bundle-v26.md"
-      }
-    ],
-    "D2": [
-      {
-        "product_line": "D2",
-        "artifact_type": "telegram_intake_planning",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-client-example-002-production-plan.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D2",
-        "artifact_type": "motion_bundle_v26",
-        "status": "READY",
-        "path": "/workspace/output/webstudio-d2-motion-bundle-v26.md"
-      }
-    ],
-    "D3": [
-      {
-        "product_line": "D3",
-        "artifact_type": "automation_readiness",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-order-builder-v27.json",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D3",
-        "artifact_type": "motion_bundle_v26",
-        "status": "READY",
-        "path": "/workspace/output/webstudio-d3-motion-bundle-v26.md"
-      }
-    ]
-  },
-  "latest_summary": [
-    "D3: automation_readiness → /workspace/output/webstudio-order-builder-v27.json",
-    "D2: telegram_intake_planning → /workspace/output/webstudio-client-example-002-production-plan.md",
-    "D1: client_example_002_concepts → /workspace/output/webstudio-client-example-002-concept-a.html",
-    "D1: premium_site_blueprint → /workspace/output/webstudio-premium-site-production-blueprint-v27.md",
-    "D1: order_builder → /workspace/output/webstudio-order-builder-v27.md",
-    "D1: intake_wizard → /workspace/output/webstudio-client-intake-wizard-v27.md",
-    "OPS: motion_generator_v26 → /workspace/output/webstudio-motion-data-driven-generator-v26.md",
-    "D3: motion_bundle_v26 → /workspace/output/webstudio-d3-motion-bundle-v26.md",
-    "D2: motion_bundle_v26 → /workspace/output/webstudio-d2-motion-bundle-v26.md",
-    "D1: motion_bundle_v26 → /workspace/output/webstudio-d1-motion-bundle-v26.md"
-  ],
-  "v28_status": "CONTINUING_OVERNIGHT",
-  "v28_1_status": "PASS",
-  "github_mainline": {
-    "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
-    "branch": "webstudio/hardening-v3-host-completion",
-    "latest_pr_sha": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "default_branch": "main",
-    "default_branch_sha": "67a31d484677488758c99e30343a08e95463fe9e",
-    "pr_merged": false,
-    "checks_status": "NO_FAILED_CHECKS",
-    "gitguardian": "SUCCESS",
-    "merge_approval_packet": "/workspace/output/github-mainline-merge-approval-packet-v28.md",
-    "owner_action_required": true
-  },
-  "host_runner": {
-    "status": "PASS_AFTER_REQUEUE",
-    "runner_latest": "/workspace/output/host-job-runner/latest.json",
-    "root": "/home/hermes/workspace/.hermes-host-jobs",
-    "allowed_pending_dirs": [
-      "github",
-      "system"
-    ],
-    "reason_original_job_not_processed": "original job was at root and marker was github/autopush-mainline-v28; runner scans github/*.sh/system/*.sh and allowlists marker github/autopush or github/pr-verify"
-  },
-  "iteration_auto_extend": {
-    "max_turns": 240,
-    "auto_extend_iterations": true,
-    "chunk": 120,
-    "max_extensions": 3,
-    "ceiling": 600,
-    "runtime_verification": "PARTIAL: config/source/tests PASS; systemctl service_status unavailable in host job, host snapshot previously active",
-    "report": "/workspace/output/iteration-budget-auto-extend-v28-1-report.md",
-    "recovery_patch": "/workspace/output/iteration-budget-auto-extend-recovery-patch-v28-1.patch",
-    "rollback": "/workspace/output/iteration-budget-auto-extend-rollback-v28-1.md",
-    "runtime_json": "/workspace/output/iteration-budget-auto-extend-v28-1-runtime.json",
-    "checks_pass": true,
-    "config_pass": true,
-    "persistence_status": "RECOVERABLE_PATCH_CREATED_SOURCE_PRESENT_UNCOMMITTED"
-  },
-  "continuation_queue": {
-    "job": "/workspace/.hermes-workqueue/webstudio/pending/webstudio-continuation-v28-overnight-premium-build.json",
-    "status": "pending",
-    "owner_does_not_need_to_type_continue": true
-  },
-  "state_reconciliation_v26_1": {
-    "status": "PASS_RECONCILED_CONTINUE_FROM_V27_V28_MAINLINE_CONTEXT",
-    "system_verdict_v21_7": "PASS_WITH_ISOLATED_OPS_MODEL_QUOTA_WATCH",
-    "product_work_allowed": true,
-    "do_not_return_to_v21_7_ops_hardening": true,
-    "v22_client_showcase": "PASS",
-    "v23_premium_website_factory": "PASS",
-    "v24_hyperframes_runtime": "PASS",
-    "v25_premium_motion_factory": "PASS",
-    "v26_motion_factory_production_hardening": "PASS_REPO_SYNCED_PRODUCTION_HARDENED",
-    "v27_client_intake_order_builder": "PASS_ALREADY_DELIVERED",
-    "latest_pr_commit": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "default_branch_sha": "67a31d484677488758c99e30343a08e95463fe9e",
-    "gitguardian": "SUCCESS",
-    "host_runner_latest": "NOOP_NO_PENDING_JOBS",
-    "next_phase": "v28_1_mainline_merge_approval_or_continue_product_work_after_mainline_decision",
-    "owner_action_required_for_product_work": false,
-    "owner_action_required_for_mainline_merge": true,
-    "report": "/workspace/output/webstudio-state-reconciliation-v26-1.md"
-  },
-  "github_mainline_v28_1": {
-    "schema": "webstudio-mainline-merge-result-v28.1",
-    "timestamp": "2026-05-25T12:33:00Z",
-    "status": "MAINLINE_MERGED",
-    "reason": "PR #1 is verified merged; current default branch already contains representative PR work. The post-merge verifier observed unchanged SHA because merge had already landed before the final verification pass.",
-    "repo": "pltnv123/webstudio-ops-dashboard",
-    "pr": 1,
-    "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
-    "expected_pr_head": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "pr_head_sha": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "default_branch": "main",
-    "default_branch_sha_before_owner_decision_known": "67a31d484677488758c99e30343a08e95463fe9e",
-    "default_branch_sha_before_final_verification": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-    "default_branch_sha_after": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-    "pr_state_after": "MERGED",
-    "merged_at": "2026-05-25T10:30:22Z",
-    "merged": true,
-    "merge_method": "squash",
-    "checks_status": "NO_FAILED_CHECKS",
-    "main_checks_failed": 0,
-    "main_checks_pending": 0,
-    "secret_findings": 0,
-    "local_conflict": "NO",
-    "deploy_hook_risk": "NONE_VISIBLE",
-    "owner_action_required": false,
-    "main_contains_representative_pr_work": true,
-    "v28_1": "PASS",
-    "next_phase": "Product Build v29 — Premium client-facing website delivery system"
-  },
-  "v26_accepted_pass": true,
-  "v28_1": "PASS",
-  "next_phase": "Product Build v29 — Premium client-facing website delivery system",
-  "v26_status": "PASS",
-  "mainline_status": "MAINLINE_MERGED",
-  "delivery_system_v29": {
-    "status": "PASS",
-    "pipeline": "/workspace/output/webstudio-client-delivery-pipeline-v29.json",
-    "qa_checklist": "/workspace/output/webstudio-premium-website-qa-checklist-v29.json",
-    "client_003": "/workspace/output/webstudio-client-example-003-delivery-pack-v1.html",
-    "owner_action_required": "no_for_local_artifacts_yes_for_live_actions"
-  },
-  "v29_status": "PASS",
-  "v30_status": "PASS_LOCAL_READY_QA_PENDING",
-  "real_client_execution_v30": {
-    "status": "PASS_LOCAL_READY",
-    "client": "004",
-    "flow_stages": 15,
-    "d1": "PASS",
-    "d2": "PASS",
-    "d3": "PASS_DRY_RUN_ONLY",
-    "motion": "PASS_HTML_COMPOSITION",
-    "preview_package": "PASS",
-    "artifact_registry": "PASS",
-    "owner_action_required": "no_for_local_artifacts_yes_for_live_actions",
-    "paths": {
-      "flow": "/workspace/output/webstudio-real-client-execution-flow-v30.md",
-      "client_report": "/workspace/output/webstudio-client-004-report-v30.md",
-      "preview": "/workspace/output/webstudio-client-004-d1-preview-v30.html",
-      "registry": "/workspace/output/webstudio-preview-export-registry-v30.json"
-    },
-    "kanban_cards": [
-      "t_4cb282ef",
-      "t_be3ffda7",
-      "t_de8d698e",
-      "t_a6c10326",
-      "t_e250c088",
-      "t_22649d76",
-      "t_70d47b35"
-    ]
-  },
-  "premium_visual_motion_v31": {
-    "version": "v31",
-    "generated_at": "2026-05-25T15:19:08Z",
-    "status": "PASS",
-    "client": "Client #004 premium dental clinic Moscow",
-    "interview_engine_status": "PASS",
-    "premium_visual_system_status": "PASS",
-    "image_pipeline_status": "PASS_WITH_CONCEPT_VISUALS",
-    "premium_motion_system_status": "PASS_WITH_HTML_MOTION",
-    "client_004_visual_upgrade_status": "PASS",
-    "concepts_status": "PASS",
-    "service_catalog_status": "PASS",
-    "assets_real_generated_planned": "concept SVG generated; real shoot planned; no fake proof",
-    "motion_readiness": "HTML/CSS motion + HyperFrames brief; MP4 render not executed",
-    "owner_action_required": "NO for v31 build/PR; YES before merge/deploy/client send/live integrations/real asset publication",
-    "next_action": "owner review of v31 visual upgrade and approve PR/merge path",
-    "paths": {
-      "interview_engine": "/workspace/output/webstudio-client-interview-engine-v31.md",
-      "questionnaire": "/workspace/output/webstudio-client-interview-master-questionnaire-v31.md",
-      "adaptive_flow": "/workspace/output/webstudio-client-interview-adaptive-flow-v31.json",
-      "client_004_interview": "/workspace/output/webstudio-client-004-interview-simulated-v31.md",
-      "visual_system": "/workspace/output/webstudio-premium-visual-system-v31.md",
-      "image_pipeline": "/workspace/output/webstudio-image-pipeline-v31.md",
-      "motion_system": "/workspace/output/webstudio-premium-motion-system-v31.md",
-      "preview": "/workspace/output/webstudio-client-004-d1-preview-v31.html",
-      "service_catalog": "/workspace/output/webstudio-service-catalog-v31.md",
-      "order_types": "/workspace/output/webstudio-order-types-v31.json"
-    },
-    "concepts": [
-      {
-        "id": "A",
-        "mood": "editorial premium",
-        "motion": "quiet reveal, editorial cuts",
-        "best_use_case": "best for high-check cosmetic positioning",
-        "path": "/workspace/output/webstudio-client-004-concept-a-v31.md"
-      },
-      {
-        "id": "B",
-        "mood": "clinical luxury",
-        "motion": "surgical calm, minimal motion",
-        "best_use_case": "best for implants and safety trust",
-        "path": "/workspace/output/webstudio-client-004-concept-b-v31.md"
-      },
-      {
-        "id": "C",
-        "mood": "calm modern trust",
-        "motion": "soft card reveal, Telegram journey",
-        "best_use_case": "best for broad paid traffic",
-        "path": "/workspace/output/webstudio-client-004-concept-c-v31.md"
-      }
-    ],
-    "visual_assets": [
-      {
-        "slot": "hero",
-        "path": "/workspace/output/webstudio-client-004-visual-hero-clinic-v31.svg",
-        "status": "generated concept visual"
-      },
-      {
-        "slot": "doctors",
-        "path": "/workspace/output/webstudio-client-004-visual-doctors-v31.svg",
-        "status": "generated concept visual"
-      },
-      {
-        "slot": "certificates",
-        "path": "/workspace/output/webstudio-client-004-visual-certificates-v31.svg",
-        "status": "generated concept visual"
-      },
-      {
-        "slot": "cases",
-        "path": "/workspace/output/webstudio-client-004-visual-cases-v31.svg",
-        "status": "generated concept visual"
-      }
-    ]
-  }
+  ]
 }

@@ -1,0 +1,29 @@
+{
+  "version": "v34",
+  "colors": {
+    "ivory": "#F7F0E7",
+    "pearl": "#FFFDF8",
+    "ink": "#2B241E",
+    "bronze": "#A06D45",
+    "moss": "#7E8F86",
+    "clinical": "#6E7F99"
+  },
+  "spacing": {
+    "sectionDesktop": "96-140px",
+    "sectionMobile": "48-80px",
+    "cardRadius": "24-34px"
+  },
+  "motion": {
+    "default": "opacity+translate",
+    "duration": "0.45-0.9s",
+    "reducedMotion": "no transform/no autoplay"
+  },
+  "industries": [
+    "dentistry",
+    "architecture",
+    "saas-ai",
+    "beauty-luxury",
+    "legal",
+    "local-services"
+  ]
+}

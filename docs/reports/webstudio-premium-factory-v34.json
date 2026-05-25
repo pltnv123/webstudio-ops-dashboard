@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "version": "v34",
+  "generated_at": "2026-05-25T18:22:58Z",
+  "research": "PASS",
+  "design_system": "PASS",
+  "skills": "PASS",
+  "visual_sourcing": "PASS",
+  "interview": "PASS",
+  "order_builder": "PASS",
+  "client_004_site": "PASS",
+  "image_assets": "PASS_WITH_CONCEPT_VISUALS",
+  "concepts": "PASS",
+  "motion_hyperframes": "PASS_WITH_RENDER_COMMAND_READY",
+  "mp4_status": "NOT_RENDERED_RENDER_COMMAND_READY",
+  "qa_score": 97,
+  "ops_cockpit": "PENDING_BUILD_INTEGRATION",
+  "owner_action_required": [
+    "merge PR",
+    "deploy/public release",
+    "real medical assets approval",
+    "live integrations",
+    "MP4 publication"
+  ],
+  "paths": {
+    "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
+    "fallback": "/workspace/output/webstudio-client-004-premium-site-v34.html",
+    "research": "/workspace/output/webstudio-premium-factory-research-v34.md",
+    "qa": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md"
+  }
+}

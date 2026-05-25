@@ -1,0 +1,13 @@
+{
+  "shot": {
+    "id": "string",
+    "scene": "hero|team|service|process|proof|case|interior|documents|social_video",
+    "purpose": "string",
+    "composition": "string",
+    "required_people_or_objects": [
+      "string"
+    ],
+    "legal_notes": "string",
+    "priority": "high|medium|low"
+  }
+}
