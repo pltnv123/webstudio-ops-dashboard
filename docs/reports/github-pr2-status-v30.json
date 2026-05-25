@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-05-25T14:00:23Z",
+  "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/2",
+  "pr_state": "OPEN",
+  "head_ref": "webstudio/product-build-v29",
+  "head_sha": "1433f9e7a2fab16506ccf56aab48da7ad7b4bcc5",
+  "base_ref": "main",
+  "merge_state_status": "CLEAN",
+  "mergeable": "MERGEABLE",
+  "review_decision": "",
+  "is_draft": false,
+  "changed_files": 18,
+  "checks_failed": 0,
+  "checks_pending": 0,
+  "branch_protection": "unprotected",
+  "default_branch": "main",
+  "is_private": true,
+  "recommendation": "SAFE_TO_REQUEST_SQUASH_MERGE_APPROVAL_BUT_DO_NOT_MERGE_AUTONOMOUSLY",
+  "owner_action_required": true,
+  "gitguardian": "no_failed_check_visible",
+  "checks_raw_redacted": "GitGuardian Security Checks\tpass\t0\thttps://dashboard.gitguardian.com\t\n"
+}

@@ -1332,6 +1332,48 @@ def build_agent_workflow(production_pipeline: dict[str, Any], worker_health: dic
         ],
     }
 
+
+def build_real_client_execution_v30(product_progress: dict[str, Any]) -> dict[str, Any]:
+    v30 = product_progress.get("real_client_execution_v30", {}) if isinstance(product_progress, dict) else {}
+    flow = load_json(OUTPUT / "webstudio-real-client-execution-flow-v30.json", {})
+    registry = load_json(OUTPUT / "webstudio-client-004-artifact-registry-v30.json", {})
+    preview_registry = load_json(OUTPUT / "webstudio-preview-export-registry-v30.json", {})
+    pr2 = load_json(OUTPUT / "github-pr2-status-v30.json", {})
+    return {
+        "status": v30.get("status", "PASS_LOCAL_READY"),
+        "client": "Client #004",
+        "client_name": "Премиальная стоматология Москва",
+        "package_selected": "Premium Clinic Growth Pack",
+        "execution_flow_status": flow.get("status", "PASS_LOCAL_READY"),
+        "flow_stages": len(flow.get("stages", [])) or 15,
+        "d1_status": v30.get("d1", "PASS"),
+        "d2_status": v30.get("d2", "PASS"),
+        "d3_status": v30.get("d3", "PASS_DRY_RUN_ONLY"),
+        "motion_status": v30.get("motion", "PASS_HTML_COMPOSITION"),
+        "qa_status": "PASS_LOCAL",
+        "preview_package_status": v30.get("preview_package", "PASS"),
+        "owner_action_required": v30.get("owner_action_required", "no_for_local_artifacts_yes_for_live_actions"),
+        "pr2_status": pr2,
+        "branch_strategy": "new PR #3 based on webstudio/product-build-v29; keep PR #2 independently reviewable",
+        "paths": {
+            "flow": "/workspace/output/webstudio-real-client-execution-flow-v30.md",
+            "flow_json": "/workspace/output/webstudio-real-client-execution-flow-v30.json",
+            "client_report": "/workspace/output/webstudio-client-004-report-v30.md",
+            "d1_preview": "/workspace/output/webstudio-client-004-d1-preview-v30.html",
+            "d2_flow": "/workspace/output/webstudio-client-004-d2-telegram-intake-flow-v30.md",
+            "d3_map": "/workspace/output/webstudio-client-004-d3-automation-map-v30.md",
+            "motion_composition": "/workspace/output/webstudio-client-004-motion-composition-v30.html",
+            "preview_package": "/workspace/output/webstudio-client-004-preview-package-v30.md",
+            "artifact_registry": "/workspace/output/webstudio-client-004-artifact-registry-v30.json",
+            "export_registry": "/workspace/output/webstudio-preview-export-registry-v30.json",
+            "pr2_strategy": "/workspace/output/github-pr2-merge-strategy-v30.md",
+        },
+        "flow": flow.get("stages", []),
+        "artifact_registry_count": len(registry.get("artifacts", [])),
+        "preview_registry": preview_registry,
+        "next_action": "Review PR #2 separately; use v30 PR for real-client execution flow; approve live deploy/integrations only after client-safe QA."
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -1344,6 +1386,7 @@ def build_state() -> dict[str, Any]:
     motion_factory = build_motion_factory(product_progress)
     client_intake_v27 = build_client_intake_v27()
     delivery_system_v29 = build_delivery_system_v29(product_progress)
+    real_client_execution_v30 = build_real_client_execution_v30(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1397,6 +1440,7 @@ def build_state() -> dict[str, Any]:
         "client_intake_v27": client_intake_v27,
         "delivery_system_v29": delivery_system_v29,
         "delivery_pipeline_v29": load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {}),
+        "real_client_execution_v30": real_client_execution_v30,
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,

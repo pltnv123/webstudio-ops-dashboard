@@ -7,10 +7,10 @@
     "mtime": "2026-05-24T21:28:10Z",
     "sha256": "b3fc1fab3ccfd25853fe8ee0d13838331440d38676edd464eec3bb73bd48141e"
   },
-  "updated_at": "2026-05-25T12:52:19Z",
+  "updated_at": "2026-05-25T14:07:37Z",
   "mode": "safe_local_artifacts_only",
   "phase": "Product Build v29 — Premium Client-Facing Website Delivery System",
-  "status": "PASS_LOCAL_ARTIFACTS_READY",
+  "status": "PASS_LOCAL_READY_QA_PENDING",
   "v10_status": null,
   "v11_status": null,
   "pr_verification_verdict": "MAINLINE_MERGED",
@@ -181,7 +181,13 @@
     "pr_1": "MERGED",
     "default_branch": "main",
     "default_sha": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-    "contribution_visibility_note": "GitHub graph may update with 1-24h delay; check private contribution visibility and author email only if still empty later."
+    "contribution_visibility_note": "GitHub graph may update with 1-24h delay; check private contribution visibility and author email only if still empty later.",
+    "v29_pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/2",
+    "v29_branch": "webstudio/product-build-v29",
+    "v29_head_sha": "1433f9e7a2fab16506ccf56aab48da7ad7b4bcc5",
+    "v29_checks_failed": 0,
+    "v29_checks_pending": 0,
+    "v29_owner_action_required": false
   },
   "qmd_maintenance": {},
   "repo_sync": {
@@ -401,5 +407,34 @@
     "qa_checklist": "/workspace/output/webstudio-premium-website-qa-checklist-v29.json",
     "client_003": "/workspace/output/webstudio-client-example-003-delivery-pack-v1.html",
     "owner_action_required": "no_for_local_artifacts_yes_for_live_actions"
+  },
+  "v29_status": "PASS",
+  "v30_status": "PASS_LOCAL_READY_QA_PENDING",
+  "real_client_execution_v30": {
+    "status": "PASS_LOCAL_READY",
+    "client": "004",
+    "flow_stages": 15,
+    "d1": "PASS",
+    "d2": "PASS",
+    "d3": "PASS_DRY_RUN_ONLY",
+    "motion": "PASS_HTML_COMPOSITION",
+    "preview_package": "PASS",
+    "artifact_registry": "PASS",
+    "owner_action_required": "no_for_local_artifacts_yes_for_live_actions",
+    "paths": {
+      "flow": "/workspace/output/webstudio-real-client-execution-flow-v30.md",
+      "client_report": "/workspace/output/webstudio-client-004-report-v30.md",
+      "preview": "/workspace/output/webstudio-client-004-d1-preview-v30.html",
+      "registry": "/workspace/output/webstudio-preview-export-registry-v30.json"
+    },
+    "kanban_cards": [
+      "t_4cb282ef",
+      "t_be3ffda7",
+      "t_de8d698e",
+      "t_a6c10326",
+      "t_e250c088",
+      "t_22649d76",
+      "t_70d47b35"
+    ]
   }
 }

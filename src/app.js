@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -797,6 +797,27 @@ function delivery() {
   </div>`;
 }
 
+function realClientStageCard(stage) {
+  return `<article class="capability-card"><div class="capability-top"><h4>${fmt(stage.id ? stage.id + '. ' + stage.name : stage.name)}</h4>${badge(stage.kanban_stage || 'stage')}</div><p><b>Agent:</b> ${fmt(stage.responsible_agent)}</p><p>${fmt(shortText(stage.acceptance_criteria, 150))}</p><div class="capability-meta"><span>Output: ${fmt(shortText(stage.outputs, 80))}</span><span>Gate: ${fmt(shortText(stage.approval_gates, 70))}</span></div><div class="toolbar">${openButton('Артефакт', stage.artifact_path || '')}${detailPayloadButton(stage, 'Подробнее', 'real-client-stage')}</div></article>`;
+}
+function realClients() {
+  const rc = state.real_client_execution_v30 || {};
+  const paths = rc.paths || {};
+  const pr2 = rc.pr2_status || {};
+  const flow = asArray(rc.flow);
+  return `<div class="grid real-clients">
+    ${metric('Client #004', rc.status || 'unknown', 'span-3')}
+    ${metric('Flow stages', rc.flow_stages || flow.length || '—', 'span-3')}
+    ${metric('D1/D2/D3', `${rc.d1_status || '—'} / ${rc.d2_status || '—'} / ${rc.d3_status || '—'}`, 'span-3')}
+    ${metric('PR #2', pr2.pr_state || 'CHECKED_BY_HOST', 'span-3')}
+    ${card('Реальные клиенты — v30', `${kv({client: rc.client_name || rc.client, package_selected: rc.package_selected, execution_flow: rc.execution_flow_status, owner_action_required: rc.owner_action_required, next_action: rc.next_action})}${toolbar([copyButton('Copy flow', paths.flow || ''), copyButton('Copy client report', paths.client_report || ''), copyButton('Copy export registry', paths.export_registry || '')])}`, 'span-12')}
+    ${card('Client #004 status', `${kv({D1: rc.d1_status, D2: rc.d2_status, D3: rc.d3_status, motion: rc.motion_status, QA: rc.qa_status, preview_package: rc.preview_package_status, artifact_registry_count: rc.artifact_registry_count})}`, 'span-6')}
+    ${card('PR #2 / branch strategy', `${kv({pr_2: pr2.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/2', state: pr2.pr_state || 'pending host check', head: pr2.head_sha, checks_failed: pr2.checks_failed, checks_pending: pr2.checks_pending, mergeability: pr2.merge_state_status, strategy: rc.branch_strategy})}`, 'span-6')}
+    ${card('Preview package', `${kv({d1_preview: paths.d1_preview, d2_flow: paths.d2_flow, d3_map: paths.d3_map, motion: paths.motion_composition, registry: paths.artifact_registry})}<div class="toolbar">${openButton('D1 preview', paths.d1_preview || '')}${openButton('Motion composition', paths.motion_composition || '')}${openButton('Preview package', paths.preview_package || '')}</div>`, 'span-12')}
+    <section class="card span-12"><h3>Execution flow progress</h3><div class="capability-grid">${flow.length ? flow.map(realClientStageCard).join('') : '<div class="empty">Run snapshot after v30 flow JSON is created.</div>'}</div></section>
+  </div>`;
+}
+
 function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
 
 function demoThumbnail(item, score, line) {
@@ -1460,7 +1481,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

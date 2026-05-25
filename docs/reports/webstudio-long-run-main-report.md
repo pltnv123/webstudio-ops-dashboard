@@ -107,3 +107,23 @@ Artifacts:
 - `/workspace/output/webstudio-client-delivery-pack-template-v29.html`
 - `/workspace/output/webstudio-client-example-003-delivery-pack-v1.html`
 - `/workspace/output/webstudio-premium-website-qa-system-v29.md`
+
+
+## V29 GitHub Auto-Push / PR
+- updated_at: 2026-05-25T13:22:19Z
+- status: PASS
+- branch: `webstudio/product-build-v29`
+- head_sha: `1433f9e7a2fab16506ccf56aab48da7ad7b4bcc5`
+- PR: https://github.com/pltnv123/webstudio-ops-dashboard/pull/2
+- checks_failed: 0
+- checks_pending: 0
+- owner_action_required: False
+
+
+## Product Build v30 — Real Client Execution Flow
+- updated_at: 2026-05-25T13:59:36Z
+- status: PASS_LOCAL_READY_QA_PENDING
+- client: Client #004 premium dental clinic Moscow
+- branch: webstudio/product-build-v30
+- PR strategy: new PR #3 preferred, base webstudio/product-build-v29.
+- next: repo integration, QA, autopush.
