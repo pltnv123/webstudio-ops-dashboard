@@ -1,1 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-labelledby="t d"><title id="t">Команда клиники</title><desc id="d">Концепт блока врачей; не является портретами реальных врачей Generated concept visual; not a real medical asset.</desc><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf8"/><stop offset=".48" stop-color="#f7f0e7"/><stop offset="1" stop-color="#e8dac9"/></linearGradient><filter id="soft"><feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#2b241e" flood-opacity=".13"/></filter></defs><rect width="1200" height="820" fill="url(#bg)"/><circle cx="1020" cy="130" r="220" fill="#7e8f86" opacity=".12"/><circle cx="150" cy="760" r="270" fill="#7e8f86" opacity=".11"/><g filter="url(#soft)"><g opacity=".92"><rect x="130" y="210" width="230" height="430" rx="80" fill="#f4e2cf"/><circle cx="245" cy="180" r="72" fill="#d9b99b"/><rect x="470" y="180" width="260" height="470" rx="92" fill="#e9d8c3"/><circle cx="600" cy="142" r="78" fill="#cba886"/><rect x="815" y="230" width="230" height="410" rx="78" fill="#efe4d6"/><circle cx="930" cy="200" r="68" fill="#d3b08e"/></g><path d="M166 583c145-80 241-76 405-9s283 57 444-13" fill="none" stroke="#7e8f86" stroke-width="22" stroke-linecap="round" opacity=".45"/></g><g font-family="Inter,Arial,sans-serif"><text x="72" y="92" fill="#7e8f86" font-size="27" font-weight="800" letter-spacing="5">GENERATED CONCEPT · DEMO</text><text x="72" y="742" fill="#2b241e" font-size="42" font-family="Georgia,serif">Команда клиники</text><text x="72" y="786" fill="#6f6257" font-size="24">Концепт блока врачей; не является портретами реальных врачей</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 860" role="img" aria-labelledby="t d">
+<title id="t">Client #004 Doctors approval wall — generated concept visual</title><desc id="d">Demo concept visual, not a real clinical photo. Replace with approved real asset before publication.</desc>
+<defs>
+  <linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#eef3ef"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+  <filter id="soft"><feDropShadow dx="0" dy="28" stdDeviation="30" flood-color="#000" flood-opacity=".14"/></filter>
+  <pattern id="grain" width="96" height="96" patternUnits="userSpaceOnUse"><circle cx="10" cy="20" r="1" fill="#142820" opacity=".07"/><circle cx="74" cy="52" r="1" fill="#8fb7a4" opacity=".12"/><path d="M0 95h96" stroke="#142820" opacity=".035"/></pattern>
+</defs>
+<rect width="1280" height="860" fill="url(#g)"/><rect width="1280" height="860" fill="url(#grain)" opacity=".9"/>
+<g filter="url(#soft)"><rect x="105" y="96" width="1070" height="650" rx="42" fill="#fffaf2" opacity=".92"/></g>
+<path d="M164 220 C320 110, 502 120, 655 232 S998 362, 1115 196" fill="none" stroke="#8fb7a4" stroke-width="4" opacity=".45"/>
+<circle cx="1014" cy="198" r="76" fill="#8fb7a4" opacity=".16"/><circle cx="1004" cy="198" r="34" fill="#8fb7a4" opacity=".26"/>
+<rect x="168" y="168" width="292" height="24" rx="12" fill="#8fb7a4" opacity=".55"/>
+<text x="168" y="255" font-family="Georgia, serif" font-size="58" fill="#142820">Doctors approval wall</text>
+<text x="168" y="311" font-family="Inter, Arial" font-size="22" fill="#142820" opacity=".66">generated concept · demo-safe · approval required for real clinical use</text>
+<g transform="translate(168 382)">
+  <rect width="300" height="210" rx="28" fill="#fff" stroke="#8fb7a4" stroke-width="2"/>
+  <path d="M44 135 C92 78, 164 80, 246 124" stroke="#8fb7a4" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <circle cx="106" cy="84" r="24" fill="#142820" opacity=".18"/><circle cx="190" cy="84" r="24" fill="#142820" opacity=".14"/>
+  <text x="42" y="178" font-family="Inter, Arial" font-size="18" fill="#142820" opacity=".58">visual proof placeholder</text>
+</g>
+<g transform="translate(525 382)">
+  <rect width="250" height="210" rx="28" fill="#fff" stroke="#142820" stroke-opacity=".16"/>
+  <rect x="36" y="42" width="178" height="18" rx="9" fill="#8fb7a4" opacity=".55"/><rect x="36" y="84" width="132" height="14" rx="7" fill="#142820" opacity=".18"/><rect x="36" y="118" width="162" height="14" rx="7" fill="#142820" opacity=".14"/>
+  <text x="36" y="174" font-family="Inter, Arial" font-size="17" fill="#142820" opacity=".58">verified after approval</text>
+</g>
+<g transform="translate(830 382)">
+  <rect width="250" height="210" rx="28" fill="#142820" opacity=".92"/>
+  <path d="M54 152 L106 92 L150 126 L198 64" fill="none" stroke="#8fb7a4" stroke-width="8" stroke-linecap="round"/>
+  <text x="38" y="174" font-family="Inter, Arial" font-size="17" fill="#fff" opacity=".76">consultation-first path</text>
+</g>
+<text x="168" y="690" font-family="Inter, Arial" font-size="18" fill="#142820" opacity=".52">NOT A REAL PHOTO · NO FAKE DOCTORS/CERTIFICATES/CASES · REPLACE AFTER OWNER/CLIENT APPROVAL</text>
+</svg>

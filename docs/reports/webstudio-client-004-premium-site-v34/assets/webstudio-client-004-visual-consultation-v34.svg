@@ -1,1 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-labelledby="t d"><title id="t">Путь консультации</title><desc id="d">Концепт маршрута пациента: запрос → диагностика → план → сопровождение Generated concept visual; not a real medical asset.</desc><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf8"/><stop offset=".48" stop-color="#f7f0e7"/><stop offset="1" stop-color="#e8dac9"/></linearGradient><filter id="soft"><feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#2b241e" flood-opacity=".13"/></filter></defs><rect width="1200" height="820" fill="url(#bg)"/><circle cx="1020" cy="130" r="220" fill="#7e8f86" opacity=".12"/><circle cx="150" cy="760" r="270" fill="#7e8f86" opacity=".11"/><g filter="url(#soft)"><g><path d="M190 570c160-250 315-340 505-255 126 56 193 176 345 54" fill="none" stroke="#a06d45" stroke-width="28" stroke-linecap="round" opacity=".7"/><circle cx="200" cy="570" r="42" fill="#2b241e"/><circle cx="500" cy="340" r="42" fill="#7e8f86"/><circle cx="770" cy="430" r="42" fill="#a06d45"/><circle cx="1040" cy="370" r="42" fill="#2b241e"/><rect x="175" y="645" width="860" height="18" rx="9" fill="#2b241e" opacity=".18"/></g></g><g font-family="Inter,Arial,sans-serif"><text x="72" y="92" fill="#7e8f86" font-size="27" font-weight="800" letter-spacing="5">GENERATED CONCEPT · DEMO</text><text x="72" y="742" fill="#2b241e" font-size="42" font-family="Georgia,serif">Путь консультации</text><text x="72" y="786" fill="#6f6257" font-size="24">Концепт маршрута пациента: запрос → диагностика → план → сопровождение</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 860" role="img" aria-labelledby="t d">
+<title id="t">Client #004 Consultation path — generated concept visual</title><desc id="d">Demo concept visual, not a real clinical photo. Replace with approved real asset before publication.</desc>
+<defs>
+  <linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#eef0f1"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+  <filter id="soft"><feDropShadow dx="0" dy="28" stdDeviation="30" flood-color="#000" flood-opacity=".14"/></filter>
+  <pattern id="grain" width="96" height="96" patternUnits="userSpaceOnUse"><circle cx="10" cy="20" r="1" fill="#172331" opacity=".07"/><circle cx="74" cy="52" r="1" fill="#6b8aa0" opacity=".12"/><path d="M0 95h96" stroke="#172331" opacity=".035"/></pattern>
+</defs>
+<rect width="1280" height="860" fill="url(#g)"/><rect width="1280" height="860" fill="url(#grain)" opacity=".9"/>
+<g filter="url(#soft)"><rect x="105" y="96" width="1070" height="650" rx="42" fill="#fffaf2" opacity=".92"/></g>
+<path d="M164 220 C320 110, 502 120, 655 232 S998 362, 1115 196" fill="none" stroke="#6b8aa0" stroke-width="4" opacity=".45"/>
+<circle cx="1014" cy="198" r="76" fill="#6b8aa0" opacity=".16"/><circle cx="1004" cy="198" r="34" fill="#6b8aa0" opacity=".26"/>
+<rect x="168" y="168" width="292" height="24" rx="12" fill="#6b8aa0" opacity=".55"/>
+<text x="168" y="255" font-family="Georgia, serif" font-size="58" fill="#172331">Consultation path</text>
+<text x="168" y="311" font-family="Inter, Arial" font-size="22" fill="#172331" opacity=".66">generated concept · demo-safe · approval required for real clinical use</text>
+<g transform="translate(168 382)">
+  <rect width="300" height="210" rx="28" fill="#fff" stroke="#6b8aa0" stroke-width="2"/>
+  <path d="M44 135 C92 78, 164 80, 246 124" stroke="#6b8aa0" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <circle cx="106" cy="84" r="24" fill="#172331" opacity=".18"/><circle cx="190" cy="84" r="24" fill="#172331" opacity=".14"/>
+  <text x="42" y="178" font-family="Inter, Arial" font-size="18" fill="#172331" opacity=".58">visual proof placeholder</text>
+</g>
+<g transform="translate(525 382)">
+  <rect width="250" height="210" rx="28" fill="#fff" stroke="#172331" stroke-opacity=".16"/>
+  <rect x="36" y="42" width="178" height="18" rx="9" fill="#6b8aa0" opacity=".55"/><rect x="36" y="84" width="132" height="14" rx="7" fill="#172331" opacity=".18"/><rect x="36" y="118" width="162" height="14" rx="7" fill="#172331" opacity=".14"/>
+  <text x="36" y="174" font-family="Inter, Arial" font-size="17" fill="#172331" opacity=".58">verified after approval</text>
+</g>
+<g transform="translate(830 382)">
+  <rect width="250" height="210" rx="28" fill="#172331" opacity=".92"/>
+  <path d="M54 152 L106 92 L150 126 L198 64" fill="none" stroke="#6b8aa0" stroke-width="8" stroke-linecap="round"/>
+  <text x="38" y="174" font-family="Inter, Arial" font-size="17" fill="#fff" opacity=".76">consultation-first path</text>
+</g>
+<text x="168" y="690" font-family="Inter, Arial" font-size="18" fill="#172331" opacity=".52">NOT A REAL PHOTO · NO FAKE DOCTORS/CERTIFICATES/CASES · REPLACE AFTER OWNER/CLIENT APPROVAL</text>
+</svg>

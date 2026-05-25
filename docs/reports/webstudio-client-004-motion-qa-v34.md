@@ -1,13 +1,10 @@
-# Motion QA v34
+# Client #004 Motion QA v34
 
-Status: PASS_MP4_RENDERED_OWNER_PUBLICATION_GATE
-Score: 97/100
+Updated: 2026-05-25T19:53:59Z
 
-Generated: 2026-05-25T19:23:48Z
+Score: **97/100**
 
-- Motion composition HTML: PASS
-- HyperFrames hero loop MP4: PASS `/workspace/output/webstudio-client-004-hero-loop-v34.mp4`
-- HyperFrames social teaser MP4: PASS `/workspace/output/webstudio-client-004-social-teaser-v34.mp4`
-- ffprobe metadata: PASS
+- Composition HTML: PASS
 - Reduced motion fallback: PASS
-- Publication: approval required before client/public use.
+- MP4 files: PASS_RENDERED_PUBLICATION_GATED
+- Publication: APPROVAL_REQUIRED

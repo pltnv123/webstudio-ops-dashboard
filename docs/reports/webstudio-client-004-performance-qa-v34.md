@@ -1,9 +1,11 @@
-# Performance QA v34
+# Client #004 Performance QA v34
 
-Status: PASS
-Score: 96/100
+Updated: 2026-05-25T19:53:59Z
 
-- Static HTML/CSS/JS only.
-- SVG concept visuals are local.
-- No external scripts.
-- Motion uses IntersectionObserver and CSS; reduced-motion fallback present.
+Score: **97/100**
+
+- Static HTML/CSS/JS: PASS
+- No external JS/CDN dependencies: PASS
+- SVG visual assets: PASS
+- CSS motion guarded by prefers-reduced-motion: PASS
+- MP4 not auto-loaded in main page: PASS

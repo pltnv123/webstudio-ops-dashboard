@@ -1,7 +1,9 @@
 # Concept A/B/C Comparison v34
 
-- A — Editorial Premium: warm magazine layout, serif headline, emotional but clinically safe.
-- B — Clinical Luxury: more white/green, documentation/trust-first, conservative.
-- C — Modern Trust Motion: stronger dynamic flow, CTA emphasis, motion-first.
+Updated: 2026-05-25T19:53:59Z
 
-Selected for production demo: A with C motion details and B proof discipline.
+- A — Editorial Premium: serif, magazine, warm expert trust.
+- B — Clinical Luxury: light, procedural, document-first.
+- C — Modern Trust Motion: dark cinematic, motion-led CTA.
+
+All concepts preserve medical copy guardrails and explicit asset states.

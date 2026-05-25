@@ -1,90 +1,69 @@
 {
   "premium_factory_v34": {
+    "schema": "webstudio.premium_factory.v34",
+    "updated_at": "2026-05-25T19:54:56Z",
     "status": "PASS",
-    "version": "v34.2",
-    "generated_at": "2026-05-25T19:21:01Z",
-    "research": "PASS",
-    "design_system": "PASS",
-    "skills": "PASS",
-    "visual_sourcing": "PASS",
-    "interview": "PASS",
-    "order_builder": "PASS",
-    "client_004_site": "PASS_READY_FOR_OWNER_REVIEW",
-    "image_assets": "PASS_GENERATED_CONCEPTS_MARKED_REAL_ASSETS_APPROVAL_REQUIRED",
-    "concepts": "PASS_A_B_C_DISTINCT",
-    "motion_hyperframes": "PASS_MP4_RENDERED_OWNER_PUBLICATION_GATE",
-    "mp4_status": "MP4_RENDERED_PUBLICATION_APPROVAL_REQUIRED",
-    "qa_score": 97,
-    "ops_cockpit": "PASS_INTEGRATED_PENDING_REBUILD",
-    "iteration_guard": "ITERATION_GUARD_PASS",
-    "max_turns": 600,
-    "auto_extend": "enabled",
-    "effective_ceiling": 1200,
-    "delegation_max_iterations": 180,
-    "asset_state": {
-      "real": "planned_approval_required",
-      "generated": "demo_allowed_with_labels",
-      "planned": "doctor/certificates/cases/interior",
-      "approval_required": [
-        "real medical assets",
-        "MP4 publication",
-        "PR merge/static launch"
-      ]
+    "phase": "v34 premium website factory current",
+    "guard": {
+      "status": "ITERATION_GUARD_PASS",
+      "max_turns": 600,
+      "auto_extend": true,
+      "effective_ceiling": 1200
     },
-    "motion_state": {
-      "html": "HTML-ready",
-      "mp4": "MP4-rendered",
-      "hero_loop": "/workspace/output/webstudio-client-004-hero-loop-v34.mp4",
-      "social_teaser": "/workspace/output/webstudio-client-004-social-teaser-v34.mp4",
-      "fallback": "reduced-motion ready",
-      "publication": "approval_required"
+    "production_lane": "default/known-good",
+    "ops_lane": "isolated watch; not blocking product work",
+    "client_004": {
+      "status": "PASS_PREMIUM_PROTOTYPE",
+      "qa_score": 98,
+      "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
+      "standalone": "/workspace/output/webstudio-client-004-premium-site-v34.html"
     },
-    "owner_action_required": [
-      "real medical assets approval",
-      "MP4 publication approval",
-      "PR merge/static launch approval"
-    ],
+    "visual_assets": {
+      "status": "PASS",
+      "state_model": [
+        "generated",
+        "planned",
+        "real",
+        "approval_required"
+      ],
+      "registry": "/workspace/output/webstudio-client-004-asset-registry-v34.json"
+    },
+    "motion": {
+      "status": "MP4_RENDERED_PUBLICATION_APPROVAL_REQUIRED",
+      "html_ready": true,
+      "fallback": "READY",
+      "hero_mp4_exists": true,
+      "social_mp4_exists": true
+    },
+    "concepts": {
+      "A": "Editorial Premium PASS",
+      "B": "Clinical Luxury PASS",
+      "C": "Modern Trust Motion PASS"
+    },
+    "owner_action_required": {
+      "local_artifacts": "no",
+      "guard_proof": "no",
+      "real_medical_assets_approval": "yes",
+      "mp4_publication_approval": "yes",
+      "pr_merge_static_launch_approval": "yes"
+    },
     "paths": {
       "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
-      "styles": "/workspace/output/webstudio-client-004-premium-site-v34/styles.css",
-      "app": "/workspace/output/webstudio-client-004-premium-site-v34/app.js",
-      "fallback": "/workspace/output/webstudio-client-004-premium-site-v34.html",
-      "asset_registry": "/workspace/output/webstudio-client-004-asset-registry-v34.json",
-      "shotlist": "/workspace/output/webstudio-client-004-shotlist-v34.md",
-      "motion_composition": "/workspace/output/webstudio-client-004-motion-composition-v34.html",
-      "motion_brief": "/workspace/output/webstudio-client-004-motion-brief-v34.md",
-      "render_command": "/workspace/output/webstudio-client-004-hyperframes-render-command-v34.md",
+      "standalone": "/workspace/output/webstudio-client-004-premium-site-v34.html",
+      "qa": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md",
+      "motion": "/workspace/output/webstudio-client-004-motion-composition-v34.html",
       "concept_a": "/workspace/output/webstudio-client-004-concept-a-v34.html",
       "concept_b": "/workspace/output/webstudio-client-004-concept-b-v34.html",
-      "concept_c": "/workspace/output/webstudio-client-004-concept-c-v34.html",
-      "qa": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md",
-      "hero_loop_mp4": "/workspace/output/webstudio-client-004-hero-loop-v34.mp4",
-      "social_teaser_mp4": "/workspace/output/webstudio-client-004-social-teaser-v34.mp4",
-      "hero_loop_ffprobe": "/workspace/output/webstudio-client-004-hero-loop-v34-ffprobe.json",
-      "social_teaser_ffprobe": "/workspace/output/webstudio-client-004-social-teaser-v34-ffprobe.json"
+      "concept_c": "/workspace/output/webstudio-client-004-concept-c-v34.html"
     },
-    "kanban_cards": [
-      {
-        "title": "[WEBSTUDIO][V34][SITE] Client #004 premium site",
-        "status": "completed"
-      },
-      {
-        "title": "[WEBSTUDIO][V34][VISUAL] Real medical assets approval",
-        "status": "blocked_owner_assets"
-      },
-      {
-        "title": "[WEBSTUDIO][V34][MOTION] MP4 publication approval",
-        "status": "blocked_owner_motion_publication"
-      },
-      {
-        "title": "[WEBSTUDIO][V34][LAUNCH] PR merge/static launch approval",
-        "status": "blocked_owner_launch"
-      }
-    ]
+    "qa_score": 98,
+    "client_004_premium_site_status": "PASS_PREMIUM_PROTOTYPE",
+    "hyperframes_runtime": "operational",
+    "host_runner_autopush": "operational"
   },
-  "updated_at": "2026-05-25T19:25:48Z",
+  "updated_at": "2026-05-25T19:54:56Z",
   "status": "PASS",
-  "phase": "v34.2_client004_premium_site_ready",
+  "phase": "v34 Premium Website Factory",
   "mode": "safe_local_artifacts_only",
   "items": [
     {
@@ -123,5 +102,6 @@
       "client_gets": "Asset registry and approval gates for doctors, certificates, cases, interior and MP4 publication.",
       "next_action": "owner/client approval for real assets"
     }
-  ]
+  ],
+  "latest_pr_commit": "99df41feb9eb3fa4837a174ddef199c0a96462b9"
 }

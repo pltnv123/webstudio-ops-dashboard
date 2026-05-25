@@ -1,1 +1,32 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820" role="img" aria-labelledby="t d"><title id="t">Интерьер клиники</title><desc id="d">Концепт атмосферы; заменить на реальные интерьерные фото после approval Generated concept visual; not a real medical asset.</desc><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf8"/><stop offset=".48" stop-color="#f7f0e7"/><stop offset="1" stop-color="#e8dac9"/></linearGradient><filter id="soft"><feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#2b241e" flood-opacity=".13"/></filter></defs><rect width="1200" height="820" fill="url(#bg)"/><circle cx="1020" cy="130" r="220" fill="#a06d45" opacity=".12"/><circle cx="150" cy="760" r="270" fill="#7e8f86" opacity=".11"/><g filter="url(#soft)"><g><rect x="120" y="170" width="960" height="470" rx="48" fill="#fffdf8"/><path d="M120 420h960" stroke="#d8c2a9" stroke-width="8"/><path d="M330 170v470M790 170v470" stroke="#d8c2a9" stroke-width="6" opacity=".55"/><ellipse cx="600" cy="650" rx="380" ry="50" fill="#2b241e" opacity=".12"/><rect x="480" y="350" width="250" height="90" rx="45" fill="#7e8f86" opacity=".45"/><path d="M600 230c80 35 128 87 145 157" stroke="#a06d45" stroke-width="12" fill="none" opacity=".5"/></g></g><g font-family="Inter,Arial,sans-serif"><text x="72" y="92" fill="#a06d45" font-size="27" font-weight="800" letter-spacing="5">GENERATED CONCEPT · DEMO</text><text x="72" y="742" fill="#2b241e" font-size="42" font-family="Georgia,serif">Интерьер клиники</text><text x="72" y="786" fill="#6f6257" font-size="24">Концепт атмосферы; заменить на реальные интерьерные фото после approval</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 860" role="img" aria-labelledby="t d">
+<title id="t">Client #004 Clinic interior mood — generated concept visual</title><desc id="d">Demo concept visual, not a real clinical photo. Replace with approved real asset before publication.</desc>
+<defs>
+  <linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f4f0e8"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+  <filter id="soft"><feDropShadow dx="0" dy="28" stdDeviation="30" flood-color="#000" flood-opacity=".14"/></filter>
+  <pattern id="grain" width="96" height="96" patternUnits="userSpaceOnUse"><circle cx="10" cy="20" r="1" fill="#1f2522" opacity=".07"/><circle cx="74" cy="52" r="1" fill="#a8865d" opacity=".12"/><path d="M0 95h96" stroke="#1f2522" opacity=".035"/></pattern>
+</defs>
+<rect width="1280" height="860" fill="url(#g)"/><rect width="1280" height="860" fill="url(#grain)" opacity=".9"/>
+<g filter="url(#soft)"><rect x="105" y="96" width="1070" height="650" rx="42" fill="#fffaf2" opacity=".92"/></g>
+<path d="M164 220 C320 110, 502 120, 655 232 S998 362, 1115 196" fill="none" stroke="#a8865d" stroke-width="4" opacity=".45"/>
+<circle cx="1014" cy="198" r="76" fill="#a8865d" opacity=".16"/><circle cx="1004" cy="198" r="34" fill="#a8865d" opacity=".26"/>
+<rect x="168" y="168" width="292" height="24" rx="12" fill="#a8865d" opacity=".55"/>
+<text x="168" y="255" font-family="Georgia, serif" font-size="58" fill="#1f2522">Clinic interior mood</text>
+<text x="168" y="311" font-family="Inter, Arial" font-size="22" fill="#1f2522" opacity=".66">generated concept · demo-safe · approval required for real clinical use</text>
+<g transform="translate(168 382)">
+  <rect width="300" height="210" rx="28" fill="#fff" stroke="#a8865d" stroke-width="2"/>
+  <path d="M44 135 C92 78, 164 80, 246 124" stroke="#a8865d" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <circle cx="106" cy="84" r="24" fill="#1f2522" opacity=".18"/><circle cx="190" cy="84" r="24" fill="#1f2522" opacity=".14"/>
+  <text x="42" y="178" font-family="Inter, Arial" font-size="18" fill="#1f2522" opacity=".58">visual proof placeholder</text>
+</g>
+<g transform="translate(525 382)">
+  <rect width="250" height="210" rx="28" fill="#fff" stroke="#1f2522" stroke-opacity=".16"/>
+  <rect x="36" y="42" width="178" height="18" rx="9" fill="#a8865d" opacity=".55"/><rect x="36" y="84" width="132" height="14" rx="7" fill="#1f2522" opacity=".18"/><rect x="36" y="118" width="162" height="14" rx="7" fill="#1f2522" opacity=".14"/>
+  <text x="36" y="174" font-family="Inter, Arial" font-size="17" fill="#1f2522" opacity=".58">verified after approval</text>
+</g>
+<g transform="translate(830 382)">
+  <rect width="250" height="210" rx="28" fill="#1f2522" opacity=".92"/>
+  <path d="M54 152 L106 92 L150 126 L198 64" fill="none" stroke="#a8865d" stroke-width="8" stroke-linecap="round"/>
+  <text x="38" y="174" font-family="Inter, Arial" font-size="17" fill="#fff" opacity=".76">consultation-first path</text>
+</g>
+<text x="168" y="690" font-family="Inter, Arial" font-size="18" fill="#1f2522" opacity=".52">NOT A REAL PHOTO · NO FAKE DOCTORS/CERTIFICATES/CASES · REPLACE AFTER OWNER/CLIENT APPROVAL</text>
+</svg>

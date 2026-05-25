@@ -1,4 +1,7 @@
-const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const reveal=()=>{document.querySelectorAll('.motion-reveal').forEach((el,i)=>{ if(!reduced) el.style.transitionDelay=(Math.min(i,7)*65)+'ms'; el.classList.add('in');});};
-if('IntersectionObserver' in window && !reduced){const io=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.13});document.querySelectorAll('.motion-reveal').forEach(el=>io.observe(el));}else{reveal();}
-document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{const id=a.getAttribute('href').slice(1);const t=document.getElementById(id);if(t){e.preventDefault();t.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});}}));
+
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const io = reduce ? null : new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.animate([{opacity:0, transform:'translateY(28px)'},{opacity:1, transform:'translateY(0)'}],{duration:720,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'}); io.unobserve(e.target); } });
+},{threshold:.14});
+document.querySelectorAll('.card,.flow,.case-panel,.case-image,.cta').forEach(el=>{ if(io) io.observe(el); });
+document.querySelectorAll('[data-open-telegram]').forEach(a=>a.addEventListener('click',()=>{ window.__client004CtaClicked = true; }));
