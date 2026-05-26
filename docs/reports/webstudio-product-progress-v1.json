@@ -1,107 +1,117 @@
 {
-  "premium_factory_v34": {
-    "schema": "webstudio.premium_factory.v34",
-    "updated_at": "2026-05-25T19:54:56Z",
-    "status": "PASS",
-    "phase": "v34 premium website factory current",
-    "guard": {
-      "status": "ITERATION_GUARD_PASS",
-      "max_turns": 600,
-      "auto_extend": true,
-      "effective_ceiling": 1200
-    },
-    "production_lane": "default/known-good",
-    "ops_lane": "isolated watch; not blocking product work",
-    "client_004": {
-      "status": "PASS_PREMIUM_PROTOTYPE",
-      "qa_score": 98,
-      "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
-      "standalone": "/workspace/output/webstudio-client-004-premium-site-v34.html"
-    },
-    "visual_assets": {
-      "status": "PASS",
-      "state_model": [
-        "generated",
-        "planned",
-        "real",
-        "approval_required"
-      ],
-      "registry": "/workspace/output/webstudio-client-004-asset-registry-v34.json"
-    },
-    "motion": {
-      "status": "MP4_RENDERED_PUBLICATION_APPROVAL_REQUIRED",
-      "html_ready": true,
-      "fallback": "READY",
-      "hero_mp4_exists": true,
-      "social_mp4_exists": true
-    },
-    "concepts": {
-      "A": "Editorial Premium PASS",
-      "B": "Clinical Luxury PASS",
-      "C": "Modern Trust Motion PASS"
-    },
-    "owner_action_required": {
-      "local_artifacts": "no",
-      "guard_proof": "no",
-      "real_medical_assets_approval": "yes",
-      "mp4_publication_approval": "yes",
-      "pr_merge_static_launch_approval": "yes"
-    },
-    "paths": {
-      "site": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
-      "standalone": "/workspace/output/webstudio-client-004-premium-site-v34.html",
-      "qa": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md",
-      "motion": "/workspace/output/webstudio-client-004-motion-composition-v34.html",
-      "concept_a": "/workspace/output/webstudio-client-004-concept-a-v34.html",
-      "concept_b": "/workspace/output/webstudio-client-004-concept-b-v34.html",
-      "concept_c": "/workspace/output/webstudio-client-004-concept-c-v34.html"
-    },
-    "qa_score": 98,
-    "client_004_premium_site_status": "PASS_PREMIUM_PROTOTYPE",
-    "hyperframes_runtime": "operational",
-    "host_runner_autopush": "operational"
-  },
-  "updated_at": "2026-05-25T19:54:56Z",
-  "status": "PASS",
-  "phase": "v34 Premium Website Factory",
-  "mode": "safe_local_artifacts_only",
+  "timestamp": "2026-05-26T13:47:29.402103Z",
+  "product": "Client #004 premium dental site",
+  "last_product_status": "v34.3 PASS / demo ready",
+  "active_system_task": "Hermes Runtime Repair v35",
+  "status": "ACTIVE_DAY0_CONTINUING",
   "items": [
     {
+      "id": "d1-premium-factory-research",
       "product_line": "D1",
-      "title": "Premium dental website Client #004",
-      "artifact_type": "premium static site",
-      "status": "PASS",
-      "readiness_score": 97,
-      "path": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
-      "qa_path": "/workspace/output/webstudio-client-004-premium-site-qa-v34.md",
-      "handoff_path": "/workspace/output/webstudio-client-004-premium-site-v34-report.md",
-      "client_gets": "Premium dental site with safe consultation CTA, trust path, generated concept visuals marked.",
-      "next_action": "owner review / approval gates"
+      "title": "Premium factory research",
+      "status": "done",
+      "category": "research",
+      "kind": "report",
+      "output": "/workspace/output/webstudio-premium-factory-research-v37.md"
     },
     {
+      "id": "d1-design-systems",
+      "product_line": "D1",
+      "title": "Design systems and DESIGN.md",
+      "status": "done",
+      "category": "design",
+      "kind": "report",
+      "output": "/workspace/output/webstudio-master-design-system-v37.md"
+    },
+    {
+      "id": "d1-webstudio-skills",
+      "product_line": "D1",
+      "title": "WebStudio skills",
+      "status": "done",
+      "category": "skills",
+      "kind": "report",
+      "output": "/workspace/output/webstudio-skills-inventory-v37.md"
+    },
+    {
+      "id": "d2-premium-factory-visual-sourcing",
       "product_line": "D2",
-      "title": "Telegram consultation intake path",
-      "artifact_type": "intake flow",
-      "status": "DRY_RUN_READY",
-      "readiness_score": 92,
-      "path": "/workspace/output/webstudio-client-004-interview-v34.md",
-      "qa_path": "/workspace/output/webstudio-client-004-accessibility-qa-v34.md",
-      "handoff_path": "/workspace/output/webstudio-client-004-shotlist-v34.md",
-      "client_gets": "Safe consultation request path for Telegram without medical diagnosis claims.",
-      "next_action": "connect live Telegram only after approval"
+      "title": "Premium factory visual sourcing",
+      "status": "ready",
+      "category": "visuals",
+      "kind": "roadmap",
+      "output": "/workspace/output/webstudio-day2-visual-sourcing-engine-v37.md"
     },
     {
+      "id": "d3-premium-factory-automation-review",
       "product_line": "D3",
-      "title": "Clinic proof/assets approval workflow",
-      "artifact_type": "business automation map",
-      "status": "APPROVAL_GATED",
-      "readiness_score": 91,
-      "path": "/workspace/output/webstudio-client-004-asset-registry-v34.json",
-      "qa_path": "/workspace/output/webstudio-client-004-performance-qa-v34.md",
-      "handoff_path": "/workspace/output/webstudio-client-004-shotlist-v34.md",
-      "client_gets": "Asset registry and approval gates for doctors, certificates, cases, interior and MP4 publication.",
-      "next_action": "owner/client approval for real assets"
+      "title": "Premium factory automation review",
+      "status": "ready",
+      "category": "automation",
+      "kind": "roadmap",
+      "output": "/workspace/output/webstudio-day3-automation-review-v37.md"
     }
   ],
-  "latest_pr_commit": "99df41feb9eb3fa4837a174ddef199c0a96462b9"
+  "owner_action_required": "NO",
+  "artifacts": [
+    "/workspace/output/hermes-runtime-repair-v35-report.md",
+    "/workspace/output/current-task-continuation-checkpoint.md"
+  ],
+  "updated_at": "2026-05-26T15:31:14Z",
+  "current_state_lock": {
+    "v34_3_client_004_production_demo": "PASS_CLIENT_DEMO_READY",
+    "product_work": "PAUSED_UNTIL_RUNTIME_REPAIR_PASS_OR_EXACT_ISOLATED_BLOCKER",
+    "current_blocker": "Hermes Runtime Repair v35 / Host Runner processing",
+    "host_smoke_job": "exists_but_not_processed_per_owner_and_prior_artifacts",
+    "provider_smoke": {
+      "gpt-5.5": "NOT_RUN_PENDING_HOST_RUNNER",
+      "gpt-5.4-mini": "NOT_RUN_PENDING_HOST_RUNNER"
+    },
+    "degraded_sandbox": "may have partial host visibility; host snapshot is preferred source",
+    "next_product_phase": "Premium Website Factory v36+ only after allowed system verdict",
+    "no_chat_cron": true,
+    "diagnostics_policy": "long diagnostics to artifacts; compact checkpoint for live prompt"
+  },
+  "phases": {
+    "0_current_state_lock": "in_progress",
+    "1_host_runner_processing_repair": "next",
+    "2_runtime_provider_smoke": "blocked_until_phase1",
+    "3_context_hygiene": "after_phase2_or_parallel_report_only",
+    "4_webstudio_regression": "after_runtime_smoke",
+    "5_github_autopush_health": "after_repo_or_runner_changes",
+    "6_system_green_verdict": "after_1_5",
+    "7_premium_factory_product_work": "not_started"
+  },
+  "approval_boundaries": [
+    "production secrets",
+    "live Telegram token",
+    "live CRM/Sheets writes",
+    "Supabase write migrations",
+    "deploy/release to public production",
+    "payment/live external actions",
+    "private client data approval",
+    "legal/medical public-launch approval"
+  ],
+  "system_verdict": "PASS_WITH_ISOLATED_PROVIDER_WATCH",
+  "host_runner_processing": "PASS",
+  "primary_gpt55_smoke": "PASS",
+  "default_route_smoke": "PASS",
+  "fallback_mini_smoke": "FAIL_ISOLATED_PROVIDER_WATCH",
+  "product_work_next": "Premium Website Factory v36+ allowed with provider watch after finalization",
+  "program": "WebStudio 7-Day Autonomous Premium Factory Program v37",
+  "v34_3_preserved": true,
+  "week_day": 0,
+  "current_phase": "Day 1 ready: research/design-system foundation",
+  "next_autonomous_job": "000-webstudio-v37-day0-state-lock-and-runtime-stability",
+  "weekly_artifacts": [
+    "/workspace/output/webstudio-weekly-plan-v37.md",
+    "/workspace/output/webstudio-weekly-plan-v37.json"
+  ],
+  "day0_status": "PASS_WITH_ISOLATED_PROVIDER_WATCH",
+  "host_runner_system_health_check": "PASS",
+  "host_runner_github_pr_verify": "PASS",
+  "github_autopush": "NOT_NEEDED_THIS_PASS",
+  "github_host_permissions": "ADMIN_PUSH_PULL",
+  "provider_primary": "PASS",
+  "provider_default": "PASS",
+  "provider_fallback_mini": "FAIL_ISOLATED_ENCRYPTED_CONTENT"
 }
