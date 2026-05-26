@@ -1,0 +1,19 @@
+{
+  "schema_version": "webstudio-asset-legitimacy.v37.1",
+  "generated_at": "2026-05-26T16:25:17.609853Z",
+  "status": "PASS_INITIAL",
+  "states": [
+    "real_client_provided",
+    "licensed_stock",
+    "generated_concept_demo_only",
+    "planned_shotlist",
+    "requires_owner_approval",
+    "forbidden_fake_medical_proof"
+  ],
+  "rules": [
+    "No fake doctors/certificates/cases as real proof",
+    "Generated visuals must be labelled concept/demo",
+    "Public medical use requires client-approved real assets and legal/medical copy approval",
+    "MP4/social teaser publication requires approval"
+  ]
+}

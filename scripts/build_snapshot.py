@@ -1414,6 +1414,45 @@ def build_premium_factory_v34(product_progress: dict[str, Any]) -> dict[str, Any
     return v34
 
 
+def build_error_recovery_v37_1() -> dict[str, Any]:
+    taxonomy = load_json(OUTPUT / "webstudio-error-taxonomy-v37-1.json", {})
+    errors = taxonomy.get("errors") if isinstance(taxonomy.get("errors"), list) else []
+    return {
+        "schema_version": "webstudio-error-recovery.v37.1",
+        "updated_at": utc_now(),
+        "status": "PASS" if errors else "WATCH",
+        "current_state": "RECOVERING" if errors else "WATCH",
+        "auto_recovery_status": "ACTIVE" if errors else "PENDING",
+        "last_recovery": "Day 1 Auto-Push classified as known recoverable sandbox GitHub auth failure; Host Runner job queued.",
+        "next_automatic_step": "Host Runner Auto-Push result + Day 2 Visual Sourcing Engine",
+        "taxonomy_report": str(OUTPUT / "webstudio-error-taxonomy-v37-1.md"),
+        "taxonomy_json": str(OUTPUT / "webstudio-error-taxonomy-v37-1.json"),
+        "playbooks_report": str(OUTPUT / "webstudio-error-recovery-playbooks-v37-1.md"),
+        "touch_ready_checklist": str(OUTPUT / "webstudio-touch-ready-beta-checklist-v37-1.md"),
+        "owner_guide": str(OUTPUT / "webstudio-touch-ready-owner-guide-v37-1.md"),
+        "owner_guide_html": str(OUTPUT / "webstudio-touch-ready-owner-guide-v37-1.html"),
+        "owner_action_required": False,
+        "errors": errors,
+    }
+
+
+def build_day2_visual_sourcing_v37_1() -> dict[str, Any]:
+    registry = OUTPUT / "webstudio-client-004-asset-registry-v37-1.json"
+    shotlist = OUTPUT / "webstudio-client-004-visual-direction-and-shotlist-v37-1.md"
+    return {
+        "schema_version": "webstudio-day2-visual-sourcing.v37.1",
+        "updated_at": utc_now(),
+        "status": "PASS_INITIAL" if registry.exists() and shotlist.exists() else "WATCH",
+        "asset_legitimacy_model": str(OUTPUT / "webstudio-asset-legitimacy-model-v37-1.json"),
+        "asset_registry_schema": str(OUTPUT / "webstudio-asset-registry-schema-v37-1.json"),
+        "shotlist_schema": str(OUTPUT / "webstudio-shotlist-schema-v37-1.json"),
+        "client_004_asset_registry": str(registry),
+        "client_004_visual_direction": str(shotlist),
+        "owner_action_required": False,
+        "next": "expand business-specific visual packs",
+    }
+
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -1487,6 +1526,8 @@ def build_state() -> dict[str, Any]:
         "premium_visual_motion_v31": premium_visual_motion_v31,
         "premium_website_generator_v32": premium_website_generator_v32,
         "premium_factory_v34": premium_factory_v34,
+        "error_recovery_v37_1": build_error_recovery_v37_1(),
+        "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
@@ -1530,7 +1571,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -32,7 +32,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory',
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -521,6 +521,7 @@ function overview() {
     ${metric('Premium Generator v32', state.premium_website_generator_v32?.status || 'unknown', 'span-3', 'premium-generator')}
     ${metric('Premium Factory v34', state.premium_factory_v34?.status || 'unknown', 'span-3', 'premium-factory-v34')}
     ${metric('Day 1', state.premium_factory_v37_day1?.status || 'PASS', 'span-3', 'premium-factory-v37-day1')}
+    ${metric('Recovery', state.error_recovery_v37_1?.status || 'PASS', 'span-3', 'error-recovery')}
     ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
     ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
     ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
@@ -902,6 +903,39 @@ function premiumFactoryV34() {
     ${card('Visual Sourcing Engine', `${kv({asset_registry:'real/generated/planned/approval required', medical_guardrails:'no fake doctors/certificates/before-after', shotlist:'hero/team/process/proof/interior/social'})}<div class="toolbar">${openButton('Asset registry', '/workspace/output/webstudio-client-004-asset-registry-v34.json')}${openButton('Shotlist', '/workspace/output/webstudio-client-004-shotlist-v34.md')}${openButton('Visual direction', '/workspace/output/webstudio-client-004-visual-direction-v34.md')}</div>`, 'span-6')}
     ${card('Motion / HyperFrames / 3D', `${kv({composition:'HTML ready', mp4:v34.mp4_status || 'render command ready', background_video:'policy ready', threejs:'policy ready', reduced_motion:'ready'})}<div class="toolbar">${openButton('Composition', '/workspace/output/webstudio-client-004-motion-composition-v34.html')}${openButton('Render command', '/workspace/output/webstudio-client-004-hyperframes-render-command-v34.md')}${openButton('3D policy', '/workspace/output/webstudio-3d-scene-policy-v34.md')}</div>`, 'span-6')}
     ${card('Kanban / Owner Approval Mirrors', `<div class="capability-grid">${kanbanCards.map(x => `<article class="mini-card"><b>${fmt(x.title || x.idempotency_key)}</b><p>${fmt(x.status || 'blocked mirror')} · не запускается автоматически</p></article>`).join('') || approvals.map(x => `<article class="mini-card"><b>${fmt(x)}</b><p>только после отдельного approval</p></article>`).join('')}</div><div class="toolbar">${openButton('Kanban result', '/workspace/output/webstudio-v34-kanban-cards-result.json')}</div>`, 'span-12')}
+  </div>`;
+}
+
+function recoveryStateLabel(s) {
+  const map = {OK:'OK', WATCH:'WATCH', DEGRADED_SAFE:'DEGRADED SAFE', RECOVERING:'RECOVERING', BLOCKED_OWNER_APPROVAL:'BLOCKED OWNER APPROVAL', BLOCKED_SYSTEM:'BLOCKED SYSTEM', PASS:'PASS'};
+  return map[String(s || '').toUpperCase()] || String(s || '—');
+}
+function recoveryRow(e) {
+  const main = `${e.category || '—'} · ${recoveryStateLabel(e.current_state)} · auto: ${e.auto_recovery_status || e.automatic_recovery || '—'} · owner action: ${e.owner_action_required ? 'YES' : 'NO'}`;
+  const next = e.next_automatic_step || e.when_to_retry || 'continue safe product lane';
+  return `<article class="attention-item ${statusClass(e.current_state || e.status)}">
+    <div class="attention-head"><strong>${fmt(e.error || e.id)}</strong>${badge(e.current_state || e.status || 'WATCH')}</div>
+    <p><b>Состояние:</b> ${fmt(main)}</p>
+    <p><b>Следующий автоматический шаг:</b> ${fmt(next)}</p>
+    <p class="label">Отчёт: ${fmt(shortPath(e.artifact_report_path || e.report || '—'))}</p>
+    <div class="toolbar">${openButton('Отчёт', e.artifact_report_path || e.report || '')}${detailPayloadButton(e, 'Подробнее', 'error-recovery')}</div>
+  </article>`;
+}
+function errorRecovery() {
+  const er = state.error_recovery_v37_1 || {};
+  const errors = asArray(er.errors);
+  const counts = errors.reduce((acc,e)=>{ const k=e.current_state || e.status || 'unknown'; acc[k]=(acc[k]||0)+1; return acc; },{});
+  const ownerNeeded = errors.filter(e => e.owner_action_required).length;
+  const routine = errors.filter(e => !e.owner_action_required).length;
+  return `<div class="grid error-recovery-page">
+    ${metric('Recovery status', er.status || 'PASS', 'span-3')}
+    ${metric('Error classes', errors.length, 'span-3')}
+    ${metric('Auto recovery', er.auto_recovery_status || 'active', 'span-3')}
+    ${metric('Owner action', ownerNeeded ? ownerNeeded + ' live gates' : 'NO for routine', 'span-3')}
+    ${card('Ошибки и восстановление', `${kv({status:er.status || 'PASS', current_state:er.current_state || 'RECOVERING', last_recovery:er.last_recovery || 'Day 1 Auto-Push moved to Host Runner', next_automatic_step:er.next_automatic_step || 'Host Runner Auto-Push + Day 2 Visual Sourcing', owner_action_required:ownerNeeded ? 'только live approvals' : 'NO for routine recovery'})}<p class="label">Главный экран показывает owner-safe статусы. Raw/debug и длинные пути только в «Подробнее».</p><div class="toolbar">${openButton('Taxonomy', er.taxonomy_report || '/workspace/output/webstudio-error-taxonomy-v37-1.md')}${openButton('Playbooks', er.playbooks_report || '/workspace/output/webstudio-error-recovery-playbooks-v37-1.md')}${openButton('Touch guide', er.owner_guide || '/workspace/output/webstudio-touch-ready-owner-guide-v37-1.md')}${detailPayloadButton(er, 'Подробнее', 'error-recovery-state')}</div>`, 'span-12')}
+    ${card('Статусы', kv(counts), 'span-4')}
+    ${card('Owner action policy', `<p><b>YES только для live approvals:</b> production secrets, live Telegram token, live CRM/Sheets writes, Supabase writes, public launch/publish, payments, private client data, medical/legal public launch.</p><p><b>NO для routine recovery:</b> GitHub Auto-Push, Host Runner retry, qmd, hfinalize, browser QA retry, production asset repair, artifacts, DESIGN.md/skills/visual sourcing.</p>`, 'span-8')}
+    <section class="card span-12"><h3>Recovery classes</h3><div class="list recovery-list">${errors.map(recoveryRow).join('')}</div></section>
   </div>`;
 }
 
@@ -1569,7 +1603,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'premium-factory-v37-day1': premiumFactoryV34, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

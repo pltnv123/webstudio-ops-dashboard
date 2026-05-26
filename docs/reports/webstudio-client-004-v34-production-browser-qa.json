@@ -1,0 +1,73 @@
+{
+  "schema": "webstudio.client004.v34_2.production_browser_qa",
+  "generated_at": "2026-05-26T07:34:22Z",
+  "status": "BLOCKED_FOR_CLIENT_DEMO",
+  "production_url": "file:///home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/index.html",
+  "console_errors": 0,
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1920,
+      "height": 1200,
+      "horizontal_scroll": false,
+      "cta_visible": true,
+      "telegram_path_visible": true,
+      "trust_path_visible": true,
+      "screenshot": "/home/hermes/.hermes/cache/screenshots/browser_screenshot_833779914fcf45c8bece1f8534e3f7fb.png",
+      "verdict": "layout_pass_assets_fail"
+    },
+    {
+      "name": "laptop",
+      "width": 1440,
+      "height": 1000,
+      "horizontal_scroll": false,
+      "cta_visible": true,
+      "telegram_path_visible": true,
+      "trust_path_visible": true,
+      "screenshot": "/home/hermes/.hermes/cache/screenshots/browser_screenshot_1d975408f53e44eb8b8ed80781105add.png",
+      "verdict": "layout_pass_assets_fail"
+    },
+    {
+      "name": "desktop_1366",
+      "width": 1366,
+      "height": 900,
+      "horizontal_scroll": false,
+      "cta_visible": "header_cta_visible; hero_cta below fold by DOM y=915 but visually reported visible near fold",
+      "telegram_path_visible": true,
+      "trust_path_visible": true,
+      "screenshot": "/home/hermes/.hermes/cache/screenshots/browser_screenshot_18b41c5a2bb94977866615c32826e586.png",
+      "verdict": "layout_pass_assets_fail"
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 900,
+      "horizontal_scroll": false,
+      "cta_visible": true,
+      "telegram_path_visible": "hero CTA visible; header nav hidden intentionally",
+      "trust_path_visible": true,
+      "screenshot": "/home/hermes/.hermes/cache/screenshots/browser_screenshot_ab65120128c54aec863ed532114b5646.png",
+      "verdict": "mobile_layout_pass_assets_fail"
+    }
+  ],
+  "requirements": {
+    "no_console_errors": "PASS",
+    "no_horizontal_scroll": "PASS_all_viewports",
+    "cta_visible": "PASS",
+    "telegram_path_visible": "PASS",
+    "trust_path_visible": "PASS",
+    "doctors_certificates_cases_labelled": "PASS",
+    "mp4_or_publication_gate_visible": "PASS_gate_visible_no_video_tag",
+    "reduced_motion_fallback": "PASS_source",
+    "page_feels_premium_not_template": "PARTIAL_premium_direction_strong_but_broken_assets_and_demo_labels_reduce_client_demo_quality"
+  },
+  "blockers": [
+    "production deployed SVG assets fail to load; page shows alt text/placeholders in browser QA"
+  ],
+  "screenshots": [
+    "/home/hermes/.hermes/cache/screenshots/browser_screenshot_833779914fcf45c8bece1f8534e3f7fb.png",
+    "/home/hermes/.hermes/cache/screenshots/browser_screenshot_1d975408f53e44eb8b8ed80781105add.png",
+    "/home/hermes/.hermes/cache/screenshots/browser_screenshot_18b41c5a2bb94977866615c32826e586.png",
+    "/home/hermes/.hermes/cache/screenshots/browser_screenshot_ab65120128c54aec863ed532114b5646.png"
+  ]
+}
