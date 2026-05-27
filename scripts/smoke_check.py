@@ -104,6 +104,8 @@ assert ce['chat_cron_used'] is False
 assert ce['owner_needs_to_type_continue'] is False
 assert 'snapshot_pending_count' in state['system_hardening']
 assert state['github_readiness'].get('pr_url'), 'GitHub PR URL required'
+assert 'mainline_sync' in state['github_readiness'], 'GitHub mainline sync status required'
+assert 'pushed_to_origin_main' in state['github_readiness']['mainline_sync'], 'mainline sync must expose pushed_to_origin_main'
 assert 'enabled' in state['work_factory']
 assert state['kanban'].get('executable_mirror_count', 0) == 0
 controller = state['continuation_controller']

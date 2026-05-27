@@ -120,7 +120,7 @@ def read_text(path: Path, limit: int = 80_000) -> str:
         return ""
 
 
-def run_cmd(args: list[str], timeout: int = 20) -> dict[str, Any]:
+def run_cmd(args: list[str], timeout: int = 20, cwd: Path | None = None) -> dict[str, Any]:
     env = os.environ.copy()
     env["PATH"] = "/workspace/bin:/workspace/.hermes/node/bin:" + env.get("PATH", "")
     env.setdefault("HOME", "/workspace")
@@ -134,6 +134,7 @@ def run_cmd(args: list[str], timeout: int = 20) -> dict[str, Any]:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
+            cwd=str(cwd) if cwd else None,
             start_new_session=True,
         )
         try:
@@ -755,6 +756,25 @@ def build_github_readiness() -> dict[str, Any]:
     autopush_result = load_json(autopush_result_path, {})
     host_runner_latest_path = OUTPUT / "host-job-runner" / "latest.json"
     host_runner_latest = load_json(host_runner_latest_path, {})
+    local_branch = run_cmd(["git", "rev-parse", "--abbrev-ref", "HEAD"], timeout=10, cwd=ROOT)
+    local_head = run_cmd(["git", "rev-parse", "HEAD"], timeout=10, cwd=ROOT)
+    origin_main = run_cmd(["git", "rev-parse", "origin/main"], timeout=10, cwd=ROOT)
+    local_status = run_cmd(["git", "status", "--short"], timeout=10, cwd=ROOT)
+    mainline_sync = {
+        "repo": "pltnv123/webstudio-ops-dashboard",
+        "branch": local_branch.get("stdout", "").strip() or None,
+        "local_head": local_head.get("stdout", "").strip() or None,
+        "origin_main": origin_main.get("stdout", "").strip() or None,
+        "clean": local_status.get("ok") and not local_status.get("stdout", "").strip(),
+        "pushed_to_origin_main": bool(
+            local_head.get("ok")
+            and origin_main.get("ok")
+            and local_head.get("stdout", "").strip()
+            and local_head.get("stdout", "").strip() == origin_main.get("stdout", "").strip()
+        ),
+        "status_excerpt": local_status.get("stdout", "")[:2000],
+        "updated_at": utc_now(),
+    }
     checks = {
         "command_v_gh": run_cmd(["bash", "-lc", "command -v gh || true"], timeout=10),
         "workspace_bin_gh": run_cmd(["bash", "-lc", "ls -l /workspace/bin/gh 2>&1 || true"], timeout=10),
@@ -790,6 +810,7 @@ def build_github_readiness() -> dict[str, Any]:
         "completion_result": completion_result if isinstance(completion_result, dict) else {},
         "completion_result_source": stat_info(completion_result_path),
         "autopush": autopush_result if isinstance(autopush_result, dict) else {},
+        "mainline_sync": mainline_sync,
         "autopush_source": stat_info(autopush_result_path),
         "autopush_script": "/workspace/output/webstudio-github-autopush-v1.sh",
         "next_push_candidate": (autopush_result.get("next_push_candidate") if isinstance(autopush_result, dict) else None) or (pr1_status.get("next_push_candidate") if isinstance(pr1_status, dict) else None),

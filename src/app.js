@@ -1375,6 +1375,7 @@ function githubReadinessPanel() {
   const gh = state.github_readiness || {};
   const ap = gh.autopush || {};
   const pr = gh.pr_status || {};
+  const ms = gh.mainline_sync || {};
   const ownerNeeded = (ap.owner_action_required === false || ap.owner_action_required === 'no') ? false : (ap.owner_action_required === true || ap.owner_action_required === 'yes' || ap.status === 'blocked' || gh.status === 'AUTO_PUSH_BLOCKED' || gh.wrapper_broken);
   const prUrl = gh.pr_url || pr.pr_url || ap.pr_url || gh.completion_result?.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1';
   const latestCommit = ap.latest_pushed_commit || ap.latest_local_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
@@ -1382,9 +1383,12 @@ function githubReadinessPanel() {
   const checks = ap.gitguardian_status || ap.checks_status || pr.gitguardian_status || pr.checks_status || gh.pr_status?.checks_status || 'unknown';
   const nextPush = ap.next_push_candidate || gh.next_push_candidate || 'none until next useful code change';
   return card('GitHub Auto-Push', `${kv({
+      mainline_sync: ms.pushed_to_origin_main === true ? 'origin/main synced' : (ms.branch ? 'check sync' : 'unknown'),
+      local_branch: ms.branch || '—',
+      origin_main: ms.origin_main ? shortText(ms.origin_main, 14) : '—',
       auto_push_status: ap.status || gh.status || 'unknown',
       latest_push_time: pr.pushed_at || ap.pushed_at || ap.generated_at || gh.pushed_at || '—',
-      latest_pushed_commit: latestCommit,
+      latest_pushed_commit: ms.local_head || latestCommit,
       latest_pr_head: latestPrHead,
       pr_status: ap.pr_status || pr.status || gh.status || 'unknown',
       gitguardian: checks,
@@ -1392,7 +1396,7 @@ function githubReadinessPanel() {
       next_push_candidate: nextPush,
       owner_action_required: ownerNeeded ? 'yes' : 'no',
       script: gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh'
-    })}<div class="toolbar"><a class="copy" href="${esc(prUrl)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Copy autopush script', gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh')}${copyButton('Copy PR URL', prUrl)}</div>`, 'span-6');
+    })}<div class="toolbar"><a class="copy" href="${esc(prUrl)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Copy latest main commit', ms.local_head || latestCommit)}${copyButton('Copy autopush script', gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh')}${copyButton('Copy PR URL', prUrl)}</div>`, 'span-6');
 }
 
 function artifactRow(a) {
