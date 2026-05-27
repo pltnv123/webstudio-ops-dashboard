@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
@@ -139,7 +140,13 @@ assert 'visual-kanban-board' in css
 if state['github_readiness'].get('status') == 'UPDATED':
     assert state['github_readiness'].get('latest_commit_sha'), 'UPDATED PR needs latest commit SHA'
     assert state['github_readiness'].get('pushed_at'), 'UPDATED PR needs pushed_at'
-assert state['kanban']['task_total'] >= 100
+skip_host_cli = os.environ.get('WEBSTUDIO_SKIP_HOST_CLI') == '1'
+if skip_host_cli:
+    assert state['kanban']['task_total'] >= 0
+    read_errors = state['kanban'].get('read_errors', {})
+    assert 'WEBSTUDIO_SKIP_HOST_CLI=1' in json.dumps(read_errors), 'skipped smoke must record host CLI skip reason'
+else:
+    assert state['kanban']['task_total'] >= 100
 assert state['kanban'].get('executable_mirror_count', state['safety'].get('mirror_executable_count')) == 0
 assert len(state['kanban'].get('duplicate_keys', state['safety'].get('duplicate_keys', {}))) == 0
 

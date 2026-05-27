@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import re
+import signal
 import shutil
 import subprocess
 import time
@@ -123,8 +124,27 @@ def run_cmd(args: list[str], timeout: int = 20) -> dict[str, Any]:
     env = os.environ.copy()
     env["PATH"] = "/workspace/bin:/workspace/.hermes/node/bin:" + env.get("PATH", "")
     env.setdefault("HOME", "/workspace")
+    command_text = " ".join(args)
+    if os.environ.get("WEBSTUDIO_SKIP_HOST_CLI") == "1" and re.search(r"\b(hermes|qmd)\b", command_text):
+        return {"ok": False, "returncode": None, "stdout": "", "stderr": "skipped by WEBSTUDIO_SKIP_HOST_CLI=1"}
     try:
-        p = subprocess.run(args, text=True, capture_output=True, timeout=timeout, env=env)
+        p = subprocess.Popen(
+            args,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            start_new_session=True,
+        )
+        try:
+            stdout, stderr = p.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            with contextlib.suppress(ProcessLookupError):
+                os.killpg(p.pid, signal.SIGKILL)
+            stdout, stderr = p.communicate()
+            return {"ok": False, "returncode": None, "stdout": stdout or "", "stderr": (stderr or "") + f"\ncommand timed out after {timeout}s"}
+        p.stdout = stdout
+        p.stderr = stderr
         return {"ok": p.returncode == 0, "returncode": p.returncode, "stdout": p.stdout, "stderr": p.stderr}
     except Exception as e:
         return {"ok": False, "returncode": None, "stdout": "", "stderr": str(e)}
