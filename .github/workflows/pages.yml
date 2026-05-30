@@ -29,6 +29,8 @@ jobs:
           python-version: '3.11'
 
       - name: Build static snapshot
+        env:
+          WORKSPACE: ${{ github.workspace }}
         run: python3 scripts/build_snapshot.py --dist dist
 
       - name: Smoke static snapshot
