@@ -209,15 +209,31 @@ def build_work_factory(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_kanban() -> dict[str, Any]:
-    # Kanban reads can be slow on cold starts, so give the CLI enough room to
-    # return a full projection instead of falling back to an empty dashboard.
-    list_result = run_cmd(["hermes", "kanban", "list", "--archived", "--json"], timeout=90)
-    stats_result = run_cmd(["hermes", "kanban", "stats"], timeout=60)
+    # Kanban reads can be slow or unavailable inside the Docker sandbox. Prefer
+    # the host bridge when present; it exposes the canonical host Kanban state
+    # without starting dispatchers or mutating tasks. The hkanban wrapper expects
+    # arguments after the implicit hermes prefix, e.g. `hkanban kanban stats`.
+    if Path("/workspace/bin/hkanban").exists():
+        list_result = run_cmd(["/workspace/bin/hkanban", "kanban", "list", "--archived", "--json"], timeout=120)
+        stats_result = run_cmd(["/workspace/bin/hkanban", "kanban", "stats"], timeout=120)
+    else:
+        list_result = run_cmd(["hermes", "kanban", "list", "--archived", "--json"], timeout=90)
+        stats_result = run_cmd(["hermes", "kanban", "stats"], timeout=60)
     tasks = []
 
+    kanban_fallback_path = OUTPUT / "kanban-list-current.json"
+    kanban_fallback_used = False
     if list_result["ok"]:
         try:
             tasks = json.loads(list_result["stdout"])
+        except Exception:
+            tasks = []
+    if not tasks and kanban_fallback_path.exists():
+        try:
+            fallback_tasks = json.loads(kanban_fallback_path.read_text(encoding="utf-8"))
+            if isinstance(fallback_tasks, list):
+                tasks = fallback_tasks
+                kanban_fallback_used = True
         except Exception:
             tasks = []
     counts: dict[str, int] = {}
@@ -288,6 +304,8 @@ def build_kanban() -> dict[str, Any]:
         "list_available": list_result["ok"],
         "stats_available": stats_result["ok"],
         "stats_text": stats_result["stdout"][:5000],
+        "fallback_used": kanban_fallback_used,
+        "fallback_path": str(kanban_fallback_path) if kanban_fallback_used else None,
         "counts": counts,
         "assignees": assignees,
         "task_total": len(tasks) if isinstance(tasks, list) else 0,
