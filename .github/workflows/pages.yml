@@ -28,6 +28,25 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Prepare CI output metadata
+        env:
+          WORKSPACE: ${{ github.workspace }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "$WORKSPACE/output"
+          python3 - <<'PY'
+          import json, os, pathlib
+          out = pathlib.Path(os.environ['WORKSPACE']) / 'output'
+          row = {
+              'status': 'UPDATED',
+              'pr_url': 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/5',
+              'headRefOid': os.environ.get('HEAD_SHA'),
+              'latest_commit_sha': os.environ.get('HEAD_SHA'),
+              'checks_status': 'github_actions_pages_build',
+          }
+          (out / 'webstudio-github-pr1-status.json').write_text(json.dumps(row, indent=2))
+          PY
+
       - name: Build static snapshot
         env:
           WORKSPACE: ${{ github.workspace }}
