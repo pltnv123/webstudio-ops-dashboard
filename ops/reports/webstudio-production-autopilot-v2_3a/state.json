@@ -1,14 +1,17 @@
 {
   "component": "webstudio-production-autopilot",
   "step": "v2.3b-github-reporting-baseline",
-  "status": "IN_PROGRESS",
+  "status": "PASS",
   "repo_path": "/workspace/tmp/webstudio-ops-dashboard-pr",
   "output_root": "/workspace/tmp/webstudio-ops-dashboard-pr/ops/reports/webstudio-production-autopilot-v2_3a",
   "branch": "webstudio/product-build-v32-premium-generator",
   "upstream": "origin/webstudio/product-build-v32-premium-generator",
   "base_head_before_commit": "6b0f4307ad4518786bb817a831dd51a94b885d5d",
-  "commit_hash": null,
-  "pr_url": null,
-  "supabase_row_written": false,
-  "created_at": "2026-05-30T20:22:23Z"
+  "commit_hash": "030ec4770b4c8805177bf9e3aa16283c904ee743",
+  "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5",
+  "supabase_row_written": true,
+  "created_at": "2026-05-30T20:22:23Z",
+  "supabase_row_id": "f56cc6fb-c6b2-4236-80d2-e7ec76895e51",
+  "updated_at": "2026-05-30T20:25:17Z",
+  "remote_sha": "030ec4770b4c8805177bf9e3aa16283c904ee743"
 }
