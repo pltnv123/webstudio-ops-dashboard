@@ -55,6 +55,7 @@ jobs:
       - name: Smoke static snapshot
         env:
           WORKSPACE: ${{ github.workspace }}
+          WEBSTUDIO_CI: '1'
         run: python3 scripts/smoke_check.py
 
       - name: Upload Pages artifact
