@@ -15,7 +15,7 @@ The V2.5 autonomous delivery loop baseline is installed as the normal operating 
 - Pages HTTP: 200
 - Latest Pages deploy before policy push: completed/success
 - Supabase operational tables: verified
-- Supabase V2.5 row: e68f16b2-e8ee-416f-b7a9-1c675b25e5a5
+- Supabase V2.5 initial row: e68f16b2-e8ee-416f-b7a9-1c675b25e5a5
 
 ## Installed policy bundle
 
@@ -31,7 +31,7 @@ The V2.5 autonomous delivery loop baseline is installed as the normal operating 
 ## Core baseline rules
 
 - Every important step creates report/state/events/validation.
-- Every important step pushes sanitized evidence to GitHub under  when in scope.
+- Every important step pushes sanitized evidence to GitHub under `ops/reports/...` when in scope.
 - Every production code change requires build, smoke, secret scan, and diff checks.
 - Deployment requires successful GitHub Actions on the durable default branch.
 - Every important step writes a Supabase operational status row.
