@@ -1081,6 +1081,28 @@ function deliveryRehearsalChecklist(composer, order, summary) {
   return `<section class="card span-12 delivery-rehearsal-checklist-v44"><h3>Delivery rehearsal checklist v44</h3><p class="label">Copy-only dry-run checklist before owner/client handoff: recipient, packet, proof, approval, rollback, and follow-up are rehearsed without external writes.</p><div class="metric-row">${metric('Rehearsal gate', gate, 'span-3')}${metric('Ready checks', `${ready}/${checks.length}`, 'span-3')}${metric('Review / gated', gated, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Rehearsal guardrail v44', kv({mode: rehearsal.mode || 'read_only_rehearsal_checklist', storage: rehearsal.persistence || 'static_state_plus_copy_packet', safety: rehearsal.safety || 'no external writes', next_safe_action: rehearsal.next_safe_action || 'manual rehearsal before live handoff'}), 'span-12')}<div class="list">${checkRows || '<div class="empty">Rehearsal checklist not configured.</div>'}</div>${toolbar([copyButton('Copy rehearsal checklist', packet), copyButton('Copy rehearsal JSON', jsonCopy(rehearsal))])}</section>`;
 }
 
+function deliveryGoNoGoMatrix(composer, order, summary) {
+  const matrix = composer.handoff_go_no_go_matrix_v45 || {};
+  const criteria = asArray(matrix.criteria);
+  const go = criteria.filter(x => /go|ready|pass/i.test(String(x.default_decision || x.status))).length;
+  const nogo = criteria.filter(x => /no_go|blocked|owner|review|watch/i.test(String(x.default_decision || x.status))).length;
+  const decision = nogo ? 'NO_GO_UNTIL_OWNER_REVIEW' : 'GO_FOR_OWNER_REVIEW_ONLY';
+  const packet = [
+    'Delivery go/no-go matrix v45',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Matrix decision: ${decision}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Go criteria: ${go}/${criteria.length}`,
+    `No-go/review criteria: ${nogo}`,
+    `Mode: ${matrix.mode || 'read_only_go_no_go_matrix'}`,
+    `Safety: ${matrix.safety || 'copy-only; no client-send/CRM/DB writes'}`,
+    `Next safe action: ${matrix.next_safe_action || 'owner reviews no-go items before any live handoff'}`,
+    ...criteria.map((x, idx) => `${x.id || ('g' + (idx + 1))}: ${x.default_decision || x.status || 'unknown'} · ${x.label || 'Go/no-go criterion'} · evidence=${x.evidence || '—'} · owner=${x.owner_action || 'review'}`)
+  ].join('\n');
+  const criterionRows = criteria.map((x, idx) => row(x.id || ('G' + (idx + 1)), x.label || 'Go/no-go criterion', x.default_decision || x.status || 'unknown', `${x.evidence || 'static'} · ${x.owner_action || 'review'}`, 'delivery-go-no-go-matrix-v45', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-go-no-go-matrix-v45"><h3>Delivery go/no-go matrix v45</h3><p class="label">Owner-safe финальный go/no-go фильтр перед handoff: объединяет scope, proof, approval, rollback и follow-up в copy-only матрицу без внешних записей.</p><div class="metric-row">${metric('Matrix decision', decision, 'span-3')}${metric('Go criteria', `${go}/${criteria.length}`, 'span-3')}${metric('No-go / review', nogo, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Go/no-go guardrail v45', kv({mode: matrix.mode || 'read_only_go_no_go_matrix', storage: matrix.persistence || 'static_state_plus_copy_packet', safety: matrix.safety || 'no external writes', next_safe_action: matrix.next_safe_action || 'owner reviews no-go items before live handoff'}), 'span-12')}<div class="list">${criterionRows || '<div class="empty">Go/no-go matrix not configured.</div>'}</div>${toolbar([copyButton('Copy go/no-go matrix', packet), copyButton('Copy go/no-go JSON', jsonCopy(matrix))])}</section>`;
+}
+
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1126,7 +1148,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryGoNoGoMatrix(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {

@@ -137,6 +137,9 @@ required_js_symbols = [
     'deliveryRehearsalChecklist',
     'Delivery rehearsal checklist v44',
     'handoff_rehearsal_checklist_v44',
+    'deliveryGoNoGoMatrix',
+    'Delivery go/no-go matrix v45',
+    'handoff_go_no_go_matrix_v45',
 ]
 for symbol in required_js_symbols:
     assert symbol in js, f'missing JS symbol {symbol}'
@@ -172,8 +175,8 @@ assert state['order_builder']['safety']['public_demo_only'] is True
 assert state['order_builder']['safety']['real_sensitive_client_data'] is False
 assert state['delivery_handoff_composer_v33']['status'] == 'PASS_LOCAL_READY'
 assert state['delivery_handoff_composer_v33']['owner_action_required'] is False
-assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v44'
-assert state['delivery_handoff_composer_v33']['feature'] == 'handoff_rehearsal_checklist_v44'
+assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v45'
+assert state['delivery_handoff_composer_v33']['feature'] == 'handoff_go_no_go_matrix_v45'
 assert state['delivery_handoff_composer_v33']['acceptance_tracker']['storage_key'] == 'webstudio.delivery.acceptanceTracker.v34'
 assert len(state['delivery_handoff_composer_v33']['client_ready_checklist']) >= 5
 assert len(state['delivery_handoff_composer_v33']['acceptance_tracker']['rows']) >= 6
@@ -195,6 +198,8 @@ assert len(state['delivery_handoff_composer_v33']['handoff_manifest_v43']['evide
 assert len(state['delivery_handoff_composer_v33']['handoff_manifest_v43']['handoff_steps']) >= 4
 assert state['delivery_handoff_composer_v33']['handoff_rehearsal_checklist_v44']['schema_version'] == 'webstudio.delivery-handoff-rehearsal-checklist.v44'
 assert len(state['delivery_handoff_composer_v33']['handoff_rehearsal_checklist_v44']['checks']) >= 6
+assert state['delivery_handoff_composer_v33']['handoff_go_no_go_matrix_v45']['schema_version'] == 'webstudio.delivery-handoff-go-no-go-matrix.v45'
+assert len(state['delivery_handoff_composer_v33']['handoff_go_no_go_matrix_v45']['criteria']) >= 6
 assert state['delivery_handoff_composer_v33']['followup_planner_v37']['storage_key'] == 'webstudio.delivery.followupPlanner.v37'
 assert len(state['delivery_handoff_composer_v33']['followup_planner_v37']['tasks']) >= 5
 assert 'enabled' in state['work_factory']

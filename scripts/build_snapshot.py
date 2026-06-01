@@ -1829,13 +1829,33 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["client", "rehearsal_gate", "acceptance_gate", "checks", "proof", "owner_action", "guardrail"],
         "next_safe_action": "Run this copy-only rehearsal, attach fresh proof, then request explicit approval for any live handoff action.",
     }
+    handoff_go_no_go_matrix = {
+        "schema_version": "webstudio.delivery-handoff-go-no-go-matrix.v45",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_go_no_go_matrix",
+        "persistence": "static_state_plus_copy_packet",
+        "safety": "copy-only dashboard decision matrix; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
+        "purpose": "Convert rehearsal proof into a compact owner-facing go/no-go decision before any client handoff or live external action.",
+        "criteria": [
+            {"id": "scope-freeze", "label": "Sanitized scope and package are frozen", "default_decision": "go", "evidence": "order_builder.sample_order + handoff manifest v43", "owner_action": "Confirm no sensitive/private client data is included."},
+            {"id": "proof-current", "label": "Build, smoke, secret scan, and Pages proof are current", "default_decision": "review_required", "evidence": "delivery evidence binder v38 + freshness monitor v41", "owner_action": "Refresh proof after push or UI change before handoff."},
+            {"id": "approval-recorded", "label": "Live/client send approval is explicit", "default_decision": "no_go_until_owner", "evidence": "approval decision ledger v42", "owner_action": "Approve exact external action separately or keep blocked."},
+            {"id": "rollback-ready", "label": "Rollback/correction path avoids force push and DB destruction", "default_decision": "go", "evidence": "handoff rehearsal checklist v44", "owner_action": "Use normal revert/patch commit only if rollback is needed."},
+            {"id": "followup-owner", "label": "Post-handoff follow-up owner is known", "default_decision": "review_required", "evidence": "follow-up planner v37", "owner_action": "Assign manual follow-up owner or waive for demo."},
+            {"id": "external-write-guard", "label": "CRM/DB/client-send/Supabase writes remain disabled", "default_decision": "no_go_until_owner", "evidence": "autonomy_policy.approval_required_for", "owner_action": "Do not perform live writes from this dashboard."},
+        ],
+        "copy_packet_fields": ["client", "matrix_decision", "acceptance_gate", "criteria", "evidence", "owner_action", "guardrail"],
+        "next_safe_action": "Resolve NO_GO/review rows with the owner before any live handoff action; dashboard remains read-only/copy-only.",
+    }
+
 
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v44",
+        "schema_version": "webstudio.delivery-handoff-composer.v45",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "handoff_rehearsal_checklist_v44",
+        "feature": "handoff_go_no_go_matrix_v45",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1871,6 +1891,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "approval_decision_ledger_v42": approval_decision_ledger,
         "handoff_manifest_v43": handoff_manifest,
         "handoff_rehearsal_checklist_v44": handoff_rehearsal_checklist,
+        "handoff_go_no_go_matrix_v45": handoff_go_no_go_matrix,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {
