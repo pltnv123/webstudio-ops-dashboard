@@ -1125,6 +1125,33 @@ function deliveryClientAcceptanceReceipt(composer, order, summary) {
   return `<section class="card span-12 delivery-client-acceptance-receipt-v46"><h3>Delivery client acceptance receipt v46</h3><p class="label">Copy-only acceptance receipt for owner/client handoff: accepted scope, proof, go/no-go, approvals, exclusions, and next safe step in one packet.</p><div class="metric-row">${metric('Acceptance status', status, 'span-3')}${metric('Ready sections', `${ready}/${sections.length}`, 'span-3')}${metric('Review / blocked', blocked, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Receipt guardrail v46', kv({mode: receipt.mode || 'read_only_acceptance_receipt', storage: receipt.persistence || 'static_state_plus_copy_packet', safety: receipt.safety || 'no external writes', next_safe_action: receipt.next_safe_action || 'copy only after current proof is attached'}), 'span-12')}<div class="list">${sectionRows || '<div class="empty">Acceptance receipt not configured.</div>'}</div>${toolbar([copyButton('Copy acceptance receipt', packet), copyButton('Copy receipt JSON', jsonCopy(receipt))])}</section>`;
 }
 
+
+function deliveryClientEscalationSheet(composer, order, summary) {
+  const sheet = composer.client_escalation_sheet_v47 || {};
+  const fallbackContacts = [
+    {id:'owner-approver', role:'Owner approver', status:'owner_review_required', channel:'internal owner approval', escalation_rule:'blocks launch/send until approved', owner_action:'confirm approval owner'},
+    {id:'client-primary', role:'Client primary recipient', status:'ready_placeholder', channel:'client-approved channel placeholder', escalation_rule:'if no response, use follow-up planner v37', owner_action:'replace placeholder with approved recipient only'},
+    {id:'qa-contact', role:'QA/delivery contact', status:'ready', channel:'WebStudio delivery desk', escalation_rule:'attach build/smoke/Pages proof before reply', owner_action:'review proof binder'},
+    {id:'rollback-contact', role:'Rollback / pause contact', status:'ready', channel:'internal ops', escalation_rule:'pause live action; keep static artifact available', owner_action:'approve rollback path if needed'}
+  ];
+  const contacts = asArray(sheet.contact_rows).length ? asArray(sheet.contact_rows) : fallbackContacts;
+  const ready = contacts.filter(x => /ready|pass|available/i.test(String(x.status))).length;
+  const gated = contacts.filter(x => /owner|blocked|review/i.test(String(x.status))).length;
+  const packet = [
+    'Delivery client escalation sheet v47',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Coverage: ${ready}/${contacts.length}`,
+    `Owner-gated rows: ${gated}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Mode: ${sheet.mode || 'read_only_escalation_sheet'}`,
+    `Safety: ${sheet.safety || 'copy-only; no client-send/CRM/DB writes'}`,
+    `Next safe step: ${sheet.next_safe_action || 'owner reviews contact roles before live handoff'}`,
+    ...contacts.map((x, idx) => `${x.id || ('c' + (idx + 1))}: ${x.status || 'unknown'} · ${x.role || x.label || 'Contact role'} · channel=${x.channel || '—'} · escalation=${x.escalation_rule || '—'} · owner=${x.owner_action || 'review'}`)
+  ].join('\n');
+  const contactRows = contacts.map((x, idx) => row(x.id || ('C' + (idx + 1)), x.role || x.label || 'Contact role', x.status || 'unknown', `${x.channel || 'manual'} · ${x.escalation_rule || 'review'}`, 'delivery-client-escalation-sheet-v47', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-client-escalation-sheet-v47"><h3>Delivery client escalation sheet v47</h3><p class="label">Owner-safe contact and escalation map for handoff: who receives the packet, who approves issues, response windows, and rollback contacts are copy-only until owner approval.</p><div class="metric-row">${metric('Contact coverage', `${ready}/${contacts.length}`, 'span-3')}${metric('Owner gated rows', gated, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}${metric('Mode', sheet.mode || 'read_only_escalation_sheet', 'span-3')}</div>${card('Escalation guardrail v47', kv({mode: sheet.mode || 'read_only_escalation_sheet', storage: sheet.persistence || 'static_state_plus_copy_packet', safety: sheet.safety || 'no external writes', next_safe_action: sheet.next_safe_action || 'review contact roles before live handoff'}), 'span-12')}<div class="list">${contactRows || '<div class="empty">Escalation contacts not configured.</div>'}</div>${toolbar([copyButton('Copy escalation sheet', packet), copyButton('Copy escalation JSON', jsonCopy(sheet))])}</section>`;
+}
+
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1170,7 +1197,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryGoNoGoMatrix(composer, o, summary)}${deliveryClientAcceptanceReceipt(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryGoNoGoMatrix(composer, o, summary)}${deliveryClientAcceptanceReceipt(composer, o, summary)}${deliveryClientEscalationSheet(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {
