@@ -1,0 +1,6 @@
+{"ts": "2026-06-01T14:03:49.285341Z", "event": "phase0.current_state_verified", "status": "PASS"}
+{"ts": "2026-06-01T14:04:50.885978Z", "event": "phase1.demo_order.created", "status": "PASS"}
+{"ts": "2026-06-01T14:04:50.885978Z", "event": "phase2.package.created", "status": "PASS"}
+{"ts": "2026-06-01T14:14:42.164731Z", "event": "phase3.dashboard_local_ready", "status": "PASS", "commit": "1b5f2b71bb7e0e71f3931540c66d64fb95f19c58"}
+{"ts": "2026-06-01T14:29:58.560438Z", "event": "phase3.portable_snapshot_commit", "status": "PASS", "commit": "b70bdbd65760cf88c80f46967a476d975dc0471f"}
+{"ts": "2026-06-01T15:00:36.126235Z", "event": "phase4.roadmap_update", "status": "PASS"}
