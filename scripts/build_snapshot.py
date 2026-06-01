@@ -1849,13 +1849,35 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "next_safe_action": "Resolve NO_GO/review rows with the owner before any live handoff action; dashboard remains read-only/copy-only.",
     }
 
+    client_acceptance_receipt = {
+        "schema_version": "webstudio.delivery-client-acceptance-receipt.v46",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_acceptance_receipt",
+        "persistence": "static_state_plus_copy_packet",
+        "safety": "copy-only dashboard receipt; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
+        "purpose": "Turn the handoff go/no-go result into a final owner/client acceptance receipt template with proof, exclusions, approvals, and next-step boundaries in one copyable packet.",
+        "receipt_sections": [
+            {"id": "accepted-scope", "label": "Accepted safe scope", "status": "ready", "source": "order_builder.sample_order + client_ready_checklist", "copy_hint": "List only sanitized demo/package scope that was verified."},
+            {"id": "proof-attached", "label": "Proof attached", "status": "review_required", "source": "evidence binder v38 + freshness monitor v41", "copy_hint": "Attach build, smoke, secret scan, Pages, and screenshot/HTTP proof paths."},
+            {"id": "go-no-go", "label": "Go/no-go decision recorded", "status": "owner_review_required", "source": "handoff_go_no_go_matrix_v45", "copy_hint": "Keep NO_GO/review rows visible until owner resolves them."},
+            {"id": "approval-boundary", "label": "Live-action approval boundary", "status": "blocked_until_owner", "source": "approval decision ledger v42", "copy_hint": "State that client-send, CRM, DB, Supabase, DNS, and public launch need exact approval."},
+            {"id": "exclusions", "label": "Exclusions and forbidden actions", "status": "ready", "source": "autonomy_policy.approval_required_for", "copy_hint": "Explicitly exclude secrets, private client data, force push, destructive DB changes, and unapproved deploys."},
+            {"id": "next-step", "label": "Next safe step", "status": "ready", "source": "followup planner v37 + handoff rehearsal v44", "copy_hint": "Assign manual follow-up or keep demo-only until approval."},
+        ],
+        "copy_packet_fields": ["client", "acceptance_status", "accepted_scope", "proof", "go_no_go", "approval_boundary", "exclusions", "next_safe_step"],
+        "acceptance_status_options": ["PASS_SAFE_SCOPE", "PASS_WITH_APPROVAL_BLOCKERS", "BLOCKED_NEEDS_PROOF", "BLOCKED_NEEDS_OWNER_APPROVAL"],
+        "default_acceptance_status": "PASS_WITH_APPROVAL_BLOCKERS",
+        "next_safe_action": "Copy the receipt into the owner/client handoff only after current proof is attached; any live external action remains separately approval-gated.",
+    }
+
 
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v45",
+        "schema_version": "webstudio.delivery-handoff-composer.v46",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "handoff_go_no_go_matrix_v45",
+        "feature": "client_acceptance_receipt_v46",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1892,6 +1914,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "handoff_manifest_v43": handoff_manifest,
         "handoff_rehearsal_checklist_v44": handoff_rehearsal_checklist,
         "handoff_go_no_go_matrix_v45": handoff_go_no_go_matrix,
+        "client_acceptance_receipt_v46": client_acceptance_receipt,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {

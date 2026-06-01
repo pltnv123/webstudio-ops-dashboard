@@ -1103,6 +1103,28 @@ function deliveryGoNoGoMatrix(composer, order, summary) {
   return `<section class="card span-12 delivery-go-no-go-matrix-v45"><h3>Delivery go/no-go matrix v45</h3><p class="label">Owner-safe финальный go/no-go фильтр перед handoff: объединяет scope, proof, approval, rollback и follow-up в copy-only матрицу без внешних записей.</p><div class="metric-row">${metric('Matrix decision', decision, 'span-3')}${metric('Go criteria', `${go}/${criteria.length}`, 'span-3')}${metric('No-go / review', nogo, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Go/no-go guardrail v45', kv({mode: matrix.mode || 'read_only_go_no_go_matrix', storage: matrix.persistence || 'static_state_plus_copy_packet', safety: matrix.safety || 'no external writes', next_safe_action: matrix.next_safe_action || 'owner reviews no-go items before live handoff'}), 'span-12')}<div class="list">${criterionRows || '<div class="empty">Go/no-go matrix not configured.</div>'}</div>${toolbar([copyButton('Copy go/no-go matrix', packet), copyButton('Copy go/no-go JSON', jsonCopy(matrix))])}</section>`;
 }
 
+function deliveryClientAcceptanceReceipt(composer, order, summary) {
+  const receipt = composer.client_acceptance_receipt_v46 || {};
+  const sections = asArray(receipt.receipt_sections);
+  const blocked = sections.filter(x => /blocked|owner|review/i.test(String(x.status))).length;
+  const ready = sections.filter(x => /ready|pass/i.test(String(x.status))).length;
+  const status = receipt.default_acceptance_status || (blocked ? 'PASS_WITH_APPROVAL_BLOCKERS' : 'PASS_SAFE_SCOPE');
+  const packet = [
+    'Delivery client acceptance receipt v46',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Acceptance status: ${status}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Ready sections: ${ready}/${sections.length}`,
+    `Review/blocked sections: ${blocked}`,
+    `Mode: ${receipt.mode || 'read_only_acceptance_receipt'}`,
+    `Safety: ${receipt.safety || 'copy-only; no live writes'}`,
+    `Next safe step: ${receipt.next_safe_action || 'attach proof and keep live actions approval-gated'}`,
+    ...sections.map((x, idx) => `${x.id || ('r' + (idx + 1))}: ${x.status || 'unknown'} · ${x.label || 'Receipt section'} · source=${x.source || '—'} · copy=${x.copy_hint || '—'}`)
+  ].join('\n');
+  const sectionRows = sections.map((x, idx) => row(x.id || ('R' + (idx + 1)), x.label || 'Receipt section', x.status || 'unknown', `${x.source || 'static'} · ${x.copy_hint || 'review'}`, 'delivery-client-acceptance-receipt-v46', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-client-acceptance-receipt-v46"><h3>Delivery client acceptance receipt v46</h3><p class="label">Copy-only acceptance receipt for owner/client handoff: accepted scope, proof, go/no-go, approvals, exclusions, and next safe step in one packet.</p><div class="metric-row">${metric('Acceptance status', status, 'span-3')}${metric('Ready sections', `${ready}/${sections.length}`, 'span-3')}${metric('Review / blocked', blocked, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Receipt guardrail v46', kv({mode: receipt.mode || 'read_only_acceptance_receipt', storage: receipt.persistence || 'static_state_plus_copy_packet', safety: receipt.safety || 'no external writes', next_safe_action: receipt.next_safe_action || 'copy only after current proof is attached'}), 'span-12')}<div class="list">${sectionRows || '<div class="empty">Acceptance receipt not configured.</div>'}</div>${toolbar([copyButton('Copy acceptance receipt', packet), copyButton('Copy receipt JSON', jsonCopy(receipt))])}</section>`;
+}
+
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1148,7 +1170,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryGoNoGoMatrix(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryGoNoGoMatrix(composer, o, summary)}${deliveryClientAcceptanceReceipt(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {
