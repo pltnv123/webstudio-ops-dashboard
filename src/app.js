@@ -858,6 +858,7 @@ function deliveryArtifactRow(path, idx) {
 
 const DELIVERY_ACCEPTANCE_STORAGE_KEY = 'webstudio.delivery.acceptanceTracker.v34';
 const DELIVERY_FOLLOWUP_STORAGE_KEY = 'webstudio.delivery.followupPlanner.v37';
+const DELIVERY_APPROVAL_LEDGER_STORAGE_KEY = 'webstudio.delivery.approvalDecisionLedger.v42';
 function readDeliveryAcceptanceOverlay() {
   try { return JSON.parse(localStorage.getItem(DELIVERY_ACCEPTANCE_STORAGE_KEY) || '{}') || {}; } catch { return {}; }
 }
@@ -869,6 +870,17 @@ function readDeliveryFollowupOverlay() {
 }
 function writeDeliveryFollowupOverlay(overlay) {
   localStorage.setItem(DELIVERY_FOLLOWUP_STORAGE_KEY, JSON.stringify(overlay, null, 2));
+}
+function readDeliveryApprovalLedger() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DELIVERY_APPROVAL_LEDGER_STORAGE_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function writeDeliveryApprovalLedger(entries) {
+  localStorage.setItem(DELIVERY_APPROVAL_LEDGER_STORAGE_KEY, JSON.stringify(entries, null, 2));
 }
 function deliveryAcceptanceSummary(composer, overlay) {
   const rows = asArray((composer.acceptance_tracker || {}).rows);
@@ -997,6 +1009,29 @@ function deliveryEvidenceFreshnessMonitor(composer, summary) {
   const rowsHtml = checks.map((x, idx) => row(x.id || ('F' + (idx + 1)), x.label || 'Freshness check', x.status || 'unknown', `${x.threshold || 'current'} · ${x.owner_action || 'review'}`, 'delivery-freshness-v41', jsonCopy(x))).join('');
   return `<section class="card span-12 delivery-evidence-freshness-monitor-v41"><h3>Delivery evidence freshness monitor v41</h3><p class="label">Показывает, какие proof-артефакты ещё свежие перед owner/client handoff, а какие нужно обновить. Только read/copy, без внешних записей.</p><div class="metric-row">${metric('Freshness checks', checks.length, 'span-3')}${metric('Fresh', fresh, 'span-3')}${metric('Watch / stale', watch, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Freshness guardrail v41', kv({mode: monitor.mode || 'read_only_freshness_monitor', storage: monitor.persistence || 'static sanitized state', safety: monitor.safety || 'no external writes', next_safe_action: monitor.next_safe_action || 'refresh stale proof before handoff'}), 'span-12')}<div class="list">${rowsHtml || '<div class="empty">Freshness monitor not configured.</div>'}</div>${toolbar([copyButton('Copy freshness packet', packet), copyButton('Copy freshness JSON', jsonCopy(monitor))])}</section>`;
 }
+function deliveryApprovalDecisionLedger(composer, order, summary) {
+  const ledger = composer.approval_decision_ledger_v42 || {};
+  const required = asArray(ledger.required_decisions);
+  const localEntries = readDeliveryApprovalLedger();
+  const entryById = Object.fromEntries(localEntries.map(x => [x.id, x]));
+  const statusOf = d => entryById[d.id]?.status || d.default_state || 'queued_owner_review';
+  const decisions = required.map(d => ({...d, status: statusOf(d), note: entryById[d.id]?.note || ''}));
+  const approved = decisions.filter(x => /approved|waived/i.test(String(x.status))).length;
+  const blocked = decisions.filter(x => /blocked|required|queued|rejected/i.test(String(x.status))).length;
+  const packet = [
+    'Delivery approval decision ledger v42',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Approved/waived: ${approved}/${decisions.length}`,
+    `Needs owner decision: ${blocked}`,
+    `Storage: ${ledger.persistence || DELIVERY_APPROVAL_LEDGER_STORAGE_KEY}`,
+    `Guardrail: ${ledger.safety || 'localStorage/copy-only; no external writes'}`,
+    ...decisions.map((x, idx) => `${x.id || ('d' + (idx + 1))}: ${x.status || 'unknown'} · ${x.label || 'Decision'} · blocks=${x.blocks || 'client handoff'} · owner=${x.owner_action || 'review'}`)
+  ].join('\n');
+  const options = ['queued_owner_review','approved_for_handoff','blocked_until_owner','waived_for_demo','rejected'];
+  const rowsHtml = decisions.map(d => `<article class="capability-card approval-ledger-row"><div class="capability-top"><h4>${fmt(d.label || d.id)}</h4>${badge(d.status || 'queued_owner_review')}</div><p><b>Blocks:</b> ${fmt(d.blocks || 'client handoff')} · <b>Evidence:</b> ${fmt(shortText(d.evidence || '—', 96))}</p><p>${fmt(d.owner_action || 'Owner review required before live action')}</p><label class="field"><span>Decision status</span><select data-delivery-approval-ledger-status="${esc(d.id)}">${options.map(x => `<option value="${esc(x)}" ${x === d.status ? 'selected' : ''}>${fmt(ru(x))}</option>`).join('')}</select></label><label class="field"><span>Owner note</span><input data-delivery-approval-ledger-note="${esc(d.id)}" value="${esc(d.note || '')}" placeholder="local note only"></label></article>`).join('');
+  return `<section class="card span-12 delivery-approval-decision-ledger-v42"><h3>Delivery approval decision ledger v42</h3><p class="label">Owner-safe журнал решений перед передачей: фиксирует approval/waiver/blocker локально в браузере, ничего не отправляет в CRM/DB/client channels.</p><div class="metric-row">${metric('Required decisions', decisions.length, 'span-3')}${metric('Approved / waived', approved, 'span-3')}${metric('Needs owner decision', blocked, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Approval ledger guardrail v42', kv({mode: ledger.mode || 'localStorage_decision_ledger', storage: ledger.persistence || DELIVERY_APPROVAL_LEDGER_STORAGE_KEY, safety: ledger.safety || 'no external writes', next_safe_action: ledger.next_safe_action || 'record owner decision locally before client handoff'}), 'span-12')}<div class="capability-grid">${rowsHtml || '<div class="empty">Approval decisions not configured.</div>'}</div>${toolbar([copyButton('Copy approval decision packet', packet), copyButton('Copy approval ledger JSON', jsonCopy({config: ledger, local_entries: localEntries}))])}</section>`;
+}
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1042,7 +1077,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {
@@ -2025,7 +2060,9 @@ function bindInputs() {
   $('#ownerFeedbackStateFilter')?.addEventListener('change', e => { filters.ownerFeedbackState = e.target.value; render(); });
   document.querySelectorAll('[data-production-filter]').forEach(btn => btn.addEventListener('click', e => { filters.productionQuick = e.currentTarget.dataset.productionFilter || 'active'; render(); }));
   document.querySelectorAll('[data-delivery-acceptance]').forEach(sel => sel.addEventListener('change', e => { const overlay = readDeliveryAcceptanceOverlay(); overlay[e.currentTarget.dataset.deliveryAcceptance] = e.currentTarget.value; writeDeliveryAcceptanceOverlay(overlay); render(); }));
+  document.querySelectorAll('[data-delivery-approval-ledger-status]').forEach(sel => sel.addEventListener('change', e => { const entries = readDeliveryApprovalLedger(); const id = e.currentTarget.dataset.deliveryApprovalLedgerStatus; const current = entries.find(x => x.id === id) || {id}; current.status = e.currentTarget.value; current.updated_at = new Date().toISOString(); writeDeliveryApprovalLedger(entries.filter(x => x.id !== id).concat(current)); render(); }));
   document.querySelectorAll('[data-delivery-followup-status]').forEach(sel => sel.addEventListener('change', e => { const overlay = readDeliveryFollowupOverlay(); const id = e.currentTarget.dataset.deliveryFollowupStatus; overlay[id] = {...(overlay[id] || {}), status: e.currentTarget.value}; writeDeliveryFollowupOverlay(overlay); render(); }));
+  document.querySelectorAll('[data-delivery-approval-ledger-note]').forEach(inp => inp.addEventListener('change', e => { const entries = readDeliveryApprovalLedger(); const id = e.currentTarget.dataset.deliveryApprovalLedgerNote; const current = entries.find(x => x.id === id) || {id}; current.note = e.currentTarget.value; current.updated_at = new Date().toISOString(); writeDeliveryApprovalLedger(entries.filter(x => x.id !== id).concat(current)); }));
   document.querySelectorAll('[data-delivery-followup-note]').forEach(inp => inp.addEventListener('change', e => { const overlay = readDeliveryFollowupOverlay(); const id = e.currentTarget.dataset.deliveryFollowupNote; overlay[id] = {...(overlay[id] || {}), note: e.currentTarget.value}; writeDeliveryFollowupOverlay(overlay); render(); }));
 }
 

@@ -1720,12 +1720,29 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["id", "status", "threshold", "owner_action", "acceptance_gate"],
         "next_safe_action": "Refresh any WATCH/STALE evidence before owner/client handoff; do not perform live send/write without explicit owner approval.",
     }
+    approval_decision_ledger = {
+        "schema_version": "webstudio.delivery.approval-decision-ledger.v42",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "localStorage_decision_ledger",
+        "persistence": "webstudio.delivery.approvalDecisionLedger.v42",
+        "safety": "localStorage/copy-only; no CRM/DB/client-send writes; live launch still approval-gated",
+        "purpose": "Track owner approval, waiver, or blocker decisions locally before client handoff without creating external writes.",
+        "required_decisions": [
+            {"id": "scope_acceptance", "label": "Scope and acceptance are ready for handoff", "default_state": "queued_owner_review", "blocks": "client handoff packet", "evidence": "acceptance tracker v35 + sign-off packet v39", "owner_action": "approve, waive for demo, or block until scope update"},
+            {"id": "evidence_freshness", "label": "Evidence is fresh enough to show owner/client", "default_state": "queued_owner_review", "blocks": "owner/client evidence review", "evidence": "evidence binder v38 + freshness monitor v41", "owner_action": "approve fresh proof or request refresh"},
+            {"id": "launch_guardrails", "label": "Live launch / external send guardrails are understood", "default_state": "blocked_until_owner", "blocks": "public launch, CRM/DB/client-send writes", "evidence": "launch-readiness receipt v40", "owner_action": "keep blocked unless separate explicit live approval exists"},
+            {"id": "followup_owner", "label": "Post-delivery follow-up owner is assigned", "default_state": "queued_owner_review", "blocks": "handoff completion checklist", "evidence": "follow-up planner v37", "owner_action": "assign owner or waive for demo"},
+        ],
+        "copy_packet_fields": ["id", "status", "blocks", "evidence", "owner_action", "acceptance_gate"],
+        "next_safe_action": "Record owner approval/waiver/blocker locally before client handoff; keep live send/write blocked until separate approval.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v41",
+        "schema_version": "webstudio.delivery-handoff-composer.v42",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "delivery_evidence_freshness_monitor_v41",
+        "feature": "approval_decision_ledger_v42",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1758,6 +1775,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "owner_signoff_packet_v39": signoff_packet,
         "launch_readiness_receipt_v40": handoff_receipt,
         "evidence_freshness_monitor_v41": evidence_freshness_monitor,
+        "approval_decision_ledger_v42": approval_decision_ledger,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {
