@@ -51,6 +51,8 @@ CONTROL_HISTORY_PATH = PUBLIC_DATA / "webstudio-control-plane-history.json"
 SUPABASE_MEMORY_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-supabase-memory-snapshot.json"
 BOT_ACTIVITY_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-live-bot-activity-snapshot.json"
 WORK_FACTORY_CONTROL_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-work-factory-control-snapshot.json"
+OWNER_COMMAND_CENTER_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-owner-command-center-snapshot.json"
+ORDER_BUILDER_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-order-builder-snapshot.json"
 
 FORBIDDEN_ACTIONS = [
     "dispatch", "run", "daemon", "unblock", "reclaim", "deploy", "release",
@@ -1556,6 +1558,48 @@ def build_work_factory_control() -> dict[str, Any]:
         "summary": {**summary, **counts},
     }
 
+
+def build_owner_command_center() -> dict[str, Any]:
+    snapshot = load_json(OWNER_COMMAND_CENTER_SNAPSHOT_PATH, {})
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    return {
+        "source_of_truth": str(OWNER_COMMAND_CENTER_SNAPSHOT_PATH),
+        "source": stat_info(OWNER_COMMAND_CENTER_SNAPSHOT_PATH),
+        "schema_version": snapshot.get("schema_version", "webstudio-owner-command-center.v2.9.empty"),
+        "generated_at": snapshot.get("generated_at"),
+        "source_mode": snapshot.get("source_mode", "static_snapshot"),
+        "safety": snapshot.get("safety", {"browser_side_supabase": False, "browser_side_github_token": False}),
+        "current_production_status": snapshot.get("current_production_status", "UNKNOWN"),
+        "next_safe_action": snapshot.get("next_safe_action", "Review Work Factory and blockers."),
+        "latest_deployed_commit": snapshot.get("latest_deployed_commit"),
+        "latest_local_commit": snapshot.get("latest_local_commit"),
+        "latest_github_actions_deploy": snapshot.get("latest_github_actions_deploy", {}),
+        "latest_supabase_rows": snapshot.get("latest_supabase_rows", []),
+        "blocked_items": snapshot.get("blocked_items", []),
+        "owner_approvals_needed": snapshot.get("owner_approvals_needed", []),
+        "active_version_roadmap": snapshot.get("active_version_roadmap", []),
+        "links": snapshot.get("links", {}),
+        "summary": snapshot.get("summary", {}),
+    }
+
+def build_order_builder() -> dict[str, Any]:
+    snapshot = load_json(ORDER_BUILDER_SNAPSHOT_PATH, {})
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    return {
+        "source_of_truth": str(ORDER_BUILDER_SNAPSHOT_PATH),
+        "source": stat_info(ORDER_BUILDER_SNAPSHOT_PATH),
+        "schema_version": snapshot.get("schema_version", "webstudio-order-builder.v3.0.empty"),
+        "generated_at": snapshot.get("generated_at"),
+        "source_mode": snapshot.get("source_mode", "static_demo_snapshot"),
+        "safety": snapshot.get("safety", {"public_demo_only": True, "browser_side_supabase": False}),
+        "sample_order": snapshot.get("sample_order", {}),
+        "next_safe_action": snapshot.get("next_safe_action", "Use sanitized schema only."),
+        "production_task_template": snapshot.get("production_task_template", {}),
+        "schema_policy": snapshot.get("schema_policy", "New tables require owner-approved migration."),
+    }
+
 def build_error_recovery_v37_1() -> dict[str, Any]:
     taxonomy = load_json(OUTPUT / "webstudio-error-taxonomy-v37-1.json", {})
     errors = taxonomy.get("errors") if isinstance(taxonomy.get("errors"), list) else []
@@ -1680,6 +1724,8 @@ def build_state() -> dict[str, Any]:
         "supabase_memory": build_supabase_memory(),
         "bot_activity": build_bot_activity(),
         "work_factory_control": build_work_factory_control(),
+        "owner_command_center": build_owner_command_center(),
+        "order_builder": build_order_builder(),
         "marathon_12h": marathon_status,
         "d1_owner_feedback": build_d1_owner_feedback(),
         "d3_intake": build_d3_intake(),
@@ -1716,7 +1762,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

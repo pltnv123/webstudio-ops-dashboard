@@ -16,9 +16,11 @@
   "static_smoke": "PASS",
   "secret_scan": "PASS",
   "allowlist": "PASS",
-  "updated_at": "2026-06-01T03:42:54.381836+00:00",
+  "updated_at": "2026-06-01T03:47:01.014007+00:00",
   "local_commit": "d164571b616e436e2fb717891c5066f1c0a73be7",
   "supabase_row_id": "1a295adf-db5f-46ef-85f0-d046001ec95d",
   "blocker": "Docker sandbox GitHub CLI/auth unavailable; git push blocked",
-  "local_implementation_commit": "d164571b616e436e2fb717891c5066f1c0a73be7"
+  "local_implementation_commit": "d164571b616e436e2fb717891c5066f1c0a73be7",
+  "recovery_status": "HOST_JOB_QUEUED",
+  "host_job": "/workspace/.hermes-host-jobs/webstudio-v28-recovery-autopush.sh"
 }

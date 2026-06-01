@@ -1,0 +1,113 @@
+{
+  "schema_version": "webstudio-owner-command-center.v2.9.static-snapshot",
+  "generated_at": "2026-06-01T03:51:43Z",
+  "source_mode": "static_sanitized_supabase_github_state",
+  "safety": {
+    "browser_side_supabase": false,
+    "browser_side_github_token": false,
+    "raw_private_memory": false
+  },
+  "current_production_status": "PARTIAL_LOCAL_READY_REMOTE_PUSH_BLOCKED",
+  "next_safe_action": "Restore host GitHub push bridge, then verify deploy; continue only read-only/report-safe phases until push is available.",
+  "latest_deployed_commit": "6e2ee486acb33d98807b13cbab611b50d087a0b5",
+  "latest_local_commit": "38af9731034850071e8aaea5e6922c575587756c",
+  "latest_github_actions_deploy": {
+    "status": "LAST_VERIFIED_V2_7_SUCCESS",
+    "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26733308228"
+  },
+  "latest_supabase_rows": [
+    {
+      "component": "webstudio-work-factory-control",
+      "version": "v2.8",
+      "status": "PARTIAL",
+      "row_id": "1a295adf-db5f-46ef-85f0-d046001ec95d"
+    },
+    {
+      "component": "webstudio-live-bot-activity-feed",
+      "version": "v2.7",
+      "status": "DEPLOYED",
+      "row_id": "82295fb5-e0ad-4474-820f-49f139a1383a"
+    }
+  ],
+  "blocked_items": [
+    {
+      "title": "GitHub push/deploy from Docker",
+      "status": "BLOCKED",
+      "detail": "Host GitHub bridge job queued but host runner did not execute; Docker gh wrapper has no real gh/auth."
+    }
+  ],
+  "owner_approvals_needed": [
+    {
+      "id": "WF-APPROVAL-OWNER-HANDOFF",
+      "title": "Approval required: owner-handoff next decision",
+      "status": "NEEDS_OWNER",
+      "raw_status": "approval_required",
+      "component": "approval_required",
+      "bucket": "approval_required",
+      "time": "",
+      "summary": "/workspace/output/work-factory-approval-required-owner-handoff.md",
+      "report": "/workspace/output/work-factory-approval-required-owner-handoff.md"
+    },
+    {
+      "id": "WF-APPROVAL-DEPLOY-READINESS",
+      "title": "Approval required: deploy-readiness next decision",
+      "status": "NEEDS_OWNER",
+      "raw_status": "approval_required",
+      "component": "approval_required",
+      "bucket": "approval_required",
+      "time": "",
+      "summary": "/workspace/output/work-factory-approval-required-deploy-readiness.md",
+      "report": "/workspace/output/work-factory-approval-required-deploy-readiness.md"
+    },
+    {
+      "id": "WF-APPROVAL-BACKEND-PLANNING",
+      "title": "Approval required: backend-planning next decision",
+      "status": "NEEDS_OWNER",
+      "raw_status": "approval_required",
+      "component": "approval_required",
+      "bucket": "approval_required",
+      "time": "",
+      "summary": "/workspace/output/work-factory-approval-required-backend-planning.md",
+      "report": "/workspace/output/work-factory-approval-required-backend-planning.md"
+    }
+  ],
+  "active_version_roadmap": [
+    {
+      "version": "v2.8",
+      "title": "Work Factory Control",
+      "status": "LOCAL_PASS_REMOTE_BLOCKED"
+    },
+    {
+      "version": "v2.9",
+      "title": "Owner Command Center",
+      "status": "LOCAL_BUILD"
+    },
+    {
+      "version": "v3.0",
+      "title": "Client Interview + Order Builder",
+      "status": "LOCAL_BUILD"
+    },
+    {
+      "version": "v3.1",
+      "title": "Premium Website Factory Roadmap",
+      "status": "REPORT_ONLY"
+    },
+    {
+      "version": "v3.2",
+      "title": "Cleanup Safety Audit",
+      "status": "REPORT_ONLY"
+    }
+  ],
+  "links": {
+    "pages": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+    "bot_activity": "https://pltnv123.github.io/webstudio-ops-dashboard/bot-activity/",
+    "supabase_memory": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+    "work_factory": "https://pltnv123.github.io/webstudio-ops-dashboard/work-factory/",
+    "github_repo": "https://github.com/pltnv123/webstudio-ops-dashboard"
+  },
+  "summary": {
+    "blocked": 1,
+    "approvals": 3,
+    "roadmap_items": 5
+  }
+}

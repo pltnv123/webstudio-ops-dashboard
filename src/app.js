@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','supabase-memory','bot-activity','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   wfStatus: 'all',
@@ -37,7 +37,7 @@ const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().include
 const WORK_FACTORY_STATUS_CHIPS = ['PASS','DEPLOYED','RUNNING','QUEUED','PARTIAL','BLOCKED','NEEDS_OWNER'];
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1738,6 +1738,64 @@ function botActivity() {
   </div>`;
 }
 
+
+function ownerCommandCenter() {
+  const occ = state.owner_command_center || {};
+  const links = occ.links || {};
+  const summary = [
+    `Production: ${occ.current_production_status || 'UNKNOWN'}`,
+    `Latest deployed: ${occ.latest_deployed_commit || '—'}`,
+    `Local head: ${occ.latest_local_commit || '—'}`,
+    `Next: ${occ.next_safe_action || '—'}`
+  ].join('\n');
+  const linkRows = Object.entries(links).map(([k,v]) => ({id:k,title:k,status:'link',summary:v}));
+  return `<div class="grid owner-command-center-page">
+    ${metric('Production status', occ.current_production_status || 'UNKNOWN', 'span-4')}
+    ${metric('Blocked items', asArray(occ.blocked_items).length, 'span-2')}
+    ${metric('Owner approvals', asArray(occ.owner_approvals_needed).length, 'span-2')}
+    ${metric('Roadmap items', asArray(occ.active_version_roadmap).length, 'span-2')}
+    ${metric('Supabase rows', asArray(occ.latest_supabase_rows).length, 'span-2')}
+    ${card('Next safe action', `<p class="owner-summary">${fmt(occ.next_safe_action || 'Review blockers and Work Factory.')}</p>${toolbar([copyButton('Copy command summary', summary), links.work_factory ? copyButton('Copy Work Factory route', links.work_factory) : '', links.bot_activity ? copyButton('Copy Bot Activity route', links.bot_activity) : '', links.supabase_memory ? copyButton('Copy Supabase Memory route', links.supabase_memory) : ''].filter(Boolean))}`, 'span-12', 'owner-command-card')}
+    ${card('Latest publication / commit', kv({latest_deployed_commit: occ.latest_deployed_commit, latest_local_commit: occ.latest_local_commit, actions_status: occ.latest_github_actions_deploy?.status, actions_url: occ.latest_github_actions_deploy?.url}), 'span-6')}
+    ${card('Latest Supabase rows', rowsTop(occ.latest_supabase_rows, x => row(x.component || 'component', `${x.version || '—'} · ${x.row_id || '—'}`, x.status || 'UNKNOWN', x.summary || x.route || '—', 'occ-supabase', jsonCopy(x)), 10, 'No rows'), 'span-6')}
+    ${card('Blocked items', rowsTop(occ.blocked_items, x => row('blocked', x.title || 'Blocked', x.status || 'BLOCKED', x.detail || '—', 'occ-blocked', jsonCopy(x)), 8, 'No blockers'), 'span-6')}
+    ${card('Owner approvals needed', rowsTop(occ.owner_approvals_needed, wfControlItemRow, 8, 'No approvals'), 'span-6')}
+    ${card('Active version roadmap', rowsTop(occ.active_version_roadmap, x => row(x.version || 'version', x.title || 'Roadmap item', x.status || 'TRACKED', x.next || '—', 'occ-roadmap', jsonCopy(x)), 12, 'No roadmap'), 'span-12')}
+    ${card('Command links', rowsTop(linkRows, x => row(x.id, x.title, x.status, x.summary, 'occ-link', jsonCopy(x)), 12, 'No links'), 'span-12')}
+    ${card('Safe static source', kv({mode: occ.source_mode || 'static_snapshot', browser_side_supabase: occ.safety?.browser_side_supabase === true ? 'enabled' : 'disabled', github_browser_access: occ.safety?.browser_side_github_token === true ? 'enabled' : 'disabled', generated_at: occ.generated_at || '—'}), 'span-12')}
+  </div>`;
+}
+
+function orderBuilder() {
+  const ob = state.order_builder || {};
+  const o = ob.sample_order || {};
+  const brief = [
+    `Client profile: ${o.client_profile || '—'}`,
+    `Business type: ${o.business_type || '—'}`,
+    `Offer: ${o.offer_service_product || '—'}`,
+    `Audience: ${o.target_audience || '—'}`,
+    `Style: ${o.desired_style || '—'}`,
+    `Pages: ${asArray(o.required_pages).join(', ')}`,
+    `Assets: ${asArray(o.assets_needed).join(', ')}`,
+    `Content: ${o.content_status || '—'}`,
+    `Package: ${o.pricing_package || '—'}`,
+    `Timeline: ${o.timeline || '—'}`,
+    `Brief: ${o.generated_production_brief || '—'}`
+  ].join('\n');
+  return `<div class="grid order-builder-page">
+    ${metric('Mode', ob.source_mode || 'demo_schema', 'span-3')}
+    ${metric('Sensitive data', ob.safety?.real_sensitive_client_data === true ? 'present' : 'not collected', 'span-3')}
+    ${metric('Public demo only', ob.safety?.public_demo_only === false ? 'no' : 'yes', 'span-3')}
+    ${metric('Task status', ob.production_task_template?.status || 'QUEUED_DEMO', 'span-3')}
+    ${card('Client profile', kv({client_profile:o.client_profile,business_type:o.business_type,target_audience:o.target_audience}), 'span-6')}
+    ${card('Offer / product', kv({offer_service_product:o.offer_service_product,pricing_package:o.pricing_package,timeline:o.timeline}), 'span-6')}
+    ${card('Desired style / pages', `${kv({desired_style:o.desired_style,content_status:o.content_status})}${rowsTop(asArray(o.required_pages).map(x=>({id:'page',title:x,status:'required'})), x=>row(x.id,x.title,x.status), 12, 'No pages')}`, 'span-6')}
+    ${card('Assets needed', rowsTop(asArray(o.assets_needed).map(x=>({id:'asset',title:x,status:'needed'})), x=>row(x.id,x.title,x.status), 12, 'No assets'), 'span-6')}
+    ${card('Generated production brief', `<p class="owner-summary">${fmt(o.generated_production_brief || '—')}</p>${toolbar([copyButton('Copy production brief', brief), copyButton('Copy sanitized order JSON', jsonCopy(ob))])}`, 'span-12', 'order-builder-card')}
+    ${card('Next safe action', `<p>${fmt(ob.next_safe_action || 'Keep demo/sanitized only.')}</p><p><b>Schema policy:</b> ${fmt(ob.schema_policy || 'New tables require approval.')}</p>`, 'span-12')}
+  </div>`;
+}
+
 function audit() {
   const safety = state.safety || {};
   return `<div class="grid">
@@ -1750,7 +1808,7 @@ function audit() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
+  const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
     'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();

@@ -1,0 +1,2 @@
+{"ts": "2026-06-01T03:57:38Z", "event": "v32.reports.created", "status": "REPORT_READY_REMOTE_BLOCKED"}
+{"ts": "2026-06-01T03:58:33Z", "event": "supabase.status_row_written", "row_id": "8396a2c5-f233-40e2-895d-44cc632ee567", "component": "webstudio-cleanup-safety-audit", "version": "v3.2", "status": "PARTIAL"}
