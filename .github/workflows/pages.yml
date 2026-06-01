@@ -3,6 +3,7 @@ name: Deploy staging to GitHub Pages
 on:
   push:
     branches:
+      - webstudio/product-build-v31
       - webstudio/product-build-v32-premium-generator
   workflow_dispatch:
 
