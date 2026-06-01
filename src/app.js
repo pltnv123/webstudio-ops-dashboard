@@ -1059,6 +1059,28 @@ function deliveryHandoffManifest(composer, order, summary) {
   return `<section class="card span-12 delivery-handoff-manifest-v43"><h3>Delivery handoff manifest v43</h3><p class="label">Owner-safe финальный манифест перед handoff: показывает evidence, steps и blockers в copy-only режиме. Никаких CRM/DB/client-send записей.</p><div class="metric-row">${metric('Handoff gate', gate, 'span-3')}${metric('Evidence ready', `${green}/${evidence.length}`, 'span-3')}${metric('Handoff steps', handoffSteps.length, 'span-3')}${metric('Blockers', blockers.length + summary.blocked_until_owner, 'span-3')}</div>${card('Handoff guardrail v43', kv({mode: manifest.mode || 'read_only_handoff_manifest', storage: manifest.persistence || 'static_state_plus_copy_packet', safety: manifest.safety || 'no external writes', next_safe_action: manifest.next_safe_action || 'owner reviews manifest before any live handoff'}), 'span-12')}<section class="card span-12"><h3>Evidence requirements</h3><div class="list">${evidenceRows || '<div class="empty">Handoff evidence not configured.</div>'}</div></section><section class="card span-6"><h3>Handoff steps</h3><div class="list">${stepRows || '<div class="empty">Handoff steps not configured.</div>'}</div></section><section class="card span-6"><h3>Handoff blockers</h3><div class="list">${blockerRows || '<div class="empty">No handoff blockers configured.</div>'}</div></section>${toolbar([copyButton('Copy handoff manifest', packet), copyButton('Copy handoff manifest JSON', jsonCopy(manifest))])}</section>`;
 }
 
+
+function deliveryRehearsalChecklist(composer, order, summary) {
+  const rehearsal = composer.handoff_rehearsal_checklist_v44 || {};
+  const checks = asArray(rehearsal.checks);
+  const ready = checks.filter(x => /ready|pass/i.test(String(x.status || x.default_state))).length;
+  const gated = checks.filter(x => /blocked|owner|review|watch/i.test(String(x.status || x.default_state))).length;
+  const gate = gated ? 'REHEARSAL_REVIEW_REQUIRED' : 'READY_FOR_MANUAL_HANDOFF_REHEARSAL';
+  const packet = [
+    'Delivery rehearsal checklist v44',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Rehearsal gate: ${gate}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Ready checks: ${ready}/${checks.length}`,
+    `Mode: ${rehearsal.mode || 'read_only_rehearsal_checklist'}`,
+    `Safety: ${rehearsal.safety || 'copy-only; no client-send/CRM/DB writes'}`,
+    `Next safe action: ${rehearsal.next_safe_action || 'run manual dry-run rehearsal before any live handoff'}`,
+    ...checks.map((x, idx) => `${x.id || ('r' + (idx + 1))}: ${x.status || x.default_state || 'unknown'} · ${x.label || 'Rehearsal check'} · proof=${x.proof || '—'} · owner=${x.owner_action || 'review'}`)
+  ].join('\n');
+  const checkRows = checks.map((x, idx) => row(x.id || ('R' + (idx + 1)), x.label || 'Rehearsal check', x.status || x.default_state || 'unknown', `${x.proof || 'static'} · ${x.owner_action || 'review'}`, 'delivery-rehearsal-checklist-v44', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-rehearsal-checklist-v44"><h3>Delivery rehearsal checklist v44</h3><p class="label">Copy-only dry-run checklist before owner/client handoff: recipient, packet, proof, approval, rollback, and follow-up are rehearsed without external writes.</p><div class="metric-row">${metric('Rehearsal gate', gate, 'span-3')}${metric('Ready checks', `${ready}/${checks.length}`, 'span-3')}${metric('Review / gated', gated, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Rehearsal guardrail v44', kv({mode: rehearsal.mode || 'read_only_rehearsal_checklist', storage: rehearsal.persistence || 'static_state_plus_copy_packet', safety: rehearsal.safety || 'no external writes', next_safe_action: rehearsal.next_safe_action || 'manual rehearsal before live handoff'}), 'span-12')}<div class="list">${checkRows || '<div class="empty">Rehearsal checklist not configured.</div>'}</div>${toolbar([copyButton('Copy rehearsal checklist', packet), copyButton('Copy rehearsal JSON', jsonCopy(rehearsal))])}</section>`;
+}
+
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1104,7 +1126,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {

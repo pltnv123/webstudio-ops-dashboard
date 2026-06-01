@@ -1810,12 +1810,32 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["client", "handoff_gate", "acceptance_gate", "evidence", "handoff_steps", "blockers", "owner_action"],
         "next_safe_action": "Owner reviews handoff manifest and approves any live/client action separately.",
     }
+    handoff_rehearsal_checklist = {
+        "schema_version": "webstudio.delivery-handoff-rehearsal-checklist.v44",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_rehearsal_checklist",
+        "persistence": "static_state_plus_copy_packet",
+        "safety": "copy-only dashboard rehearsal; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
+        "purpose": "Dry-run the final handoff path before any owner/client-facing action so recipient, packet, proof, approval, rollback, and follow-up are visible in one copy-only checklist.",
+        "checks": [
+            {"id": "recipient-scope", "label": "Recipient and sanitized scope are confirmed", "status": "ready", "proof": "order_builder.sample_order + handoff manifest v43", "owner_action": "Confirm who receives the packet and that only sanitized/demo data is present."},
+            {"id": "packet-content", "label": "Handoff packet content matches acceptance scope", "status": "needs_owner_review", "proof": "acceptance tracker v35 + owner sign-off packet v39", "owner_action": "Review or waive scope/content differences before live send."},
+            {"id": "evidence-proof", "label": "Build, smoke, secret scan, and Pages proof are attached", "status": "watch_until_pages_refresh", "proof": "evidence binder v38 + freshness monitor v41", "owner_action": "Refresh proof after each push or UI change."},
+            {"id": "approval-gate", "label": "Live send/write approval is explicit and separate", "status": "blocked_until_owner", "proof": "approval decision ledger v42", "owner_action": "Do not send/publish/write until exact action is approved outside this read-only UI."},
+            {"id": "rollback-plan", "label": "Rollback and correction path is known", "status": "ready", "proof": "manual revert/patch path on branch webstudio/product-build-v31", "owner_action": "Use a normal commit revert/patch only; no force push or destructive DB change."},
+            {"id": "followup-plan", "label": "Post-handoff follow-up owner and timing are staged", "status": "queued", "proof": "followup planner v37", "owner_action": "Assign manual follow-up after acceptance; no automated client message."},
+        ],
+        "copy_packet_fields": ["client", "rehearsal_gate", "acceptance_gate", "checks", "proof", "owner_action", "guardrail"],
+        "next_safe_action": "Run this copy-only rehearsal, attach fresh proof, then request explicit approval for any live handoff action.",
+    }
+
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v43",
+        "schema_version": "webstudio.delivery-handoff-composer.v44",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "handoff_manifest_v43",
+        "feature": "handoff_rehearsal_checklist_v44",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1850,6 +1870,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "evidence_freshness_monitor_v41": evidence_freshness_monitor,
         "approval_decision_ledger_v42": approval_decision_ledger,
         "handoff_manifest_v43": handoff_manifest,
+        "handoff_rehearsal_checklist_v44": handoff_rehearsal_checklist,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {
