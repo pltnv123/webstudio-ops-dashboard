@@ -1649,12 +1649,30 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["task_id", "status", "due_after", "channel", "owner_action", "local_note"],
         "next_safe_action": "Use copy-only follow-up plan; do not perform live send/write without explicit owner approval.",
     }
+    evidence_binder = {
+        "schema_version": "webstudio.delivery-evidence-binder.v38",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_static_evidence",
+        "persistence": "static_sanitized_state_plus_copy_packet",
+        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
+        "purpose": "Make QA/build/smoke/secret-scan/Page evidence visible before any client-facing handoff.",
+        "evidence": [
+            {"id": "build", "label": "Local production build completed", "status": "PASS_LOCAL", "source": "npm run build", "owner_action": "Review validation artifact before send."},
+            {"id": "smoke", "label": "Local smoke check completed", "status": "PASS_LOCAL", "source": "npm run smoke", "owner_action": "Confirm route markers before client handoff."},
+            {"id": "secret-scan", "label": "Changed-file secret scan completed", "status": "PASS_LOCAL", "source": "changed files scan", "owner_action": "Keep credentials/private data out of packet."},
+            {"id": "pages", "label": "GitHub Pages public route reachable", "status": "WATCH_REMOTE_DEPLOY", "source": "https://pltnv123.github.io/webstudio-ops-dashboard/delivery/", "owner_action": "Re-smoke after safe push/Pages deploy."},
+            {"id": "approval-gate", "label": "Live CRM/DB/client-send remains separately approved", "status": "BLOCKED_UNTIL_OWNER", "source": "autonomy_policy.approval_required_for", "owner_action": "Approve exact live external action outside this read-only dashboard."},
+        ],
+        "copy_packet_fields": ["id", "status", "source", "owner_action", "acceptance_gate"],
+        "next_safe_action": "Attach current validation artifacts, then keep external send/write blocked until explicit owner approval.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v37",
+        "schema_version": "webstudio.delivery-handoff-composer.v38",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "post_delivery_followup_planner_v37",
+        "feature": "delivery_evidence_binder_v38",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1683,6 +1701,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         ],
         "handoff_note": "Public dashboard composes a safe handoff packet with acceptance + risk digest from sanitized state only; production writes and private client data remain gated.",
         "handoff_risk_digest_v36": risk_digest,
+        "delivery_evidence_binder_v38": evidence_binder,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {

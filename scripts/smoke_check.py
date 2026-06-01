@@ -153,13 +153,15 @@ assert state['order_builder']['safety']['public_demo_only'] is True
 assert state['order_builder']['safety']['real_sensitive_client_data'] is False
 assert state['delivery_handoff_composer_v33']['status'] == 'PASS_LOCAL_READY'
 assert state['delivery_handoff_composer_v33']['owner_action_required'] is False
-assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v37'
-assert state['delivery_handoff_composer_v33']['feature'] == 'post_delivery_followup_planner_v37'
+assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v38'
+assert state['delivery_handoff_composer_v33']['feature'] == 'delivery_evidence_binder_v38'
 assert state['delivery_handoff_composer_v33']['acceptance_tracker']['storage_key'] == 'webstudio.delivery.acceptanceTracker.v34'
 assert len(state['delivery_handoff_composer_v33']['client_ready_checklist']) >= 5
 assert len(state['delivery_handoff_composer_v33']['acceptance_tracker']['rows']) >= 6
 assert len(state['delivery_handoff_composer_v33']['handoff_risk_digest_v36']['risks']) >= 3
 assert state['delivery_handoff_composer_v33']['handoff_risk_digest_v36']['mode'] == 'read_only_owner_review'
+assert state['delivery_handoff_composer_v33']['delivery_evidence_binder_v38']['schema_version'] == 'webstudio.delivery-evidence-binder.v38'
+assert len(state['delivery_handoff_composer_v33']['delivery_evidence_binder_v38']['evidence']) >= 5
 assert state['delivery_handoff_composer_v33']['followup_planner_v37']['storage_key'] == 'webstudio.delivery.followupPlanner.v37'
 assert len(state['delivery_handoff_composer_v33']['followup_planner_v37']['tasks']) >= 5
 assert 'enabled' in state['work_factory']

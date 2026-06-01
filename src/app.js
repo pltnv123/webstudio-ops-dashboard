@@ -922,6 +922,22 @@ function deliveryHandoffRiskDigest(composer, summary) {
   const timelineRows = timeline.map((t, idx) => row('T' + (idx + 1), t.label || t.id || 'Step', t.status || 'queued', t.owner_action || 'No owner action', 'handoff-timeline-v36', jsonCopy(t))).join('');
   return `<section class="card span-12 handoff-risk-digest-v36"><h3>Client handoff risk digest v36</h3><p class="label">Owner-safe обзор рисков перед передачей: всё read-only, без приватных данных и без внешних записей.</p><div class="metric-row">${metric('Visible risks', risks.length, 'span-3')}${metric('Safe gates', gates.length, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}${metric('Mode', digest.mode || 'read_only', 'span-3')}</div><div class="handoff-grid"><article><h4>Risks</h4><div class="list">${riskRows || '<div class="empty">No handoff risks configured.</div>'}</div></article><article><h4>Safe gates</h4><div class="list">${gateRows || '<div class="empty">No gates configured.</div>'}</div></article></div>${card('Owner review timeline v36', `<div class="list">${timelineRows || '<div class="empty">No timeline configured.</div>'}</div>${toolbar([copyButton('Copy risk digest JSON', jsonCopy(digest)), copyButton('Copy next safe action', digest.next_safe_action || 'Review handoff packet')])}`, 'span-12')}</section>`;
 }
+function deliveryEvidenceBinder(composer, summary) {
+  const binder = composer.delivery_evidence_binder_v38 || {};
+  const evidence = asArray(binder.evidence);
+  const ready = evidence.filter(x => /pass|ready|available/i.test(String(x.status || ''))).length;
+  const blocked = evidence.filter(x => /blocked|missing|needs/i.test(String(x.status || ''))).length;
+  const packet = [
+    'Delivery evidence binder v38',
+    `Mode: ${binder.mode || 'read_only_static_evidence'}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Evidence ready: ${ready}/${evidence.length}`,
+    `Owner-safe rule: ${binder.safety || 'copy-only; no external writes'}`,
+    ...evidence.map((x, idx) => `${x.id || ('e' + (idx + 1))}: ${x.status || 'unknown'} · ${x.label || 'Evidence'} · source=${x.source || '—'} · action=${x.owner_action || 'review'}`)
+  ].join('\n');
+  const rowsHtml = evidence.map((x, idx) => row(x.id || ('E' + (idx + 1)), x.label || 'Evidence', x.status || 'unknown', `${x.source || 'static'} · ${x.owner_action || 'review'}`, 'delivery-evidence-v38', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-evidence-binder-v38"><h3>Delivery evidence binder v38</h3><p class="label">Собирает owner-safe доказательства перед передачей: build/smoke/secret-scan/Pages status видны в одном copy-only блоке, без CRM/DB/client-send writes.</p><div class="metric-row">${metric('Evidence items', evidence.length, 'span-3')}${metric('Ready', ready, 'span-3')}${metric('Needs review', blocked, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Evidence guardrail v38', kv({mode: binder.mode || 'read_only_static_evidence', storage: 'static sanitized state', safety: binder.safety || 'no external writes', next_safe_action: binder.next_safe_action || 'review evidence before client send'}), 'span-12')}<div class="list">${rowsHtml || '<div class="empty">Evidence binder not configured.</div>'}</div>${toolbar([copyButton('Copy evidence packet', packet), copyButton('Copy evidence JSON', jsonCopy(binder))])}</section>`;
+}
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -967,7 +983,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {
