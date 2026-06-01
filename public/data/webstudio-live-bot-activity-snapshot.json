@@ -1,0 +1,402 @@
+{
+  "schema_version": "webstudio-live-bot-activity-feed.v2.7.static-snapshot",
+  "generated_at": "2026-06-01T03:15:38Z",
+  "source_mode": "static_sanitized_supabase_mcp_and_github_cli_snapshot",
+  "safety": {
+    "browser_side_supabase": false,
+    "browser_side_github_token": false,
+    "secret_policy": "No Supabase keys, service-role tokens, GitHub tokens, env values, raw memory, or private payload bodies are embedded."
+  },
+  "links": {
+    "pages": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+    "activity_route": "https://pltnv123.github.io/webstudio-ops-dashboard/bot-activity/",
+    "supabase_memory_route": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+    "github_repo": "https://github.com/pltnv123/webstudio-ops-dashboard",
+    "github_pr": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5",
+    "latest_pages_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26733056674"
+  },
+  "status_chips": [
+    "PASS",
+    "PARTIAL",
+    "BLOCKED",
+    "DEPLOYED",
+    "RUNNING",
+    "QUEUED"
+  ],
+  "latest_ops_status": [
+    {
+      "id": "d19d64e4-7e1c-41ec-8238-5c2f88e29bf9",
+      "component": "webstudio-supabase-memory-ui",
+      "version": "v2.6",
+      "status": "DEPLOYED",
+      "git_commit": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+      "target": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+      "created_at": "2026-06-01T03:10:47Z",
+      "summary": "Final V2.6 row after sanitized reports and Pages run succeeded."
+    },
+    {
+      "id": "37ae6a5f-f4a4-4b8e-8994-82e4784fbad8",
+      "component": "webstudio-supabase-memory-ui",
+      "version": "v2.6",
+      "status": "DEPLOYED",
+      "git_commit": "9309f49b7e31bb6132223785b82152e8a93e4268",
+      "target": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+      "created_at": "2026-06-01T03:08:57Z",
+      "summary": "V2.6 Supabase Memory UI published with static sanitized snapshot."
+    },
+    {
+      "id": "0c5743f9-a8b7-4acd-a5a4-6c5583dd7d4d",
+      "component": "webstudio-autonomous-delivery-loop",
+      "version": "v2.5",
+      "status": "BASELINE_READY",
+      "git_commit": "d418910591ac74187906028d9a78423db7cbc5ad",
+      "target": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+      "created_at": "2026-06-01T02:58:29Z",
+      "summary": "Final V2.5 autonomous loop baseline row after report push."
+    },
+    {
+      "id": "e68f16b2-e8ee-416f-b7a9-1c675b25e5a5",
+      "component": "webstudio-autonomous-delivery-loop",
+      "version": "v2.5",
+      "status": "BASELINE_READY",
+      "git_commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+      "target": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+      "created_at": "2026-06-01T02:56:21Z",
+      "summary": "V2.5 autonomous delivery loop baseline prepared."
+    },
+    {
+      "id": "ebe08810-fcfc-4bd1-b547-78e6c06bfec6",
+      "component": "webstudio-branch-strategy",
+      "version": "v2.4b",
+      "status": "DEFAULT_BRANCH_LOCKED",
+      "git_commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+      "target": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+      "created_at": "2026-06-01T02:51:37Z",
+      "summary": "Default branch locked to webstudio/product-build-v31."
+    }
+  ],
+  "latest_jobs": [
+    {
+      "id": "83136f76-da95-4c64-abe1-21a3efbb711a",
+      "job_key": "webstudio-production-autopilot:v2.3b-github-reporting-baseline:a659b97",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "status": "PASS",
+      "priority": 100,
+      "created_at": "2026-05-30T20:27:18Z",
+      "updated_at": "2026-05-30T20:27:18Z",
+      "summary": "Sanitized report committed at restored branch head and pushed; scan passed.",
+      "links": [
+        "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+      ]
+    },
+    {
+      "id": "9a77e47a-705f-468f-b178-5fee9c59562e",
+      "job_key": "webstudio-production-autopilot-v2_3b",
+      "title": "WebStudio Production Autopilot V2.3B GitHub Reporting Baseline",
+      "status": "completed",
+      "priority": 10,
+      "created_at": "2026-05-30T20:26:02Z",
+      "updated_at": "2026-05-30T20:27:00Z",
+      "summary": "Final GitHub reporting baseline pushed; PR head verified.",
+      "links": [
+        "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+      ]
+    },
+    {
+      "id": "f56cc6fb-c6b2-4236-80d2-e7ec76895e51",
+      "job_key": "webstudio-production-autopilot:v2.3b-github-reporting-baseline:030ec47",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "status": "PASS",
+      "priority": 100,
+      "created_at": "2026-05-30T20:24:46Z",
+      "updated_at": "2026-05-30T20:24:46Z",
+      "summary": "Sanitized report committed and pushed; PR found; scan passed.",
+      "links": [
+        "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+      ]
+    }
+  ],
+  "latest_artifacts": [],
+  "latest_memory_index": [],
+  "github": {
+    "commits": [
+      {
+        "sha": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+        "short": "53937a7",
+        "message": "docs: finalize supabase memory ui v2.6 reports",
+        "created_at": "2026-06-01T03:09:59+00:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/53937a7f94e31ce1eadefa9081f63ac3414dd99e"
+      },
+      {
+        "sha": "9309f49b7e31bb6132223785b82152e8a93e4268",
+        "short": "9309f49",
+        "message": "feat: add supabase memory dashboard ui v2.6",
+        "created_at": "2026-06-01T03:08:05+00:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/9309f49b7e31bb6132223785b82152e8a93e4268"
+      },
+      {
+        "sha": "d418910591ac74187906028d9a78423db7cbc5ad",
+        "short": "d418910",
+        "message": "docs: fix v2.5 delivery loop report formatting",
+        "created_at": "2026-06-01T02:57:51+00:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/d418910591ac74187906028d9a78423db7cbc5ad"
+      },
+      {
+        "sha": "e83bb326eda34cabeb02951c85bac071a72d14e6",
+        "short": "e83bb32",
+        "message": "docs: install autonomous delivery loop baseline v2.5",
+        "created_at": "2026-06-01T02:56:55+00:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/e83bb326eda34cabeb02951c85bac071a72d14e6"
+      },
+      {
+        "sha": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+        "short": "94eee6d",
+        "message": "docs: lock webstudio default branch strategy v2.4b",
+        "created_at": "2026-06-01T02:50:46+00:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/94eee6d2ad702fa6f47350ae3b3827bbedf12886"
+      },
+      {
+        "sha": "c002bd7db0e1ed8ef1024f8eeccf5191ce4171cb",
+        "short": "c002bd7",
+        "message": "docs: add serverless control plane baseline v2.4",
+        "created_at": "2026-06-01T02:42:32+00:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/c002bd7db0e1ed8ef1024f8eeccf5191ce4171cb"
+      },
+      {
+        "sha": "3336f2e73799a8d77c9fff2b10f372fff102bbb7",
+        "short": "3336f2e",
+        "message": "feat: add premium website generator v32 (#5)",
+        "created_at": "2026-06-01T04:55:51+03:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/3336f2e73799a8d77c9fff2b10f372fff102bbb7"
+      },
+      {
+        "sha": "e9334be32d82ab126d15fb75b0a09f506196ccca",
+        "short": "e9334be",
+        "message": "polish: refine v31 patient-facing preview copy",
+        "created_at": "2026-05-25T15:43:40+00:00",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/e9334be32d82ab126d15fb75b0a09f506196ccca"
+      }
+    ],
+    "pages_runs": [
+      {
+        "databaseId": 26733056674,
+        "status": "completed",
+        "conclusion": "success",
+        "headSha": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26733056674",
+        "createdAt": "2026-06-01T03:10:03Z",
+        "updatedAt": "2026-06-01T03:10:30Z"
+      },
+      {
+        "databaseId": 26733010411,
+        "status": "completed",
+        "conclusion": "success",
+        "headSha": "9309f49b7e31bb6132223785b82152e8a93e4268",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26733010411",
+        "createdAt": "2026-06-01T03:08:09Z",
+        "updatedAt": "2026-06-01T03:08:35Z"
+      },
+      {
+        "databaseId": 26732739542,
+        "status": "completed",
+        "conclusion": "success",
+        "headSha": "d418910591ac74187906028d9a78423db7cbc5ad",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26732739542",
+        "createdAt": "2026-06-01T02:57:55Z",
+        "updatedAt": "2026-06-01T02:58:16Z"
+      },
+      {
+        "databaseId": 26732715693,
+        "status": "completed",
+        "conclusion": "success",
+        "headSha": "e83bb326eda34cabeb02951c85bac071a72d14e6",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26732715693",
+        "createdAt": "2026-06-01T02:56:59Z",
+        "updatedAt": "2026-06-01T02:57:20Z"
+      },
+      {
+        "databaseId": 26732558193,
+        "status": "completed",
+        "conclusion": "success",
+        "headSha": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26732558193",
+        "createdAt": "2026-06-01T02:50:50Z",
+        "updatedAt": "2026-06-01T02:51:13Z"
+      }
+    ],
+    "repo": "pltnv123/webstudio-ops-dashboard",
+    "branch": "webstudio/product-build-v31"
+  },
+  "activity": [
+    {
+      "kind": "supabase_heartbeat",
+      "status": "DEPLOYED",
+      "title": "webstudio-supabase-memory-ui v2.6",
+      "summary": "Final V2.6 row after sanitized reports and Pages run succeeded.",
+      "time": "2026-06-01T03:10:47Z",
+      "commit": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/"
+    },
+    {
+      "kind": "github_pages_run",
+      "status": "PASS",
+      "title": "Pages run #26733056674",
+      "summary": "completed/success",
+      "time": "2026-06-01T03:10:30Z",
+      "commit": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26733056674"
+    },
+    {
+      "kind": "github_commit",
+      "status": "DEPLOYED",
+      "title": "docs: finalize supabase memory ui v2.6 reports",
+      "summary": "Commit 53937a7 on webstudio/product-build-v31",
+      "time": "2026-06-01T03:09:59+00:00",
+      "commit": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/53937a7f94e31ce1eadefa9081f63ac3414dd99e"
+    },
+    {
+      "kind": "supabase_heartbeat",
+      "status": "DEPLOYED",
+      "title": "webstudio-supabase-memory-ui v2.6",
+      "summary": "V2.6 Supabase Memory UI published with static sanitized snapshot.",
+      "time": "2026-06-01T03:08:57Z",
+      "commit": "9309f49b7e31bb6132223785b82152e8a93e4268",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/"
+    },
+    {
+      "kind": "github_pages_run",
+      "status": "PASS",
+      "title": "Pages run #26733010411",
+      "summary": "completed/success",
+      "time": "2026-06-01T03:08:35Z",
+      "commit": "9309f49b7e31bb6132223785b82152e8a93e4268",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26733010411"
+    },
+    {
+      "kind": "github_commit",
+      "status": "PASS",
+      "title": "feat: add supabase memory dashboard ui v2.6",
+      "summary": "Commit 9309f49 on webstudio/product-build-v31",
+      "time": "2026-06-01T03:08:05+00:00",
+      "commit": "9309f49b7e31bb6132223785b82152e8a93e4268",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/9309f49b7e31bb6132223785b82152e8a93e4268"
+    },
+    {
+      "kind": "supabase_heartbeat",
+      "status": "BASELINE_READY",
+      "title": "webstudio-autonomous-delivery-loop v2.5",
+      "summary": "Final V2.5 autonomous loop baseline row after report push.",
+      "time": "2026-06-01T02:58:29Z",
+      "commit": "d418910591ac74187906028d9a78423db7cbc5ad",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/"
+    },
+    {
+      "kind": "github_pages_run",
+      "status": "PASS",
+      "title": "Pages run #26732739542",
+      "summary": "completed/success",
+      "time": "2026-06-01T02:58:16Z",
+      "commit": "d418910591ac74187906028d9a78423db7cbc5ad",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26732739542"
+    },
+    {
+      "kind": "github_commit",
+      "status": "PASS",
+      "title": "docs: fix v2.5 delivery loop report formatting",
+      "summary": "Commit d418910 on webstudio/product-build-v31",
+      "time": "2026-06-01T02:57:51+00:00",
+      "commit": "d418910591ac74187906028d9a78423db7cbc5ad",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/d418910591ac74187906028d9a78423db7cbc5ad"
+    },
+    {
+      "kind": "github_pages_run",
+      "status": "PASS",
+      "title": "Pages run #26732715693",
+      "summary": "completed/success",
+      "time": "2026-06-01T02:57:20Z",
+      "commit": "e83bb326eda34cabeb02951c85bac071a72d14e6",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26732715693"
+    },
+    {
+      "kind": "github_commit",
+      "status": "PASS",
+      "title": "docs: install autonomous delivery loop baseline v2.5",
+      "summary": "Commit e83bb32 on webstudio/product-build-v31",
+      "time": "2026-06-01T02:56:55+00:00",
+      "commit": "e83bb326eda34cabeb02951c85bac071a72d14e6",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/e83bb326eda34cabeb02951c85bac071a72d14e6"
+    },
+    {
+      "kind": "supabase_heartbeat",
+      "status": "BASELINE_READY",
+      "title": "webstudio-autonomous-delivery-loop v2.5",
+      "summary": "V2.5 autonomous delivery loop baseline prepared.",
+      "time": "2026-06-01T02:56:21Z",
+      "commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/"
+    },
+    {
+      "kind": "supabase_heartbeat",
+      "status": "DEFAULT_BRANCH_LOCKED",
+      "title": "webstudio-branch-strategy v2.4b",
+      "summary": "Default branch locked to webstudio/product-build-v31.",
+      "time": "2026-06-01T02:51:37Z",
+      "commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/"
+    },
+    {
+      "kind": "github_pages_run",
+      "status": "PASS",
+      "title": "Pages run #26732558193",
+      "summary": "completed/success",
+      "time": "2026-06-01T02:51:13Z",
+      "commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26732558193"
+    },
+    {
+      "kind": "github_commit",
+      "status": "PASS",
+      "title": "docs: lock webstudio default branch strategy v2.4b",
+      "summary": "Commit 94eee6d on webstudio/product-build-v31",
+      "time": "2026-06-01T02:50:46+00:00",
+      "commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/94eee6d2ad702fa6f47350ae3b3827bbedf12886"
+    },
+    {
+      "kind": "job",
+      "status": "PASS",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "summary": "Sanitized report committed at restored branch head and pushed; scan passed.",
+      "time": "2026-05-30T20:27:18Z",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    },
+    {
+      "kind": "job",
+      "status": "PASS",
+      "title": "WebStudio Production Autopilot V2.3B GitHub Reporting Baseline",
+      "summary": "Final GitHub reporting baseline pushed; PR head verified.",
+      "time": "2026-05-30T20:27:00Z",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    },
+    {
+      "kind": "job",
+      "status": "PASS",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "summary": "Sanitized report committed and pushed; PR found; scan passed.",
+      "time": "2026-05-30T20:24:46Z",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    }
+  ],
+  "blockers": [],
+  "next_safe_action": "Continue with V2.7 final validation and status row after UI publishing.",
+  "summary": {
+    "status": "PASS",
+    "activity_items": 18,
+    "heartbeat_rows": 5,
+    "job_rows": 3,
+    "github_runs": 5,
+    "commit_rows": 8,
+    "blockers": 0
+  }
+}

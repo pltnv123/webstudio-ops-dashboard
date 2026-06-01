@@ -41,3 +41,6 @@ body{width:100%;min-width:0}.topbar,.tabs{width:100%;max-width:none;min-width:0}
 
 /* WebStudio Supabase Memory UI v2.6 */
 .supabase-memory-page .metric-card .metric{font-size:clamp(18px,2vw,28px);overflow-wrap:anywhere}.supabase-memory-card{border-color:rgba(54,211,153,.24);background:linear-gradient(180deg,rgba(54,211,153,.08),rgba(12,18,26,.74))}.supabase-memory-page .row strong{overflow-wrap:anywhere}.supabase-memory-page .kv dd{overflow-wrap:anywhere}
+
+/* WebStudio Bot Activity UI v2.7 */
+.bot-activity-page .metric-card .metric{font-size:clamp(18px,2vw,28px);overflow-wrap:anywhere}.bot-activity-card{border-color:rgba(96,165,250,.26);background:linear-gradient(180deg,rgba(96,165,250,.08),rgba(12,18,26,.76))}.chip-row{display:flex;gap:8px;flex-wrap:wrap}.bot-activity-page .row strong,.bot-activity-page .row-meta{overflow-wrap:anywhere}.bot-activity-page .owner-summary{font-size:15px;line-height:1.55;color:var(--text)}

@@ -1,0 +1,19 @@
+{
+  "task": "WEBSTUDIO V2.7 — LIVE BOT ACTIVITY FEED",
+  "status": "BUILD_SMOKE_PASS",
+  "output_root": "/workspace/output/webstudio-live-bot-activity-feed-v27",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "branch": "webstudio/product-build-v31",
+  "base_commit": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+  "browser_side_supabase": false,
+  "snapshot_path": "public/data/webstudio-live-bot-activity-snapshot.json",
+  "pushed_commit": null,
+  "deploy_status": null,
+  "supabase_row_written": false,
+  "build": "PASS",
+  "smoke": "PASS",
+  "static_smoke": "PASS",
+  "secret_scan": "PASS",
+  "allowlist": "PASS",
+  "updated_at": "2026-06-01T03:17:40.583065+00:00"
+}

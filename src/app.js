@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','supabase-memory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','supabase-memory','bot-activity','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -32,7 +32,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1631,6 +1631,49 @@ function supabaseMemory() {
   </div>`;
 }
 
+
+function botActivity() {
+  const feed = state.bot_activity || {};
+  const items = asArray(feed.activity);
+  const ops = asArray(feed.latest_ops_status);
+  const jobs = asArray(feed.latest_jobs);
+  const runs = asArray(feed.github?.pages_runs);
+  const commits = asArray(feed.github?.commits);
+  const blockers = asArray(feed.blockers);
+  const links = feed.links || {};
+  const safety = feed.safety || {};
+  const chipList = asArray(feed.status_chips).length ? asArray(feed.status_chips) : ['PASS','PARTIAL','BLOCKED','DEPLOYED','RUNNING','QUEUED'];
+  const ownerSummary = [
+    `Bot Activity: ${feed.summary?.status || 'unknown'}`,
+    `Items: ${items.length}`,
+    `Heartbeats: ${ops.length}`,
+    `Jobs: ${jobs.length}`,
+    `Pages runs: ${runs.length}`,
+    `Commits: ${commits.length}`,
+    `Blockers: ${blockers.length}`,
+    `Next: ${feed.next_safe_action || '—'}`
+  ].join('\n');
+  const activityRow = a => row(a.kind || 'event', a.title || 'Activity event', a.status || 'unknown', `${a.time || '—'} · ${shortText(a.summary || '—', 120)}${a.commit ? ' · commit=' + shortText(a.commit, 12) : ''}${a.url ? ' · link=' + a.url : ''}`, 'bot-activity-event', jsonCopy(a));
+  const blockerRow = b => row(b.id || b.kind || 'blocker', b.title || b.summary || 'Blocker', b.status || 'BLOCKED', `${b.time || '—'} · ${b.owner || 'owner/operator'} · ${shortText(b.next || feed.next_safe_action || '—', 110)}`, 'bot-activity-blocker', jsonCopy(b));
+  const runRow = r => row(r.databaseId || 'pages', `Pages run ${r.status || 'unknown'} / ${r.conclusion || 'pending'}`, r.conclusion === 'success' ? 'PASS' : (r.status === 'completed' ? 'PARTIAL' : 'RUNNING'), `${r.updatedAt || r.createdAt || '—'} · commit=${shortText(r.headSha || '—', 12)} · ${r.url || '—'}`, 'bot-activity-run', jsonCopy(r));
+  const commitRow = c => row(c.short || shortText(c.sha || 'commit', 8), c.message || 'GitHub commit', 'DEPLOYED', `${c.created_at || '—'} · ${c.url || '—'}`, 'bot-activity-commit', jsonCopy(c));
+  return `<div class="grid bot-activity-page">
+    ${metric('Activity items', items.length, 'span-2')}
+    ${metric('Status rows', ops.length, 'span-2')}
+    ${metric('Jobs', jobs.length, 'span-2')}
+    ${metric('Pages runs', runs.length, 'span-2')}
+    ${metric('Commits', commits.length, 'span-2')}
+    ${metric('Blockers', blockers.length, 'span-2')}
+    ${card('Status chips', `<div class="chip-row">${chipList.map(x => badge(x, x)).join('')}</div>${toolbar([copyButton('Copy Bot Activity summary', ownerSummary), copyButton('Copy Bot Activity JSON', jsonCopy(feed))])}`, 'span-12', 'bot-activity-card')}
+    ${card('Live-ish feed', rowsTop(items, activityRow, 12, 'No activity rows in snapshot'), 'span-12', 'bot-activity-card')}
+    ${card('Blockers', rowsTop(blockers, blockerRow, 8, 'No blockers in sanitized snapshot'), 'span-6', 'bot-activity-card')}
+    ${card('Next safe action', `<p class="owner-summary">${fmt(feed.next_safe_action || 'Review next safe production task.')}</p>${toolbar([links.supabase_memory_route ? copyButton('Copy Supabase Memory route', links.supabase_memory_route) : '', links.github_repo ? copyButton('Copy GitHub repo', links.github_repo) : '', links.latest_pages_run ? copyButton('Copy Pages run', links.latest_pages_run) : ''].filter(Boolean))}`, 'span-6', 'bot-activity-card')}
+    ${card('GitHub commits', rowsTop(commits, commitRow, 8, 'No commit rows in snapshot'), 'span-6')}
+    ${card('Pages status runs', rowsTop(runs, runRow, 8, 'No Pages runs in snapshot'), 'span-6')}
+    ${card('Safe static source', `${kv({mode: feed.source_mode || 'static_snapshot', browser_side_supabase: safety.browser_side_supabase === true ? 'enabled' : 'disabled', github_browser_access: safety.browser_side_github_token === true ? 'enabled' : 'disabled', generated_at: feed.generated_at || '—', source_path: feed.source?.path || feed.source_of_truth || '—'})}`, 'span-12')}
+  </div>`;
+}
+
 function audit() {
   const safety = state.safety || {};
   return `<div class="grid">
@@ -1644,7 +1687,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
