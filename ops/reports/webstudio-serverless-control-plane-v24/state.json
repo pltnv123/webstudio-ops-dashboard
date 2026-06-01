@@ -1,0 +1,41 @@
+{
+  "status": "PARTIAL",
+  "version": "v2.4",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "repo_visibility": "PUBLIC",
+  "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "pages_http_code": 200,
+  "pages_effective_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "latest_deploy_status": "success",
+  "latest_deploy_run_id": 26717721916,
+  "latest_deploy_run_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26717721916",
+  "latest_deploy_head_sha": "150666666fe41aa2c23146fd475ce559ea375c79",
+  "latest_deploy_head_branch": "webstudio/product-build-v32-premium-generator",
+  "default_branch": "main",
+  "default_branch_head": "5c3a19b4629a0b7db2f39ca916b42f7d781863aa",
+  "pr_5_state": "MERGED",
+  "pr_5_base_branch": "webstudio/product-build-v31",
+  "pr_5_head_branch": "webstudio/product-build-v32-premium-generator",
+  "pr_5_head_sha": "150666666fe41aa2c23146fd475ce559ea375c79",
+  "merge_commit": "3336f2e73799a8d77c9fff2b10f372fff102bbb7",
+  "merge_commit_in_default_main": false,
+  "main_compare_status": "diverged",
+  "supabase_project_ref": "ebqupwyyafvnmhakfwet",
+  "supabase_tables": [
+    "webstudio_ops_status",
+    "webstudio_jobs",
+    "webstudio_artifacts",
+    "webstudio_memory_index"
+  ],
+  "supabase_row_written": {
+    "id": "b5316f1b-1148-491a-ab0d-698166ea3116",
+    "component": "webstudio-serverless-control-plane",
+    "version": "v2.4",
+    "status": "PARTIAL"
+  },
+  "blockers": [
+    "PR #5 is merged into base branch webstudio/product-build-v31, but repo default branch main is 5c3a19b4629a0b7db2f39ca916b42f7d781863aa and does not contain merge commit 3336f2e73799a8d77c9fff2b10f372fff102bbb7."
+  ],
+  "generated_at": "2026-06-01T02:02:32.890418+00:00",
+  "pushed_commit": "RECORDED_AFTER_PUSH_IN_FINAL_RESPONSE_AND_pushed-commit.txt"
+}

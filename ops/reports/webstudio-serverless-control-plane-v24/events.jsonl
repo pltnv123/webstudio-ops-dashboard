@@ -1,0 +1,8 @@
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "task.start", "task": "webstudio-serverless-control-plane-v24"}
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "github.pages.http", "status": "PASS", "http_code": 200, "url": "https://pltnv123.github.io/webstudio-ops-dashboard/"}
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "github.actions.latest_deploy", "status": "PASS", "run_id": 26717721916, "conclusion": "success"}
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "github.pr5", "state": "MERGED", "base": "webstudio/product-build-v31", "merge_commit": "3336f2e73799a8d77c9fff2b10f372fff102bbb7"}
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "github.default_branch", "status": "WARN", "default_branch": "main", "head": "5c3a19b4629a0b7db2f39ca916b42f7d781863aa", "merge_commit_in_default": false}
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "supabase.tables", "status": "PASS", "tables": ["webstudio_ops_status", "webstudio_jobs", "webstudio_artifacts", "webstudio_memory_index"]}
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "supabase.status_row", "status": "PASS", "row_id": "b5316f1b-1148-491a-ab0d-698166ea3116", "row_status": "PARTIAL"}
+{"ts": "2026-06-01T02:02:32.890418+00:00", "event": "reports.write", "status": "PASS", "root": "/workspace/output/webstudio-serverless-control-plane-v24"}
