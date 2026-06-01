@@ -3,3 +3,4 @@
 {"ts": "2026-06-01T03:42:13.419903+00:00", "event": "v28.remote.blocked", "status": "BLOCKED", "local_commit": "d164571b616e436e2fb717891c5066f1c0a73be7", "supabase_row_id": "1a295adf-db5f-46ef-85f0-d046001ec95d"}
 {"ts": "2026-06-01T03:47:01.014829+00:00", "event": "v28.host_bridge.queued", "status": "QUEUED"}
 {"ts": "2026-06-01T03:58:33Z", "event": "v28.host_bridge.timeout", "status": "BLOCKED", "job": "/workspace/.hermes-host-jobs/github/webstudio-v28-recovery-autopush.sh"}
+{"ts": "2026-06-01T04:06:14Z", "event": "v28.deployed.verified", "status": "PASS", "commit": "38af9731034850071e8aaea5e6922c575587756c"}
