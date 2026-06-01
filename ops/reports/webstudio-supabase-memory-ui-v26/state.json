@@ -1,0 +1,17 @@
+{
+  "task": "WEBSTUDIO V2.6 — SUPABASE MEMORY STATUS UI",
+  "status": "BUILD_SMOKE_PASS",
+  "output_root": "/workspace/output/webstudio-supabase-memory-ui-v26",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "branch": "webstudio/product-build-v31",
+  "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "data_source_decision": "static sanitized Supabase MCP snapshot",
+  "browser_side_supabase": false,
+  "build": "PASS",
+  "smoke": "PASS",
+  "static_smoke": "PASS",
+  "secret_scan": "PASS",
+  "pushed_commit": null,
+  "deploy_status": null,
+  "supabase_row_written": false
+}

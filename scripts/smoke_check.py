@@ -32,7 +32,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -95,6 +95,8 @@ required_js_symbols = [
     'Owner Actions',
     'chat_cron_used',
     'owner_needs_to_type_continue',
+    'supabaseMemory',
+    'Supabase Memory',
 ]
 for symbol in required_js_symbols:
     assert symbol in js, f'missing JS symbol {symbol}'
@@ -104,7 +106,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
@@ -112,6 +114,9 @@ assert ce['chat_cron_used'] is False
 assert ce['owner_needs_to_type_continue'] is False
 assert 'snapshot_pending_count' in state['system_hardening']
 assert state['github_readiness'].get('pr_url'), 'GitHub PR URL required'
+assert state['supabase_memory']['safety']['browser_side_supabase'] is False
+assert len(state['supabase_memory']['latest_ops_status']) >= 1
+assert 'webstudio_ops_status' in state['supabase_memory']['tables']
 assert 'enabled' in state['work_factory']
 assert state['kanban'].get('executable_mirror_count', 0) == 0
 controller = state['continuation_controller']

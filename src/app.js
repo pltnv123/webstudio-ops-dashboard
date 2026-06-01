@@ -2,7 +2,7 @@ const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','supabase-memory','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
   kanban: '',
@@ -32,7 +32,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1590,6 +1590,47 @@ function marathon() {
   </div>`;
 }
 
+
+function supabaseMemory() {
+  const mem = state.supabase_memory || {};
+  const ops = asArray(mem.latest_ops_status);
+  const jobs = asArray(mem.latest_jobs);
+  const artifactsList = asArray(mem.latest_artifacts);
+  const memoryIndex = asArray(mem.latest_memory_index);
+  const loop = mem.current_delivery_loop || {};
+  const releaseState = mem.latest_deploy || {};
+  const heartbeat = mem.latest_heartbeat || {};
+  const bot = mem.bot_activity_summary || {};
+  const source = mem.source || {};
+  const sourceMode = mem.source_mode || 'static_snapshot';
+  const ownerSummary = [
+    `Supabase Memory status: ${loop.status || 'unknown'}`,
+    `Latest commit: ${releaseState.commit || loop.commit || '—'}`,
+    `Pages: ${releaseState.pages_url || loop.pages_url || '—'}`,
+    `Heartbeat: ${heartbeat.created_at || loop.last_heartbeat_at || '—'}`,
+    `Visible rows: ops=${ops.length}, jobs=${jobs.length}, artifacts=${artifactsList.length}, memory=${memoryIndex.length}`,
+    `Source: ${sourceMode}; browser-side Supabase=${mem.safety?.browser_side_supabase === true ? 'enabled' : 'disabled'}`
+  ].join('\n');
+  const opRow = r => row(r.component || shortText(r.id || 'ops', 20), `${r.version || '—'} · ${shortText(r.notes || r.deployment_target || 'Operational status', 110)}`, r.status || 'unknown', `commit=${shortText(r.git_commit || '—', 12)} · created=${r.created_at || '—'} · target=${r.deployment_target || '—'}`, 'supabase-op-row', jsonCopy(r));
+  const jobRow = j => row(shortText(j.job_key || j.id || 'job', 34), j.title || 'Supabase job', j.status || 'unknown', `priority=${j.priority ?? '—'} · created=${j.created_at || '—'} · updated=${j.updated_at || '—'}`, 'supabase-job-row', jsonCopy(j));
+  const artifactSupabaseRow = a => row(a.artifact_key || a.id || 'artifact', `${a.artifact_type || 'artifact'} · ${a.path || '—'}`, a.status || 'unknown', `created=${a.created_at || '—'} · notes=${shortText(a.notes || '—', 80)}`, 'supabase-artifact-row', jsonCopy(a));
+  const memoryRow = m => row(m.memory_key || m.id || 'memory', m.summary || 'Memory index row', m.scope || 'memory', `source=${m.source_path || '—'} · updated=${m.updated_at || m.created_at || '—'}`, 'supabase-memory-index-row', jsonCopy(m));
+  return `<div class="grid supabase-memory-page">
+    ${metric('Delivery loop', `${loop.version || '—'} / ${loop.status || 'unknown'}`, 'span-3')}
+    ${metric('Ops rows', ops.length, 'span-3')}
+    ${metric('Jobs', jobs.length, 'span-2')}
+    ${metric('Artifacts', artifactsList.length, 'span-2')}
+    ${metric('Last heartbeat', heartbeat.created_at || loop.last_heartbeat_at || '—', 'span-2')}
+    ${card('Current delivery loop', `${kv({component: loop.component || 'webstudio-autonomous-delivery-loop', version: loop.version || '—', status: loop.status || '—', commit: loop.commit || releaseState.commit || '—', pages_url: loop.pages_url || releaseState.pages_url || '—', last_heartbeat_at: loop.last_heartbeat_at || heartbeat.created_at || '—'})}${toolbar([copyButton('Copy owner summary', ownerSummary), copyButton('Copy Supabase Memory JSON', jsonCopy(mem))])}`, 'span-6', 'supabase-memory-card')}
+    ${card('Safe data source', `${kv({mode: sourceMode, browser_side_supabase: mem.safety?.browser_side_supabase === true ? 'enabled' : 'disabled', reason: mem.safety?.reason || 'static sanitized snapshot', source_path: source.path || mem.source_of_truth || '—', generated_at: mem.generated_at || '—', project_ref: mem.project_ref || '—'})}`, 'span-6', 'supabase-memory-card')}
+    ${card('Latest ops status rows', rowsTop(ops, opRow, 8, 'No Supabase ops status rows in snapshot'), 'span-12')}
+    ${card('Latest webstudio_jobs rows', rowsTop(jobs, jobRow, 8, 'No Supabase jobs rows in snapshot'), 'span-6')}
+    ${card('Latest webstudio_artifacts rows', rowsTop(artifactsList, artifactSupabaseRow, 8, 'No Supabase artifacts rows in snapshot'), 'span-6')}
+    ${card('Memory index rows', rowsTop(memoryIndex, memoryRow, 8, 'No Supabase memory index rows in snapshot'), 'span-6')}
+    ${card('Bot activity summary', `${kv({visible_ops_rows: bot.visible_ops_rows ?? ops.length, visible_jobs: bot.visible_jobs ?? jobs.length, visible_artifacts: bot.visible_artifacts ?? artifactsList.length, pass_or_completed_jobs: bot.supabase_jobs_pass_or_completed ?? '—', work_factory_completed: state.work_factory?.counts?.completed ?? '—', kanban_task_total: state.kanban?.task_total ?? '—', summary: bot.summary || 'No bot activity summary available'})}`, 'span-6')}
+  </div>`;
+}
+
 function audit() {
   const safety = state.safety || {};
   return `<div class="grid">
@@ -1603,7 +1644,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

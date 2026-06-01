@@ -48,6 +48,7 @@ AGENT_WORKFLOW_SCREENSHOT_PATH = OUTPUT / "webstudio-agent-workflow-screenshot.p
 GITHUB_PR1_STATUS_PATH = OUTPUT / "webstudio-github-pr1-status.json"
 PRODUCT_PROGRESS_PATH = OUTPUT / "webstudio-product-progress-v1.json"
 CONTROL_HISTORY_PATH = PUBLIC_DATA / "webstudio-control-plane-history.json"
+SUPABASE_MEMORY_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-supabase-memory-snapshot.json"
 
 FORBIDDEN_ACTIONS = [
     "dispatch", "run", "daemon", "unblock", "reclaim", "deploy", "release",
@@ -1432,6 +1433,45 @@ def build_premium_factory_v34(product_progress: dict[str, Any]) -> dict[str, Any
     return v34
 
 
+
+def build_supabase_memory() -> dict[str, Any]:
+    snapshot = load_json(SUPABASE_MEMORY_SNAPSHOT_PATH, {})
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    ops = snapshot.get("latest_ops_status") if isinstance(snapshot.get("latest_ops_status"), list) else []
+    jobs = snapshot.get("latest_jobs") if isinstance(snapshot.get("latest_jobs"), list) else []
+    artifacts = snapshot.get("latest_artifacts") if isinstance(snapshot.get("latest_artifacts"), list) else []
+    memory_index = snapshot.get("latest_memory_index") if isinstance(snapshot.get("latest_memory_index"), list) else []
+    latest_heartbeat = ops[0] if ops else {}
+    delivery_loop = snapshot.get("current_delivery_loop") if isinstance(snapshot.get("current_delivery_loop"), dict) else {}
+    latest_deploy = snapshot.get("latest_deploy") if isinstance(snapshot.get("latest_deploy"), dict) else {}
+    bot_activity = snapshot.get("bot_activity_summary") if isinstance(snapshot.get("bot_activity_summary"), dict) else {}
+    bot_activity = {
+        **bot_activity,
+        "visible_ops_rows": len(ops),
+        "visible_jobs": len(jobs),
+        "visible_artifacts": len(artifacts),
+        "visible_memory_index": len(memory_index),
+    }
+    return {
+        "source_of_truth": str(SUPABASE_MEMORY_SNAPSHOT_PATH),
+        "source": stat_info(SUPABASE_MEMORY_SNAPSHOT_PATH),
+        "schema_version": snapshot.get("schema_version", "webstudio-supabase-memory.v2.6.empty"),
+        "generated_at": snapshot.get("generated_at"),
+        "source_mode": snapshot.get("source_mode", "static_snapshot"),
+        "safety": snapshot.get("safety", {"browser_side_supabase": False}),
+        "project_ref": snapshot.get("project_ref", "ebqupwyyafvnmhakfwet"),
+        "tables": snapshot.get("tables", []),
+        "latest_ops_status": ops,
+        "latest_jobs": jobs,
+        "latest_artifacts": artifacts,
+        "latest_memory_index": memory_index,
+        "current_delivery_loop": delivery_loop,
+        "latest_deploy": latest_deploy,
+        "latest_heartbeat": latest_heartbeat,
+        "bot_activity_summary": bot_activity,
+    }
+
 def build_error_recovery_v37_1() -> dict[str, Any]:
     taxonomy = load_json(OUTPUT / "webstudio-error-taxonomy-v37-1.json", {})
     errors = taxonomy.get("errors") if isinstance(taxonomy.get("errors"), list) else []
@@ -1553,6 +1593,7 @@ def build_state() -> dict[str, Any]:
         "continuation_controller": continuation_controller,
         "kanban_semantics": build_kanban_semantics_status(),
         "system_hardening": build_system_hardening_status(),
+        "supabase_memory": build_supabase_memory(),
         "marathon_12h": marathon_status,
         "d1_owner_feedback": build_d1_owner_feedback(),
         "d3_intake": build_d3_intake(),
@@ -1589,7 +1630,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "supabase-memory", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

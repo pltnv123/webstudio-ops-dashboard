@@ -38,3 +38,6 @@ body{width:100%;min-width:0}.topbar,.tabs{width:100%;max-width:none;min-width:0}
 .system-line strong{min-width:170px}
 .system-line .label{margin-left:auto;text-align:right;max-width:55%}
 @media(max-width:760px){.system-line{align-items:flex-start;flex-direction:column}.system-line .label{max-width:100%;text-align:left;margin-left:0}.system-line strong{min-width:0}}
+
+/* WebStudio Supabase Memory UI v2.6 */
+.supabase-memory-page .metric-card .metric{font-size:clamp(18px,2vw,28px);overflow-wrap:anywhere}.supabase-memory-card{border-color:rgba(54,211,153,.24);background:linear-gradient(180deg,rgba(54,211,153,.08),rgba(12,18,26,.74))}.supabase-memory-page .row strong{overflow-wrap:anywhere}.supabase-memory-page .kv dd{overflow-wrap:anywhere}
