@@ -1685,12 +1685,29 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["client", "package", "acceptance_gate", "evidence", "risks", "follow_up", "external_action_guardrail"],
         "next_safe_action": "Copy the sign-off packet for owner review; keep all live send/write actions blocked until explicit approval.",
     }
+    handoff_receipt = {
+        "schema_version": "webstudio.delivery-launch-readiness-receipt.v40",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_copy_receipt",
+        "persistence": "static_sanitized_state_plus_browser_copy_only",
+        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
+        "purpose": "Give the owner one final launch-readiness receipt that summarizes what is ready, what is blocked, and the exact safe next action before any external handoff.",
+        "receipt_rows": [
+            {"id": "packet", "label": "Owner sign-off packet exists", "status": "ready", "source": "owner_signoff_packet_v39", "owner_action": "Review scope, QA, risks, and follow-up in one packet."},
+            {"id": "evidence", "label": "Validation evidence is visible", "status": "needs_review", "source": "delivery_evidence_binder_v38", "owner_action": "Attach fresh build/smoke/secret-scan/Pages proof before client send."},
+            {"id": "follow-up", "label": "Post-delivery follow-up is staged", "status": "queued", "source": "followup_planner_v37", "owner_action": "Confirm the first manual follow-up touch after acceptance."},
+            {"id": "live-actions", "label": "External send/write is still blocked", "status": "blocked_until_owner", "source": "autonomy_policy.approval_required_for", "owner_action": "Approve exact external action outside this read-only dashboard."},
+        ],
+        "copy_packet_fields": ["client", "package", "readiness", "blocked_until_owner", "evidence", "next_safe_action"],
+        "next_safe_action": "Use the receipt as a final owner checkpoint; do not perform live send/write until explicit owner approval is recorded.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v39",
+        "schema_version": "webstudio.delivery-handoff-composer.v40",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "delivery_owner_signoff_packet_v39",
+        "feature": "delivery_launch_readiness_receipt_v40",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1721,6 +1738,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "handoff_risk_digest_v36": risk_digest,
         "delivery_evidence_binder_v38": evidence_binder,
         "owner_signoff_packet_v39": signoff_packet,
+        "launch_readiness_receipt_v40": handoff_receipt,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {

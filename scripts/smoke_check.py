@@ -120,6 +120,9 @@ required_js_symbols = [
     'deliveryOwnerSignoffPacket',
     'Delivery owner sign-off packet v39',
     'owner_signoff_packet_v39',
+    'deliveryLaunchReadinessReceipt',
+    'Delivery launch-readiness receipt v40',
+    'launch_readiness_receipt_v40',
     'DELIVERY_ACCEPTANCE_STORAGE_KEY',
 ]
 for symbol in required_js_symbols:
@@ -156,8 +159,8 @@ assert state['order_builder']['safety']['public_demo_only'] is True
 assert state['order_builder']['safety']['real_sensitive_client_data'] is False
 assert state['delivery_handoff_composer_v33']['status'] == 'PASS_LOCAL_READY'
 assert state['delivery_handoff_composer_v33']['owner_action_required'] is False
-assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v39'
-assert state['delivery_handoff_composer_v33']['feature'] == 'delivery_owner_signoff_packet_v39'
+assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v40'
+assert state['delivery_handoff_composer_v33']['feature'] == 'delivery_launch_readiness_receipt_v40'
 assert state['delivery_handoff_composer_v33']['acceptance_tracker']['storage_key'] == 'webstudio.delivery.acceptanceTracker.v34'
 assert len(state['delivery_handoff_composer_v33']['client_ready_checklist']) >= 5
 assert len(state['delivery_handoff_composer_v33']['acceptance_tracker']['rows']) >= 6
@@ -167,6 +170,8 @@ assert state['delivery_handoff_composer_v33']['delivery_evidence_binder_v38']['s
 assert len(state['delivery_handoff_composer_v33']['delivery_evidence_binder_v38']['evidence']) >= 5
 assert state['delivery_handoff_composer_v33']['owner_signoff_packet_v39']['schema_version'] == 'webstudio.delivery-owner-signoff-packet.v39'
 assert len(state['delivery_handoff_composer_v33']['owner_signoff_packet_v39']['required_sections']) >= 5
+assert state['delivery_handoff_composer_v33']['launch_readiness_receipt_v40']['schema_version'] == 'webstudio.delivery-launch-readiness-receipt.v40'
+assert len(state['delivery_handoff_composer_v33']['launch_readiness_receipt_v40']['receipt_rows']) >= 4
 assert state['delivery_handoff_composer_v33']['followup_planner_v37']['storage_key'] == 'webstudio.delivery.followupPlanner.v37'
 assert len(state['delivery_handoff_composer_v33']['followup_planner_v37']['tasks']) >= 5
 assert 'enabled' in state['work_factory']
