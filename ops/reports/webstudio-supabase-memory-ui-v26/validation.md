@@ -11,9 +11,10 @@
 - changed-files secret scan: PASS
 - git diff --check: PASS
 - allowlist: PASS
-
-## Static smoke
-
-- `/`: HTTP 200
-- `/supabase-memory/`: HTTP 200
-- `/data/webstudio-control-plane-state.json`: HTTP 200
+- Implementation commit: 9309f49b7e31bb6132223785b82152e8a93e4268
+- Deploy run: https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26733010411
+- Deploy status: completed/success
+- Pages root: HTTP 200
+- Supabase Memory route: HTTP 200
+- Supabase row written: PASS
+- Supabase row id: 37ae6a5f-f4a4-4b8e-8994-82e4784fbad8
