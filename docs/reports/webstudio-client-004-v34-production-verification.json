@@ -1,0 +1,110 @@
+{
+  "schema": "webstudio.client004.v34_2.production_verification",
+  "generated_at": "2026-05-26T07:34:22Z",
+  "status": "BLOCKED_FOR_CLIENT_DEMO",
+  "summary": "Production index/styles/app load in host browser, but deployed SVG asset resources fail. Source artifact has assets; production deployed path is not acceptable for client demo until asset copy/deploy is repaired.",
+  "production_deployed_path": "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34",
+  "production_url": "file:///home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/index.html",
+  "source_artifact_path": "/workspace/output/webstudio-client-004-premium-site-v34",
+  "checks": {
+    "index_html_exists": "PASS_browser_loaded_title_Vita_Prime_Dental",
+    "styles_css_exists": "PASS_link_loaded_and_rendered",
+    "app_js_exists": "PASS_resource_tree_script_content_size_649",
+    "assets_exist_in_source": "PASS_6_svg_assets_present_in_workspace_output_source",
+    "assets_exist_in_production_browser": "FAIL_6_svg_resources_failed_in_Page_getResourceTree",
+    "mp4_links_or_motion_assets": "GATED_no_video_tags_on_page; MP4 rendered artifacts exist from v34 but publication approval required",
+    "no_broken_local_only_paths": "PASS_no_workspace_localhost_tmp_links_in_DOM",
+    "no_raw_debug": "PASS_no_console_log_debugger_TODO_FIXME_DEBUG_hits_in_DOM_scan",
+    "no_fake_medical_proof": "PASS_generated/planned/approval labels visible; no fake doctors/certificates/before-after claimed real",
+    "asset_state_visible_documented": "PASS_labels_VISIBLE_generated_demo_real_approval_required_publication_gated",
+    "reduced_motion_fallback": "PASS_in_source_css_prefers_reduced_motion_and_app_js_matchMedia",
+    "mobile_layout": "PASS_layout_no_horizontal_scroll_CTA_visible_390x900_but_assets_failed",
+    "desktop_layout": "PASS_layout_no_horizontal_scroll_CTA_visible_1920/1440/1366_but_assets_failed"
+  },
+  "source_files": {
+    "index.html": {
+      "source_exists": true,
+      "source_size": 8339,
+      "source_sha256": "4cf2932707b8fa40be2f9cb3fe94bbddef32c3ab44b8ba29dff09462b200a931"
+    },
+    "styles.css": {
+      "source_exists": true,
+      "source_size": 6717,
+      "source_sha256": "c2effced43bad19d955cef3ec48958ff6118e6355a69d4debaef5f562ac5e0c9"
+    },
+    "app.js": {
+      "source_exists": true,
+      "source_size": 649,
+      "source_sha256": "057eb37d74470dfd7c27cbe4937ce4e42bbc2072a7ee1d3e89ecfb2b820852a1"
+    },
+    "README.md": {
+      "source_exists": true,
+      "source_size": 94,
+      "source_sha256": "ad3c43ae0cda88a71ca4cb325b9031c148a821efa82e71ae1f5297bb31ce25ea"
+    }
+  },
+  "source_assets": [
+    {
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-cases-v34.svg",
+      "size": 3256,
+      "sha256": "3fb478f8a6cf81569f8a4fcc19619e961b380c5823e50fc80126470ee33a03c7"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-certificates-v34.svg",
+      "size": 3238,
+      "sha256": "a0ab3a3ab236d45f329974805d740902bda32c4640ad8653be8906003e0b0962"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-consultation-v34.svg",
+      "size": 3226,
+      "sha256": "3e9ac943a8256284350e68c25d160782d00390f9bee8617b241d5a0341f93c6a"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-doctors-v34.svg",
+      "size": 3234,
+      "sha256": "7d1b9858a0677603c75bc7931a46d474082864a665cbf84e192e1b816045e2ba"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-hero-v34.svg",
+      "size": 3238,
+      "sha256": "c2f86128fdee506ced419d506f43f47701891c18c03f7c03b605f836f1bf806d"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-interior-v34.svg",
+      "size": 3232,
+      "sha256": "0b744e0a19cef994b2eeee9ab35597f57292a76a6903ff6cf53c189263f72af5"
+    }
+  ],
+  "production_resource_failures": [
+    "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-consultation-v34.svg",
+    "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-certificates-v34.svg",
+    "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-hero-v34.svg",
+    "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-interior-v34.svg",
+    "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-cases-v34.svg",
+    "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-doctors-v34.svg"
+  ],
+  "browser_resource_evidence": {
+    "app_js": {
+      "type": "Script",
+      "mimeType": "text/javascript",
+      "contentSize": 649
+    },
+    "failed_image_count": 6,
+    "failed_images": [
+      "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-consultation-v34.svg",
+      "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-certificates-v34.svg",
+      "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-hero-v34.svg",
+      "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-interior-v34.svg",
+      "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-cases-v34.svg",
+      "/home/hermes/.hermes/host-bridge/deploy/production/webstudio-client-004-premium-site-v34/assets/webstudio-client-004-visual-doctors-v34.svg"
+    ],
+    "console_errors": 0
+  },
+  "acceptance_verdict": {
+    "ready_as_owner_internal_review": "YES_WITH_CLEAR_LIMITS",
+    "ready_as_client_demo": "NO_until_production_asset_failures_are_repaired",
+    "ready_for_public_launch": "NO_requires_real_medical_assets_MP4_publication_medical_legal_Telegram_static_launch_approvals",
+    "owner_action_required_for_product_work": "NO",
+    "owner_action_required_for_public_live_steps": "YES"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "version": "v32",
+  "status": "PASS",
+  "stage1": [
+    {
+      "id": 1,
+      "question": "Что продаёте?"
+    },
+    {
+      "id": 2,
+      "question": "Кому продаёте?"
+    },
+    {
+      "id": 3,
+      "question": "Какой главный продукт/услуга?"
+    },
+    {
+      "id": 4,
+      "question": "География?"
+    },
+    {
+      "id": 5,
+      "question": "Средний чек?"
+    },
+    {
+      "id": 6,
+      "question": "Почему клиент выбирает вас?"
+    },
+    {
+      "id": 7,
+      "question": "Какие главные возражения?"
+    },
+    {
+      "id": 8,
+      "question": "Какие доказательства есть?"
+    },
+    {
+      "id": 9,
+      "question": "Какой целевой action?"
+    },
+    {
+      "id": 10,
+      "question": "Нужны ли сайт / Telegram bot / automation / motion?"
+    }
+  ],
+  "stage2": [
+    "product",
+    "audience",
+    "proof",
+    "style",
+    "integrations",
+    "content",
+    "legal/safety",
+    "animations",
+    "future services"
+  ],
+  "stage3": [
+    "summary",
+    "selected package",
+    "scope",
+    "client inputs",
+    "approval gates"
+  ],
+  "future_ui": "admin wizard + mobile app intake"
+}

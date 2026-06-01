@@ -1,0 +1,780 @@
+{
+  "version": "v32",
+  "status": "PASS",
+  "packages": [
+    {
+      "name": "Premium Landing",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Premium Landing + HyperFrames Hero",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Business Website",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Website + Telegram AI Intake",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Website + Automation",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Full WebStudio Package",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Motion / Video Hero Package",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Website-to-video package",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Dashboard / Admin Panel",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Telegram Bot Only",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Automation Only",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Branding / Design System",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Sales Kit / PDF / Presentation",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "SEO / Content Pack",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Analytics / CRO Pack",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Mobile App Discovery",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Mobile App Prototype",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    },
+    {
+      "name": "Mobile App + WebStudio backend",
+      "client_gets": [
+        "scope brief",
+        "premium artifacts",
+        "QA report",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "offer",
+        "proof",
+        "assets",
+        "legal"
+      ],
+      "agents": [
+        "CTO",
+        "Design",
+        "Frontend",
+        "Motion",
+        "QA"
+      ],
+      "outputs": [
+        "strategy",
+        "preview",
+        "assets",
+        "handoff"
+      ],
+      "complexity": "S/M/L by scope",
+      "approval_gates": [
+        "brief",
+        "visual direction",
+        "preview",
+        "handoff"
+      ],
+      "upsells": [
+        "motion",
+        "Telegram intake",
+        "automation",
+        "analytics"
+      ]
+    }
+  ]
+}

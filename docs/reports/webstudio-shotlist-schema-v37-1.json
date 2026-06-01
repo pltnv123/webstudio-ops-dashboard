@@ -1,0 +1,16 @@
+{
+  "schema_version": "webstudio-shotlist-schema.v37.1",
+  "fields": [
+    "shot_id",
+    "client_id",
+    "scene",
+    "purpose",
+    "required_subject",
+    "composition",
+    "orientation",
+    "priority",
+    "approval_gate",
+    "example_prompt_or_brief",
+    "replacement_policy"
+  ]
+}

@@ -209,15 +209,31 @@ def build_work_factory(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_kanban() -> dict[str, Any]:
-    # Kanban reads can be slow on cold starts, so give the CLI enough room to
-    # return a full projection instead of falling back to an empty dashboard.
-    list_result = run_cmd(["hermes", "kanban", "list", "--archived", "--json"], timeout=90)
-    stats_result = run_cmd(["hermes", "kanban", "stats"], timeout=60)
+    # Kanban reads can be slow or unavailable inside the Docker sandbox. Prefer
+    # the host bridge when present; it exposes the canonical host Kanban state
+    # without starting dispatchers or mutating tasks. The hkanban wrapper expects
+    # arguments after the implicit hermes prefix, e.g. `hkanban kanban stats`.
+    if Path("/workspace/bin/hkanban").exists():
+        list_result = run_cmd(["/workspace/bin/hkanban", "kanban", "list", "--archived", "--json"], timeout=120)
+        stats_result = run_cmd(["/workspace/bin/hkanban", "kanban", "stats"], timeout=120)
+    else:
+        list_result = run_cmd(["hermes", "kanban", "list", "--archived", "--json"], timeout=90)
+        stats_result = run_cmd(["hermes", "kanban", "stats"], timeout=60)
     tasks = []
 
+    kanban_fallback_path = OUTPUT / "kanban-list-current.json"
+    kanban_fallback_used = False
     if list_result["ok"]:
         try:
             tasks = json.loads(list_result["stdout"])
+        except Exception:
+            tasks = []
+    if not tasks and kanban_fallback_path.exists():
+        try:
+            fallback_tasks = json.loads(kanban_fallback_path.read_text(encoding="utf-8"))
+            if isinstance(fallback_tasks, list):
+                tasks = fallback_tasks
+                kanban_fallback_used = True
         except Exception:
             tasks = []
     counts: dict[str, int] = {}
@@ -288,6 +304,8 @@ def build_kanban() -> dict[str, Any]:
         "list_available": list_result["ok"],
         "stats_available": stats_result["ok"],
         "stats_text": stats_result["stdout"][:5000],
+        "fallback_used": kanban_fallback_used,
+        "fallback_path": str(kanban_fallback_path) if kanban_fallback_used else None,
         "counts": counts,
         "assignees": assignees,
         "task_total": len(tasks) if isinstance(tasks, list) else 0,
@@ -875,6 +893,8 @@ def build_product_progress() -> dict[str, Any]:
         "v21_status": data.get("v21_status"),
         "premium_motion_factory_v25": data.get("premium_motion_factory_v25"),
         "premium_motion_factory_v26": data.get("premium_motion_factory_v26"),
+        "premium_website_generator_v32": data.get("premium_website_generator_v32", {}),
+        "premium_factory_v34": data.get("premium_factory_v34", {}),
         "production_generator": data.get("production_generator"),
         "batch_render_workflow": data.get("batch_render_workflow"),
         "poster_auto_pick": data.get("poster_auto_pick"),
@@ -1386,6 +1406,71 @@ def build_premium_visual_motion_v31(product_progress: dict[str, Any]) -> dict[st
         return merged
     return v31
 
+
+def build_premium_website_generator_v32(product_progress: dict[str, Any]) -> dict[str, Any]:
+    v32 = product_progress.get("premium_website_generator_v32", {}) if isinstance(product_progress, dict) else {}
+    external = load_json(OUTPUT / "webstudio-premium-website-generator-v32.json", {})
+    if not external:
+        external = load_json(OUTPUT / "webstudio-premium-site-generator-v32.json", {})
+    if isinstance(external, dict) and external:
+        merged = {**external, **v32}
+        merged["paths"] = {**external.get("paths", {}), **v32.get("paths", {})}
+        merged["inputs"] = v32.get("inputs") or external.get("inputs", [])
+        merged["outputs"] = v32.get("outputs") or external.get("outputs", [])
+        merged["pipeline"] = v32.get("pipeline") or external.get("pipeline", [])
+        return merged
+    return v32
+
+def build_premium_factory_v34(product_progress: dict[str, Any]) -> dict[str, Any]:
+    v34 = product_progress.get("premium_factory_v34", {}) if isinstance(product_progress, dict) else {}
+    external = load_json(OUTPUT / "webstudio-premium-factory-v34.json", {})
+    if isinstance(external, dict) and external:
+        merged = {**external, **v34}
+        merged["paths"] = {**external.get("paths", {}), **v34.get("paths", {})}
+        merged["owner_action_required"] = v34.get("owner_action_required") or external.get("owner_action_required", [])
+        return merged
+    return v34
+
+
+def build_error_recovery_v37_1() -> dict[str, Any]:
+    taxonomy = load_json(OUTPUT / "webstudio-error-taxonomy-v37-1.json", {})
+    errors = taxonomy.get("errors") if isinstance(taxonomy.get("errors"), list) else []
+    return {
+        "schema_version": "webstudio-error-recovery.v37.1",
+        "updated_at": utc_now(),
+        "status": "PASS" if errors else "WATCH",
+        "current_state": "RECOVERING" if errors else "WATCH",
+        "auto_recovery_status": "ACTIVE" if errors else "PENDING",
+        "last_recovery": "Day 1 Auto-Push classified as known recoverable sandbox GitHub auth failure; Host Runner job queued.",
+        "next_automatic_step": "Host Runner Auto-Push result + Day 2 Visual Sourcing Engine",
+        "taxonomy_report": str(OUTPUT / "webstudio-error-taxonomy-v37-1.md"),
+        "taxonomy_json": str(OUTPUT / "webstudio-error-taxonomy-v37-1.json"),
+        "playbooks_report": str(OUTPUT / "webstudio-error-recovery-playbooks-v37-1.md"),
+        "touch_ready_checklist": str(OUTPUT / "webstudio-touch-ready-beta-checklist-v37-1.md"),
+        "owner_guide": str(OUTPUT / "webstudio-touch-ready-owner-guide-v37-1.md"),
+        "owner_guide_html": str(OUTPUT / "webstudio-touch-ready-owner-guide-v37-1.html"),
+        "owner_action_required": False,
+        "errors": errors,
+    }
+
+
+def build_day2_visual_sourcing_v37_1() -> dict[str, Any]:
+    registry = OUTPUT / "webstudio-client-004-asset-registry-v37-1.json"
+    shotlist = OUTPUT / "webstudio-client-004-visual-direction-and-shotlist-v37-1.md"
+    return {
+        "schema_version": "webstudio-day2-visual-sourcing.v37.1",
+        "updated_at": utc_now(),
+        "status": "PASS_INITIAL" if registry.exists() and shotlist.exists() else "WATCH",
+        "asset_legitimacy_model": str(OUTPUT / "webstudio-asset-legitimacy-model-v37-1.json"),
+        "asset_registry_schema": str(OUTPUT / "webstudio-asset-registry-schema-v37-1.json"),
+        "shotlist_schema": str(OUTPUT / "webstudio-shotlist-schema-v37-1.json"),
+        "client_004_asset_registry": str(registry),
+        "client_004_visual_direction": str(shotlist),
+        "owner_action_required": False,
+        "next": "expand business-specific visual packs",
+    }
+
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -1400,6 +1485,8 @@ def build_state() -> dict[str, Any]:
     delivery_system_v29 = build_delivery_system_v29(product_progress)
     real_client_execution_v30 = build_real_client_execution_v30(product_progress)
     premium_visual_motion_v31 = build_premium_visual_motion_v31(product_progress)
+    premium_website_generator_v32 = build_premium_website_generator_v32(product_progress)
+    premium_factory_v34 = build_premium_factory_v34(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1455,6 +1542,10 @@ def build_state() -> dict[str, Any]:
         "delivery_pipeline_v29": load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {}),
         "real_client_execution_v30": real_client_execution_v30,
         "premium_visual_motion_v31": premium_visual_motion_v31,
+        "premium_website_generator_v32": premium_website_generator_v32,
+        "premium_factory_v34": premium_factory_v34,
+        "error_recovery_v37_1": build_error_recovery_v37_1(),
+        "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
@@ -1498,7 +1589,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

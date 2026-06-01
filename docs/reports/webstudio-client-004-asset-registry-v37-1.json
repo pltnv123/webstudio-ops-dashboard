@@ -1,0 +1,59 @@
+{
+  "schema_version": "webstudio-client-004-asset-registry.v37.1",
+  "generated_at": "2026-05-26T16:25:17.609853Z",
+  "client_id": "004",
+  "business": "premium dental clinic",
+  "status": "PASS_INITIAL",
+  "assets": [
+    {
+      "asset_id": "c004-hero-concept",
+      "asset_type": "hero visual",
+      "source_type": "generated_concept_demo_only",
+      "legitimacy_state": "generated_concept_demo_only",
+      "public_allowed": false,
+      "replacement_required_before_launch": true,
+      "usage_context": "demo/presentation only",
+      "notes": "Replace with real clinic interior/team photo before public launch."
+    },
+    {
+      "asset_id": "c004-doctors-real",
+      "asset_type": "doctor/team photos",
+      "source_type": "planned_shotlist",
+      "legitimacy_state": "requires_owner_approval",
+      "public_allowed": false,
+      "replacement_required_before_launch": true,
+      "usage_context": "trust path",
+      "notes": "Client must provide real doctor portraits and publication permission."
+    },
+    {
+      "asset_id": "c004-certificates-real",
+      "asset_type": "certificates/licenses",
+      "source_type": "planned_shotlist",
+      "legitimacy_state": "requires_owner_approval",
+      "public_allowed": false,
+      "replacement_required_before_launch": true,
+      "usage_context": "medical proof",
+      "notes": "No generated certificate proof."
+    },
+    {
+      "asset_id": "c004-cases-real",
+      "asset_type": "case/before-after",
+      "source_type": "planned_shotlist",
+      "legitimacy_state": "requires_owner_approval",
+      "public_allowed": false,
+      "replacement_required_before_launch": true,
+      "usage_context": "case studies",
+      "notes": "Needs real patient consent/legal approval."
+    },
+    {
+      "asset_id": "c004-hero-loop-v34",
+      "asset_type": "mp4 motion background/social teaser",
+      "source_type": "generated_motion",
+      "legitimacy_state": "requires_owner_approval",
+      "public_allowed": false,
+      "replacement_required_before_launch": false,
+      "usage_context": "demo motion",
+      "notes": "Publication approval required."
+    }
+  ]
+}

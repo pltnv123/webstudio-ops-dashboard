@@ -1,0 +1,944 @@
+{
+  "packages": [
+    {
+      "name": "Premium Landing",
+      "fit": "premium client needing premium landing",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Premium Landing + HyperFrames Hero",
+      "fit": "premium client needing premium landing + hyperframes hero",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Multipage Business Website",
+      "fit": "premium client needing multipage business website",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Website + Telegram AI Intake",
+      "fit": "premium client needing website + telegram ai intake",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Website + Automation",
+      "fit": "premium client needing website + automation",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Full WebStudio Package",
+      "fit": "premium client needing full webstudio package",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Motion / Video Hero Package",
+      "fit": "premium client needing motion / video hero package",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Website-to-video Package",
+      "fit": "premium client needing website-to-video package",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "medium",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Dashboard / Admin Panel",
+      "fit": "premium client needing dashboard / admin panel",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Telegram Bot Only",
+      "fit": "premium client needing telegram bot only",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Automation Only",
+      "fit": "premium client needing automation only",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Branding / Design System",
+      "fit": "premium client needing branding / design system",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Sales Kit / PDF / Presentation",
+      "fit": "premium client needing sales kit / pdf / presentation",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "SEO / Content Pack",
+      "fit": "premium client needing seo / content pack",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Analytics / CRO Pack",
+      "fit": "premium client needing analytics / cro pack",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Mobile App Discovery",
+      "fit": "premium client needing mobile app discovery",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Mobile App Prototype",
+      "fit": "premium client needing mobile app prototype",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Mobile App + WebStudio Backend",
+      "fit": "premium client needing mobile app + webstudio backend",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "Client Portal",
+      "fit": "premium client needing client portal",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    },
+    {
+      "name": "CRM / Lead Ops Setup",
+      "fit": "premium client needing crm / lead ops setup",
+      "client_receives": [
+        "strategy",
+        "design direction",
+        "artifacts",
+        "QA",
+        "handoff"
+      ],
+      "questions_needed": [
+        "business",
+        "audience",
+        "proof",
+        "assets",
+        "CTA",
+        "legal"
+      ],
+      "outputs": [
+        "brief",
+        "site/spec",
+        "QA report",
+        "handoff"
+      ],
+      "agents_skills": [
+        "interview",
+        "research",
+        "design",
+        "visuals",
+        "motion",
+        "QA"
+      ],
+      "approval_gates": [
+        "copy",
+        "visuals",
+        "live integrations",
+        "deploy"
+      ],
+      "complexity": "variable",
+      "upsells": [
+        "motion",
+        "automation",
+        "analytics",
+        "mobile"
+      ],
+      "handoff": "artifact pack + GitHub PR"
+    }
+  ]
+}
