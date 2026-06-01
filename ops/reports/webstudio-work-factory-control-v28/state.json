@@ -1,6 +1,6 @@
 {
   "task": "WEBSTUDIO V2.8 — WORK FACTORY CONTROL PANEL",
-  "status": "BUILD_SMOKE_PASS",
+  "status": "PARTIAL",
   "output_root": "/workspace/output/webstudio-work-factory-control-v28",
   "repo": "pltnv123/webstudio-ops-dashboard",
   "branch": "webstudio/product-build-v31",
@@ -9,12 +9,16 @@
   "browser_side_supabase": false,
   "browser_side_github_token": false,
   "pushed_commit": null,
-  "deploy_status": null,
-  "supabase_row_written": false,
+  "deploy_status": "BLOCKED_NOT_PUSHED",
+  "supabase_row_written": true,
   "build": "PASS",
   "smoke": "PASS",
   "static_smoke": "PASS",
   "secret_scan": "PASS",
   "allowlist": "PASS",
-  "updated_at": "2026-06-01T03:39:02.498600+00:00"
+  "updated_at": "2026-06-01T03:42:54.381836+00:00",
+  "local_commit": "d164571b616e436e2fb717891c5066f1c0a73be7",
+  "supabase_row_id": "1a295adf-db5f-46ef-85f0-d046001ec95d",
+  "blocker": "Docker sandbox GitHub CLI/auth unavailable; git push blocked",
+  "local_implementation_commit": "d164571b616e436e2fb717891c5066f1c0a73be7"
 }
