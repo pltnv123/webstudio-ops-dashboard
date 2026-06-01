@@ -890,6 +890,7 @@ function deliveryAcceptancePacket(composer, order, overlay) {
   const tracker = composer.acceptance_tracker || {};
   const rows = asArray(tracker.rows);
   const summary = deliveryAcceptanceSummary(composer, overlay);
+  const risk = composer.handoff_risk_digest_v36 || {};
   const acceptance = rows.map(r => `${r.id}: ${overlay[r.id] || r.default_state || 'needs_review'} — ${r.label}`).join('\n') || '—';
   return [
     `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
@@ -899,9 +900,20 @@ function deliveryAcceptancePacket(composer, order, overlay) {
     `Assets: ${asArray(order.assets_needed).join(', ') || '—'}`,
     `QA gates: ${asArray(composer.qa_gates).join(', ') || '—'}`,
     `Acceptance summary v35: ${summary.cleared}/${summary.total} cleared · ${summary.percent}% · gate=${summary.gate}`,
+    `Risk digest v36: ${(risk.risks || []).length || 0} visible · next=${risk.next_safe_action || '—'}`,
     `Acceptance tracker v35:\n${acceptance}`,
     `Hand-off note: ${composer.handoff_note || 'Read-only demo packet; live client data stays gated.'}`
   ].join('\n');
+}
+function deliveryHandoffRiskDigest(composer, summary) {
+  const digest = composer.handoff_risk_digest_v36 || {};
+  const risks = asArray(digest.risks);
+  const gates = asArray(digest.safe_handoff_gates);
+  const timeline = asArray(digest.owner_review_timeline);
+  const riskRows = risks.map((r, idx) => row('R' + (idx + 1), r.title || r.id || 'Risk', r.status || 'watch', `${r.owner_visible_reason || 'owner-visible'} · action=${r.mitigation || 'review'}`, 'handoff-risk-v36', jsonCopy(r))).join('');
+  const gateRows = gates.map((g, idx) => row('G' + (idx + 1), g, idx < summary.cleared ? 'ready' : 'needs_review')).join('');
+  const timelineRows = timeline.map((t, idx) => row('T' + (idx + 1), t.label || t.id || 'Step', t.status || 'queued', t.owner_action || 'No owner action', 'handoff-timeline-v36', jsonCopy(t))).join('');
+  return `<section class="card span-12 handoff-risk-digest-v36"><h3>Client handoff risk digest v36</h3><p class="label">Owner-safe обзор рисков перед передачей: всё read-only, без приватных данных и без внешних записей.</p><div class="metric-row">${metric('Visible risks', risks.length, 'span-3')}${metric('Safe gates', gates.length, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}${metric('Mode', digest.mode || 'read_only', 'span-3')}</div><div class="handoff-grid"><article><h4>Risks</h4><div class="list">${riskRows || '<div class="empty">No handoff risks configured.</div>'}</div></article><article><h4>Safe gates</h4><div class="list">${gateRows || '<div class="empty">No gates configured.</div>'}</div></article></div>${card('Owner review timeline v36', `<div class="list">${timelineRows || '<div class="empty">No timeline configured.</div>'}</div>${toolbar([copyButton('Copy risk digest JSON', jsonCopy(digest)), copyButton('Copy next safe action', digest.next_safe_action || 'Review handoff packet')])}`, 'span-12')}</section>`;
 }
 function deliveryAcceptanceTracker(composer) {
   const tracker = composer.acceptance_tracker || {};
@@ -920,11 +932,12 @@ function deliveryHandoffComposer() {
   const o = ob.sample_order || {};
   const checklist = asArray(composer.client_ready_checklist);
   const overlay = readDeliveryAcceptanceOverlay();
+  const summary = deliveryAcceptanceSummary(composer, overlay);
   const packet = deliveryAcceptancePacket(composer, o, overlay);
-  return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v34</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
-    <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_acceptance_tracker_v34', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
+  return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
+    <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}`;
 }
 
 function delivery() {

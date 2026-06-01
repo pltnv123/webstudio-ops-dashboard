@@ -109,11 +109,14 @@ required_js_symbols = [
     'routeNames',
     "split('/').filter(Boolean).pop()",
     'deliveryHandoffComposer',
-    'Client handoff composer v34',
+    'Client handoff composer v36',
     'deliveryAcceptanceTracker',
     'Client acceptance tracker v35',
     'deliveryAcceptanceSummary',
     'Acceptance handoff gate v35',
+    'deliveryHandoffRiskDigest',
+    'Client handoff risk digest v36',
+    'handoff_risk_digest_v36',
     'DELIVERY_ACCEPTANCE_STORAGE_KEY',
 ]
 for symbol in required_js_symbols:
@@ -150,10 +153,13 @@ assert state['order_builder']['safety']['public_demo_only'] is True
 assert state['order_builder']['safety']['real_sensitive_client_data'] is False
 assert state['delivery_handoff_composer_v33']['status'] == 'PASS_LOCAL_READY'
 assert state['delivery_handoff_composer_v33']['owner_action_required'] is False
-assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v34'
+assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v36'
+assert state['delivery_handoff_composer_v33']['feature'] == 'client_handoff_risk_digest_v36'
 assert state['delivery_handoff_composer_v33']['acceptance_tracker']['storage_key'] == 'webstudio.delivery.acceptanceTracker.v34'
 assert len(state['delivery_handoff_composer_v33']['client_ready_checklist']) >= 5
 assert len(state['delivery_handoff_composer_v33']['acceptance_tracker']['rows']) >= 6
+assert len(state['delivery_handoff_composer_v33']['handoff_risk_digest_v36']['risks']) >= 3
+assert state['delivery_handoff_composer_v33']['handoff_risk_digest_v36']['mode'] == 'read_only_owner_review'
 assert 'enabled' in state['work_factory']
 assert state['kanban'].get('executable_mirror_count', 0) == 0
 controller = state['continuation_controller']

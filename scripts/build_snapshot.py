@@ -1610,12 +1610,32 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         {"id": "privacy", "label": "No private client data or credentials in packet", "required_evidence": "public demo/sanitized-only policy", "default_state": "ready"},
         {"id": "approval", "label": "Owner approves any live CRM/DB/client-send action", "required_evidence": "owner approval before live writes", "default_state": "blocked_until_owner"},
     ]
+    risk_digest = {
+        "schema_version": "webstudio.client-handoff-risk-digest.v36",
+        "generated_at": utc_now(),
+        "mode": "read_only_owner_review",
+        "persistence": "static_state_plus_browser_local_storage_acceptance_overlay",
+        "safety": "no DB/CRM/client-send writes; no private client data; no credentials",
+        "risks": [
+            {"id": "assets", "title": "Assets still need owner/client confirmation", "status": "needs_review", "owner_visible_reason": "Missing images/copy can delay final handoff quality.", "mitigation": "Confirm placeholder policy or collect final assets before send."},
+            {"id": "qa", "title": "QA evidence must be attached before client send", "status": "needs_review", "owner_visible_reason": "Client-facing packet should include build/smoke/secret-scan proof.", "mitigation": "Use local build + smoke + changed-file secret scan artifacts."},
+            {"id": "live-writes", "title": "Live CRM/DB/client-send action remains gated", "status": "blocked_until_owner", "owner_visible_reason": "External writes require explicit owner approval.", "mitigation": "Keep packet copy-only until approval is recorded."},
+        ],
+        "safe_handoff_gates": ["sanitized_brief", "explicit_scope", "assets_status_known", "qa_evidence_attached", "privacy_checked", "owner_approval_before_live_writes"],
+        "owner_review_timeline": [
+            {"id": "review-packet", "label": "Review composed handoff packet", "status": "ready", "owner_action": "Inspect copy-only packet and risk digest."},
+            {"id": "resolve-assets", "label": "Resolve asset/copy gaps", "status": "needs_review", "owner_action": "Approve placeholders or request final client assets."},
+            {"id": "attach-qa", "label": "Attach QA evidence", "status": "needs_review", "owner_action": "Verify build/smoke/secret-scan proof before handoff."},
+            {"id": "approve-send", "label": "Approve any live send/write separately", "status": "blocked_until_owner", "owner_action": "Explicit approval required outside this read-only dashboard."},
+        ],
+        "next_safe_action": "Review risk digest, then attach QA evidence before any client-facing send.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v34",
+        "schema_version": "webstudio.delivery-handoff-composer.v36",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "client_acceptance_tracker_v34",
+        "feature": "client_handoff_risk_digest_v36",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1642,7 +1662,8 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
             "read_only_public_packet",
             "owner_approval_before_live_writes",
         ],
-        "handoff_note": "Public dashboard composes a safe handoff packet from sanitized state only; production writes and private client data remain gated.",
+        "handoff_note": "Public dashboard composes a safe handoff packet with acceptance + risk digest from sanitized state only; production writes and private client data remain gated.",
+        "handoff_risk_digest_v36": risk_digest,
         "route": "#delivery",
         "upstream_status": {
             "order_builder": order_builder.get("production_task_template", {}).get("status"),
