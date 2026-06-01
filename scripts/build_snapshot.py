@@ -1630,12 +1630,31 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         ],
         "next_safe_action": "Review risk digest, then attach QA evidence before any client-facing send.",
     }
+    followup_planner = {
+        "schema_version": "webstudio.post-delivery-followup-planner.v37",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_local_storage_planner",
+        "persistence": "browser_local_storage_only",
+        "storage_key": "webstudio.delivery.followupPlanner.v37",
+        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
+        "purpose": "Keep post-handoff next touches visible after owner/client acceptance without performing external actions.",
+        "tasks": [
+            {"id": "t0-owner-review", "label": "Owner reviews final handoff packet", "due_after": "before client send", "channel": "dashboard_copy_only", "default_state": "ready", "owner_action": "Confirm packet, risk digest, and QA evidence are safe to send."},
+            {"id": "t1-client-send", "label": "Client-facing send remains separately approved", "due_after": "after explicit owner approval", "channel": "manual_external_action", "default_state": "blocked_until_owner", "owner_action": "Approve exact external send/write scope outside this read-only dashboard."},
+            {"id": "t2-24h-checkin", "label": "24h client check-in", "due_after": "24h after handoff", "channel": "manual client message", "default_state": "queued", "owner_action": "Ask whether the client has blockers, asset changes, or launch questions."},
+            {"id": "t3-qa-regression", "label": "Post-handoff QA regression", "due_after": "48h after handoff", "channel": "local build/smoke", "default_state": "queued", "owner_action": "Re-run build/smoke if the client requested edits."},
+            {"id": "t4-testimonial-upsell", "label": "Testimonial and next-scope prompt", "due_after": "7d after acceptance", "channel": "manual client message", "default_state": "queued", "owner_action": "Request testimonial and identify D2/D3 upsell if client is satisfied."},
+        ],
+        "copy_packet_fields": ["task_id", "status", "due_after", "channel", "owner_action", "local_note"],
+        "next_safe_action": "Use copy-only follow-up plan; do not perform live send/write without explicit owner approval.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v36",
+        "schema_version": "webstudio.delivery-handoff-composer.v37",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "client_handoff_risk_digest_v36",
+        "feature": "post_delivery_followup_planner_v37",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1664,6 +1683,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         ],
         "handoff_note": "Public dashboard composes a safe handoff packet with acceptance + risk digest from sanitized state only; production writes and private client data remain gated.",
         "handoff_risk_digest_v36": risk_digest,
+        "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {
             "order_builder": order_builder.get("production_task_template", {}).get("status"),

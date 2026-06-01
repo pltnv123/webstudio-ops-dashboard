@@ -857,11 +857,18 @@ function deliveryArtifactRow(path, idx) {
 }
 
 const DELIVERY_ACCEPTANCE_STORAGE_KEY = 'webstudio.delivery.acceptanceTracker.v34';
+const DELIVERY_FOLLOWUP_STORAGE_KEY = 'webstudio.delivery.followupPlanner.v37';
 function readDeliveryAcceptanceOverlay() {
   try { return JSON.parse(localStorage.getItem(DELIVERY_ACCEPTANCE_STORAGE_KEY) || '{}') || {}; } catch { return {}; }
 }
 function writeDeliveryAcceptanceOverlay(overlay) {
   localStorage.setItem(DELIVERY_ACCEPTANCE_STORAGE_KEY, JSON.stringify(overlay, null, 2));
+}
+function readDeliveryFollowupOverlay() {
+  try { return JSON.parse(localStorage.getItem(DELIVERY_FOLLOWUP_STORAGE_KEY) || '{}') || {}; } catch { return {}; }
+}
+function writeDeliveryFollowupOverlay(overlay) {
+  localStorage.setItem(DELIVERY_FOLLOWUP_STORAGE_KEY, JSON.stringify(overlay, null, 2));
 }
 function deliveryAcceptanceSummary(composer, overlay) {
   const rows = asArray((composer.acceptance_tracker || {}).rows);
@@ -915,6 +922,29 @@ function deliveryHandoffRiskDigest(composer, summary) {
   const timelineRows = timeline.map((t, idx) => row('T' + (idx + 1), t.label || t.id || 'Step', t.status || 'queued', t.owner_action || 'No owner action', 'handoff-timeline-v36', jsonCopy(t))).join('');
   return `<section class="card span-12 handoff-risk-digest-v36"><h3>Client handoff risk digest v36</h3><p class="label">Owner-safe обзор рисков перед передачей: всё read-only, без приватных данных и без внешних записей.</p><div class="metric-row">${metric('Visible risks', risks.length, 'span-3')}${metric('Safe gates', gates.length, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}${metric('Mode', digest.mode || 'read_only', 'span-3')}</div><div class="handoff-grid"><article><h4>Risks</h4><div class="list">${riskRows || '<div class="empty">No handoff risks configured.</div>'}</div></article><article><h4>Safe gates</h4><div class="list">${gateRows || '<div class="empty">No gates configured.</div>'}</div></article></div>${card('Owner review timeline v36', `<div class="list">${timelineRows || '<div class="empty">No timeline configured.</div>'}</div>${toolbar([copyButton('Copy risk digest JSON', jsonCopy(digest)), copyButton('Copy next safe action', digest.next_safe_action || 'Review handoff packet')])}`, 'span-12')}</section>`;
 }
+function deliveryFollowupPlanner(composer, summary) {
+  const planner = composer.followup_planner_v37 || {};
+  const overlay = readDeliveryFollowupOverlay();
+  const tasks = asArray(planner.tasks);
+  const statusOf = t => overlay[t.id]?.status || t.default_state || 'queued';
+  const noteOf = t => overlay[t.id]?.note || '';
+  const counts = tasks.reduce((acc, t) => { const st = statusOf(t); acc[st] = (acc[st] || 0) + 1; return acc; }, {});
+  const done = (counts.done || 0) + (counts.waived || 0);
+  const packet = [
+    `Post-delivery follow-up planner v37`,
+    `Mode: ${planner.mode || 'localStorage_only'}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Done: ${done}/${tasks.length}`,
+    `Owner-safe rule: ${planner.safety || 'no CRM/DB/client-send writes'}`,
+    ...tasks.map(t => `${t.id}: ${statusOf(t)} · ${t.label} · due=${t.due_after || '—'} · owner=${t.owner_action || '—'}${noteOf(t) ? ' · note=' + noteOf(t) : ''}`)
+  ].join('\n');
+  const options = ['queued','ready','waiting_client','done','blocked_until_owner','waived'];
+  const taskRows = tasks.map(t => {
+    const value = statusOf(t);
+    return `<article class="capability-card followup-row"><div class="capability-top"><h4>${fmt(t.label)}</h4>${badge(value)}</div><p><b>Due:</b> ${fmt(t.due_after || '—')} · <b>Channel:</b> ${fmt(t.channel || 'manual')}</p><p>${fmt(t.owner_action || 'Review next touch')}</p><label class="field"><span>Status</span><select data-delivery-followup-status="${esc(t.id)}">${options.map(x => `<option value="${esc(x)}" ${x === value ? 'selected' : ''}>${fmt(ru(x))}</option>`).join('')}</select></label><label class="field"><span>Owner note</span><input data-delivery-followup-note="${esc(t.id)}" value="${esc(noteOf(t))}" placeholder="local note only"></label></article>`;
+  }).join('');
+  return `<section class="card span-12 delivery-followup-planner-v37"><h3>Post-delivery follow-up planner v37</h3><p class="label">Планирует безопасные касания после передачи: статусы и заметки живут только в browser localStorage; CRM/DB/client-send не трогаются.</p><div class="metric-row">${metric('Follow-up tasks', tasks.length, 'span-3')}${metric('Done / waived', done, 'span-3')}${metric('Waiting client', counts.waiting_client || 0, 'span-3')}${metric('Blocked owner', counts.blocked_until_owner || 0, 'span-3')}</div>${card('Follow-up guardrail v37', kv({mode: planner.mode || 'localStorage_only', storage: DELIVERY_FOLLOWUP_STORAGE_KEY, acceptance_gate: summary.gate, safety: planner.safety || 'no external writes'}), 'span-12')}<div class="capability-grid">${taskRows || '<div class="empty">Follow-up plan not configured.</div>'}</div>${toolbar([copyButton('Copy follow-up plan', packet), copyButton('Copy follow-up JSON', jsonCopy(planner))])}</section>`;
+}
 function deliveryAcceptanceTracker(composer) {
   const tracker = composer.acceptance_tracker || {};
   const overlay = readDeliveryAcceptanceOverlay();
@@ -937,7 +967,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {
@@ -1920,6 +1950,8 @@ function bindInputs() {
   $('#ownerFeedbackStateFilter')?.addEventListener('change', e => { filters.ownerFeedbackState = e.target.value; render(); });
   document.querySelectorAll('[data-production-filter]').forEach(btn => btn.addEventListener('click', e => { filters.productionQuick = e.currentTarget.dataset.productionFilter || 'active'; render(); }));
   document.querySelectorAll('[data-delivery-acceptance]').forEach(sel => sel.addEventListener('change', e => { const overlay = readDeliveryAcceptanceOverlay(); overlay[e.currentTarget.dataset.deliveryAcceptance] = e.currentTarget.value; writeDeliveryAcceptanceOverlay(overlay); render(); }));
+  document.querySelectorAll('[data-delivery-followup-status]').forEach(sel => sel.addEventListener('change', e => { const overlay = readDeliveryFollowupOverlay(); const id = e.currentTarget.dataset.deliveryFollowupStatus; overlay[id] = {...(overlay[id] || {}), status: e.currentTarget.value}; writeDeliveryFollowupOverlay(overlay); render(); }));
+  document.querySelectorAll('[data-delivery-followup-note]').forEach(inp => inp.addEventListener('change', e => { const overlay = readDeliveryFollowupOverlay(); const id = e.currentTarget.dataset.deliveryFollowupNote; overlay[id] = {...(overlay[id] || {}), note: e.currentTarget.value}; writeDeliveryFollowupOverlay(overlay); render(); }));
 }
 
 async function copyText(value) {
