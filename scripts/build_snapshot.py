@@ -1781,12 +1781,41 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["id", "status", "blocks", "evidence", "owner_action", "acceptance_gate"],
         "next_safe_action": "Record owner approval/waiver/blocker locally before client handoff; keep live send/write blocked until separate approval.",
     }
+
+    handoff_manifest = {
+        "schema_version": "webstudio.delivery-handoff-manifest.v43",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_handoff_manifest",
+        "persistence": "static_state_plus_copy_packet",
+        "safety": "copy-only dashboard manifest; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
+        "purpose": "Give the owner one final copy-only handoff manifest that joins proof, handoff steps, blockers, and exact approval guardrails.",
+        "evidence_requirements": [
+            {"id": "build-smoke", "label": "Build and smoke proof attached", "status": "ready", "source": "npm run build plus npm run smoke", "owner_action": "Review current validation artifact before handoff."},
+            {"id": "secret-scan", "label": "Changed-file secret scan is clean", "status": "ready", "source": "changed-file scan", "owner_action": "Confirm no private data in public packet."},
+            {"id": "acceptance", "label": "Acceptance tracker gate is visible", "status": "needs_owner_review", "source": "localStorage overlay plus sanitized defaults", "owner_action": "Clear or waive review rows before client send."},
+            {"id": "approval-ledger", "label": "Approval ledger blocks live writes", "status": "blocked_until_owner", "source": "v42 decision ledger", "owner_action": "Approve or waive only exact live handoff scope."},
+            {"id": "freshness", "label": "Evidence freshness checked", "status": "watch", "source": "v41 freshness monitor", "owner_action": "Refresh stale screenshots or proof if scope changed."},
+        ],
+        "handoff_steps": [
+            {"id": "scope-freeze", "label": "Freeze sanitized scope and package contents", "gate": "owner_review", "output": "copy-only handoff packet"},
+            {"id": "attach-proof", "label": "Attach current validation and evidence paths", "gate": "qa_review", "output": "handoff evidence bundle"},
+            {"id": "owner-decision", "label": "Record explicit owner decision for live/client action", "gate": "owner_approval_required", "output": "approval ledger entry"},
+            {"id": "client-send", "label": "Send or publish only after approval gate clears", "gate": "manual_live_action", "output": "outside-dashboard action; not automated"},
+        ],
+        "blockers": [
+            {"id": "live-public-handoff", "label": "Client send/public launch/live write is not automated", "status": "blocked_until_owner", "resolution": "explicit owner approval with exact scope"},
+            {"id": "private-data", "label": "Private client data and credentials are forbidden in public handoff manifest", "status": "blocked_by_policy", "resolution": "keep sanitized demo data only"},
+        ],
+        "copy_packet_fields": ["client", "handoff_gate", "acceptance_gate", "evidence", "handoff_steps", "blockers", "owner_action"],
+        "next_safe_action": "Owner reviews handoff manifest and approves any live/client action separately.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v42",
+        "schema_version": "webstudio.delivery-handoff-composer.v43",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "approval_decision_ledger_v42",
+        "feature": "handoff_manifest_v43",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1820,6 +1849,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "launch_readiness_receipt_v40": handoff_receipt,
         "evidence_freshness_monitor_v41": evidence_freshness_monitor,
         "approval_decision_ledger_v42": approval_decision_ledger,
+        "handoff_manifest_v43": handoff_manifest,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {

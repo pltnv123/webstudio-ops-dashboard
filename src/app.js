@@ -1032,6 +1032,33 @@ function deliveryApprovalDecisionLedger(composer, order, summary) {
   const rowsHtml = decisions.map(d => `<article class="capability-card approval-ledger-row"><div class="capability-top"><h4>${fmt(d.label || d.id)}</h4>${badge(d.status || 'queued_owner_review')}</div><p><b>Blocks:</b> ${fmt(d.blocks || 'client handoff')} · <b>Evidence:</b> ${fmt(shortText(d.evidence || '—', 96))}</p><p>${fmt(d.owner_action || 'Owner review required before live action')}</p><label class="field"><span>Decision status</span><select data-delivery-approval-ledger-status="${esc(d.id)}">${options.map(x => `<option value="${esc(x)}" ${x === d.status ? 'selected' : ''}>${fmt(ru(x))}</option>`).join('')}</select></label><label class="field"><span>Owner note</span><input data-delivery-approval-ledger-note="${esc(d.id)}" value="${esc(d.note || '')}" placeholder="local note only"></label></article>`).join('');
   return `<section class="card span-12 delivery-approval-decision-ledger-v42"><h3>Delivery approval decision ledger v42</h3><p class="label">Owner-safe журнал решений перед передачей: фиксирует approval/waiver/blocker локально в браузере, ничего не отправляет в CRM/DB/client channels.</p><div class="metric-row">${metric('Required decisions', decisions.length, 'span-3')}${metric('Approved / waived', approved, 'span-3')}${metric('Needs owner decision', blocked, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Approval ledger guardrail v42', kv({mode: ledger.mode || 'localStorage_decision_ledger', storage: ledger.persistence || DELIVERY_APPROVAL_LEDGER_STORAGE_KEY, safety: ledger.safety || 'no external writes', next_safe_action: ledger.next_safe_action || 'record owner decision locally before client handoff'}), 'span-12')}<div class="capability-grid">${rowsHtml || '<div class="empty">Approval decisions not configured.</div>'}</div>${toolbar([copyButton('Copy approval decision packet', packet), copyButton('Copy approval ledger JSON', jsonCopy({config: ledger, local_entries: localEntries}))])}</section>`;
 }
+
+function deliveryHandoffManifest(composer, order, summary) {
+  const manifest = composer.handoff_manifest_v43 || {};
+  const evidence = asArray(manifest.evidence_requirements);
+  const handoffSteps = asArray(manifest.handoff_steps);
+  const blockers = asArray(manifest.blockers);
+  const green = evidence.filter(x => /pass|ready|current/i.test(String(x.status || x.default_state))).length;
+  const gate = blockers.length || summary.blocked_until_owner ? 'BLOCKED_UNTIL_OWNER_HANDOFF' : (green >= evidence.length ? 'READY_FOR_OWNER_HANDOFF_REVIEW' : 'NEEDS_EVIDENCE_REFRESH');
+  const packet = [
+    'Delivery handoff manifest v43',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Handoff gate: ${gate}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Evidence ready: ${green}/${evidence.length}`,
+    `Mode: ${manifest.mode || 'read_only_handoff_manifest'}`,
+    `Safety: ${manifest.safety || 'copy-only; no client-send/CRM/DB writes'}`,
+    `Next safe action: ${manifest.next_safe_action || 'owner reviews manifest before any live handoff'}`,
+    ...evidence.map((x, idx) => `${x.id || ('e' + (idx + 1))}: ${x.status || x.default_state || 'unknown'} · ${x.label || 'Evidence'} · source=${x.source || 'static'} · owner=${x.owner_action || 'review'}`),
+    ...handoffSteps.map((x, idx) => `step ${idx + 1}: ${x.label || x.id || 'Handoff step'} · gate=${x.gate || 'owner_review'} · output=${x.output || 'copy packet'}`),
+    ...blockers.map((x, idx) => `blocker ${idx + 1}: ${x.label || x.id || 'Blocker'} · resolution=${x.resolution || 'owner decision required'}`)
+  ].join('\n');
+  const evidenceRows = evidence.map((x, idx) => row(x.id || ('E' + (idx + 1)), x.label || 'Evidence', x.status || x.default_state || 'unknown', `${x.source || 'static'} · ${x.owner_action || 'review'}`, 'delivery-handoff-manifest-v43', jsonCopy(x))).join('');
+  const stepRows = handoffSteps.map((x, idx) => row('S' + (idx + 1), x.label || x.id || 'Handoff step', x.gate || 'owner_review', x.output || 'copy packet', 'delivery-handoff-step-v43', jsonCopy(x))).join('');
+  const blockerRows = blockers.map((x, idx) => row('B' + (idx + 1), x.label || x.id || 'Handoff blocker', x.status || 'blocked_until_owner', x.resolution || 'owner decision required', 'delivery-handoff-blocker-v43', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-handoff-manifest-v43"><h3>Delivery handoff manifest v43</h3><p class="label">Owner-safe финальный манифест перед handoff: показывает evidence, steps и blockers в copy-only режиме. Никаких CRM/DB/client-send записей.</p><div class="metric-row">${metric('Handoff gate', gate, 'span-3')}${metric('Evidence ready', `${green}/${evidence.length}`, 'span-3')}${metric('Handoff steps', handoffSteps.length, 'span-3')}${metric('Blockers', blockers.length + summary.blocked_until_owner, 'span-3')}</div>${card('Handoff guardrail v43', kv({mode: manifest.mode || 'read_only_handoff_manifest', storage: manifest.persistence || 'static_state_plus_copy_packet', safety: manifest.safety || 'no external writes', next_safe_action: manifest.next_safe_action || 'owner reviews manifest before any live handoff'}), 'span-12')}<section class="card span-12"><h3>Evidence requirements</h3><div class="list">${evidenceRows || '<div class="empty">Handoff evidence not configured.</div>'}</div></section><section class="card span-6"><h3>Handoff steps</h3><div class="list">${stepRows || '<div class="empty">Handoff steps not configured.</div>'}</div></section><section class="card span-6"><h3>Handoff blockers</h3><div class="list">${blockerRows || '<div class="empty">No handoff blockers configured.</div>'}</div></section>${toolbar([copyButton('Copy handoff manifest', packet), copyButton('Copy handoff manifest JSON', jsonCopy(manifest))])}</section>`;
+}
+
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1077,7 +1104,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {
