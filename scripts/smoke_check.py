@@ -106,6 +106,8 @@ required_js_symbols = [
     'Order Builder',
     'Work Factory summary',
     'NEEDS_OWNER',
+    'deliveryHandoffComposer',
+    'Client handoff composer v33',
 ]
 for symbol in required_js_symbols:
     assert symbol in js, f'missing JS symbol {symbol}'
@@ -115,7 +117,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder', 'delivery_handoff_composer_v33']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
@@ -139,6 +141,9 @@ assert state['owner_command_center']['safety']['browser_side_supabase'] is False
 assert state['owner_command_center']['safety']['browser_side_github_token'] is False
 assert state['order_builder']['safety']['public_demo_only'] is True
 assert state['order_builder']['safety']['real_sensitive_client_data'] is False
+assert state['delivery_handoff_composer_v33']['status'] == 'PASS_LOCAL_READY'
+assert state['delivery_handoff_composer_v33']['owner_action_required'] is False
+assert len(state['delivery_handoff_composer_v33']['client_ready_checklist']) >= 5
 assert 'enabled' in state['work_factory']
 assert state['kanban'].get('executable_mirror_count', 0) == 0
 controller = state['continuation_controller']

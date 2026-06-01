@@ -854,6 +854,27 @@ function deliveryStageCard(stage) {
 function deliveryArtifactRow(path, idx) {
   return row('A' + (idx + 1), path, 'artifact', 'v29 delivery registry', 'artifact', jsonCopy({path, status:'PASS'}));
 }
+
+function deliveryHandoffComposer() {
+  const composer = state.delivery_handoff_composer_v33 || {};
+  const ob = state.order_builder || {};
+  const o = ob.sample_order || {};
+  const checklist = asArray(composer.client_ready_checklist);
+  const packet = [
+    `Client: ${o.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Package: ${o.pricing_package || '—'}`,
+    `Offer: ${o.offer_service_product || '—'}`,
+    `Pages: ${asArray(o.required_pages).join(', ') || '—'}`,
+    `Assets: ${asArray(o.assets_needed).join(', ') || '—'}`,
+    `QA gates: ${asArray(composer.qa_gates).join(', ') || '—'}`,
+    `Hand-off note: ${composer.handoff_note || 'Read-only demo packet; live client data stays gated.'}`
+  ].join('\n');
+  return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v33</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
+    <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
+    <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>`;
+}
+
 function delivery() {
   const ds = state.delivery_system_v29 || {};
   const pipeline = ds.pipeline_stages || 0;
@@ -868,6 +889,7 @@ function delivery() {
     ${metric('QA blocks', ds.qa_blocks || '—', 'span-3')}
     ${metric('Client #003', ds.client_003_status || 'unknown', 'span-3')}
     ${card('Поставка клиенту — v29', `${kv({status: ds.status, pipeline: ds.pipeline_status, delivery_pack_template: ds.delivery_pack_template_status, client_003: ds.client_003_status, owner_action_required: ds.owner_action_required, next_action: ds.next_action})}${toolbar([copyButton('Copy delivery system', '/workspace/output/webstudio-premium-website-delivery-system-v29.md'), copyButton('Copy pipeline JSON', '/workspace/output/webstudio-client-delivery-pipeline-v29.json'), copyButton('Copy client #003 pack', '/workspace/output/webstudio-client-example-003-delivery-pack-v1.html')])}`, 'span-12')}
+    ${deliveryHandoffComposer()}
     ${card('GitHub / mainline', `${kv({status: github.status || 'MAINLINE_MERGED', pr_1: github.pr_1 || 'MERGED', default_branch: github.default_branch || 'main', default_sha: github.default_sha || 'c72b1946ad8de01da4f1ce0b38026d05363f59b7', contribution_visibility: github.contribution_visibility_note || '1-24h graph delay possible'})}`, 'span-6')}
     ${card('D1/D2/D3 readiness', `${kv(ready)}`, 'span-6')}
     ${card('Motion Factory', `${kv({status: state.motion_factory?.status, video: ready.motion_video || state.motion_factory?.runtime?.motion_engine, reduced_motion: state.motion_factory?.reduced_motion_status, handoff: state.motion_factory?.handoff_pack_status})}`, 'span-6')}

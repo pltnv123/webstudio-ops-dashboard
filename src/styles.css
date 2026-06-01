@@ -50,3 +50,7 @@ body{width:100%;min-width:0}.topbar,.tabs{width:100%;max-width:none;min-width:0}
 
 /* WebStudio owner command center v29 + order builder v30 */
 .owner-command-card,.order-builder-card{border-color:rgba(96,165,250,.30);background:linear-gradient(180deg,rgba(96,165,250,.08),rgba(12,18,26,.78))}.owner-command-center-page .owner-summary,.order-builder-page .owner-summary{font-size:1rem;line-height:1.55}.order-builder-page .row strong,.owner-command-center-page .row strong{overflow-wrap:anywhere}
+
+.delivery-handoff-composer { border-color: rgba(93, 210, 255, 0.32); }
+.handoff-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: start; }
+.delivery-handoff-composer .toolbar { margin-top: 14px; }

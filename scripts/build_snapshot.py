@@ -1600,6 +1600,40 @@ def build_order_builder() -> dict[str, Any]:
         "schema_policy": snapshot.get("schema_policy", "New tables require owner-approved migration."),
     }
 
+
+def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_system: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": "webstudio.delivery-handoff-composer.v33",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_static_composer",
+        "source": "order_builder.sample_order + delivery_system_v29",
+        "sample_client": "sanitized demo order",
+        "owner_action_required": False,
+        "client_ready_checklist": [
+            "Confirm sanitized brief from Order Builder",
+            "Attach D1 page list and content/assets status",
+            "Attach D2 intake-bot flow summary when selected",
+            "Attach D3 automation map when selected",
+            "Run QA/readiness gate before client handoff",
+            "Keep live credentials and private client data out of public packet",
+        ],
+        "qa_gates": [
+            "brief_complete",
+            "assets_status_known",
+            "pages_defined",
+            "read_only_public_packet",
+            "owner_approval_before_live_writes",
+        ],
+        "handoff_note": "Public dashboard composes a safe handoff packet from sanitized state only; production writes and private client data remain gated.",
+        "route": "#delivery",
+        "upstream_status": {
+            "order_builder": order_builder.get("production_task_template", {}).get("status"),
+            "delivery_system": delivery_system.get("status"),
+        },
+        "reports": ["/workspace/output/webstudio-long-autonomous-shift-v28-v3/validation.md"],
+    }
+
 def build_error_recovery_v37_1() -> dict[str, Any]:
     taxonomy = load_json(OUTPUT / "webstudio-error-taxonomy-v37-1.json", {})
     errors = taxonomy.get("errors") if isinstance(taxonomy.get("errors"), list) else []
@@ -1651,6 +1685,7 @@ def build_state() -> dict[str, Any]:
     motion_factory = build_motion_factory(product_progress)
     client_intake_v27 = build_client_intake_v27()
     delivery_system_v29 = build_delivery_system_v29(product_progress)
+    order_builder = build_order_builder()
     real_client_execution_v30 = build_real_client_execution_v30(product_progress)
     premium_visual_motion_v31 = build_premium_visual_motion_v31(product_progress)
     premium_website_generator_v32 = build_premium_website_generator_v32(product_progress)
@@ -1725,7 +1760,8 @@ def build_state() -> dict[str, Any]:
         "bot_activity": build_bot_activity(),
         "work_factory_control": build_work_factory_control(),
         "owner_command_center": build_owner_command_center(),
-        "order_builder": build_order_builder(),
+        "order_builder": order_builder,
+        "delivery_handoff_composer_v33": build_delivery_handoff_composer_v33(order_builder, delivery_system_v29),
         "marathon_12h": marathon_status,
         "d1_owner_feedback": build_d1_owner_feedback(),
         "d3_intake": build_d3_intake(),
