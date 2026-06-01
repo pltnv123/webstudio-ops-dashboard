@@ -1870,14 +1870,32 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "default_acceptance_status": "PASS_WITH_APPROVAL_BLOCKERS",
         "next_safe_action": "Copy the receipt into the owner/client handoff only after current proof is attached; any live external action remains separately approval-gated.",
     }
+    issue_response_playbook = {
+        "schema_version": "webstudio.delivery-issue-response-playbook.v48",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_issue_response_playbook",
+        "persistence": "static_state_plus_copy_packet",
+        "safety": "copy-only dashboard playbook; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
+        "purpose": "Provide a sanitized owner-safe response map for delivery handoff issues: client objection, stale proof, failed Pages smoke, approval blocker, and rollback/pause path.",
+        "scenarios": [
+            {"id": "client-objection-scope", "trigger": "Client asks for scope not in accepted package", "status": "ready", "first_response": "acknowledge and point to accepted safe scope receipt", "escalation": "owner decides whether to quote change request", "rollback": "keep current deliverable demo-only until scope is approved"},
+            {"id": "proof-stale", "trigger": "Build/smoke/Pages/secret-scan proof is older than current handoff", "status": "review_required", "first_response": "pause handoff and refresh proof binder", "escalation": "QA/delivery contact refreshes evidence before owner approval", "rollback": "use previous static artifact only as historical reference"},
+            {"id": "pages-smoke-fails", "trigger": "Public Pages route returns non-200 or missing marker", "status": "blocked_until_owner_review", "first_response": "do not send client link; attach local build proof and failure note", "escalation": "owner/ops reviews host autopush and Pages deploy status", "rollback": "share sanitized local/static artifact path only if owner approves"},
+            {"id": "approval-boundary-hit", "trigger": "Action would send to client, write CRM/DB/Supabase, publish DNS, or expose private data", "status": "blocked_until_owner", "first_response": "stop and request exact approval for the live action", "escalation": "owner approval decision ledger v42", "rollback": "copy-only packet remains available; no live write performed"},
+            {"id": "post-handoff-issue", "trigger": "Client reports issue after manual handoff", "status": "ready", "first_response": "log issue in copy-only response packet and classify severity", "escalation": "follow-up planner v37 routes owner-approved next touch", "rollback": "pause public/live action; maintain static artifact and no destructive change"},
+        ],
+        "copy_packet_fields": ["client", "trigger", "first_response", "escalation", "rollback", "owner_boundary", "next_safe_step"],
+        "next_safe_action": "Owner reviews v48 issue paths before any live handoff or client-send; routine use remains read/copy only.",
+    }
 
 
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v46",
+        "schema_version": "webstudio.delivery-handoff-composer.v48",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "client_acceptance_receipt_v46",
+        "feature": "issue_response_playbook_v48",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1915,6 +1933,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "handoff_rehearsal_checklist_v44": handoff_rehearsal_checklist,
         "handoff_go_no_go_matrix_v45": handoff_go_no_go_matrix,
         "client_acceptance_receipt_v46": client_acceptance_receipt,
+        "issue_response_playbook_v48": issue_response_playbook,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {

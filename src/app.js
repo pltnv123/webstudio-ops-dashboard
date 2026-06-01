@@ -1152,6 +1152,27 @@ function deliveryClientEscalationSheet(composer, order, summary) {
   return `<section class="card span-12 delivery-client-escalation-sheet-v47"><h3>Delivery client escalation sheet v47</h3><p class="label">Owner-safe contact and escalation map for handoff: who receives the packet, who approves issues, response windows, and rollback contacts are copy-only until owner approval.</p><div class="metric-row">${metric('Contact coverage', `${ready}/${contacts.length}`, 'span-3')}${metric('Owner gated rows', gated, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}${metric('Mode', sheet.mode || 'read_only_escalation_sheet', 'span-3')}</div>${card('Escalation guardrail v47', kv({mode: sheet.mode || 'read_only_escalation_sheet', storage: sheet.persistence || 'static_state_plus_copy_packet', safety: sheet.safety || 'no external writes', next_safe_action: sheet.next_safe_action || 'review contact roles before live handoff'}), 'span-12')}<div class="list">${contactRows || '<div class="empty">Escalation contacts not configured.</div>'}</div>${toolbar([copyButton('Copy escalation sheet', packet), copyButton('Copy escalation JSON', jsonCopy(sheet))])}</section>`;
 }
 
+
+function deliveryIssueResponsePlaybook(composer, order, summary) {
+  const playbook = composer.issue_response_playbook_v48 || {};
+  const scenarios = asArray(playbook.scenarios);
+  const ready = scenarios.filter(x => /ready|pass/i.test(String(x.status || x.default_state))).length;
+  const gated = scenarios.filter(x => /owner|blocked|review|pause/i.test(String(x.status || x.default_state))).length;
+  const packet = [
+    'Delivery issue response playbook v48',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Ready scenarios: ${ready}/${scenarios.length}`,
+    `Owner-gated scenarios: ${gated}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Mode: ${playbook.mode || 'read_only_issue_response_playbook'}`,
+    `Safety: ${playbook.safety || 'copy-only; no client-send/CRM/DB writes'}`,
+    `Next safe step: ${playbook.next_safe_action || 'owner reviews response paths before live handoff'}`,
+    ...scenarios.map((x, idx) => `${x.id || ('i' + (idx + 1))}: ${x.status || x.default_state || 'unknown'} · trigger=${x.trigger || x.label || 'Issue trigger'} · first_response=${x.first_response || 'pause and review'} · escalation=${x.escalation || 'owner review'} · rollback=${x.rollback || 'keep static artifact available'}`)
+  ].join('\n');
+  const scenarioRows = scenarios.map((x, idx) => row(x.id || ('I' + (idx + 1)), x.trigger || x.label || 'Issue scenario', x.status || x.default_state || 'unknown', `${x.first_response || 'pause'} · ${x.escalation || 'owner review'} · rollback=${x.rollback || 'static fallback'}`, 'delivery-issue-response-playbook-v48', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-issue-response-playbook-v48"><h3>Delivery issue response playbook v48</h3><p class="label">Owner-safe incident/objection response map for handoff: defines first response, escalation, rollback, and no-live-write boundaries before anything is sent externally.</p><div class="metric-row">${metric('Issue scenarios', scenarios.length, 'span-3')}${metric('Ready paths', ready, 'span-3')}${metric('Owner gated', gated, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Issue response guardrail v48', kv({mode: playbook.mode || 'read_only_issue_response_playbook', storage: playbook.persistence || 'static_state_plus_copy_packet', safety: playbook.safety || 'no external writes', next_safe_action: playbook.next_safe_action || 'review issue paths before live handoff'}), 'span-12')}<div class="list">${scenarioRows || '<div class="empty">Issue response scenarios not configured.</div>'}</div>${toolbar([copyButton('Copy issue response playbook', packet), copyButton('Copy issue response JSON', jsonCopy(playbook))])}</section>`;
+}
+
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1197,7 +1218,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryGoNoGoMatrix(composer, o, summary)}${deliveryClientAcceptanceReceipt(composer, o, summary)}${deliveryClientEscalationSheet(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryApprovalDecisionLedger(composer, o, summary)}${deliveryHandoffManifest(composer, o, summary)}${deliveryRehearsalChecklist(composer, o, summary)}${deliveryGoNoGoMatrix(composer, o, summary)}${deliveryClientAcceptanceReceipt(composer, o, summary)}${deliveryClientEscalationSheet(composer, o, summary)}${deliveryIssueResponsePlaybook(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {

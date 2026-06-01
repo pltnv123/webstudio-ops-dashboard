@@ -178,8 +178,8 @@ assert state['order_builder']['safety']['public_demo_only'] is True
 assert state['order_builder']['safety']['real_sensitive_client_data'] is False
 assert state['delivery_handoff_composer_v33']['status'] == 'PASS_LOCAL_READY'
 assert state['delivery_handoff_composer_v33']['owner_action_required'] is False
-assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v46'
-assert state['delivery_handoff_composer_v33']['feature'] == 'client_acceptance_receipt_v46'
+assert state['delivery_handoff_composer_v33']['schema_version'] == 'webstudio.delivery-handoff-composer.v48'
+assert state['delivery_handoff_composer_v33']['feature'] == 'issue_response_playbook_v48'
 assert state['delivery_handoff_composer_v33']['acceptance_tracker']['storage_key'] == 'webstudio.delivery.acceptanceTracker.v34'
 assert len(state['delivery_handoff_composer_v33']['client_ready_checklist']) >= 5
 assert len(state['delivery_handoff_composer_v33']['acceptance_tracker']['rows']) >= 6
@@ -206,6 +206,9 @@ assert len(state['delivery_handoff_composer_v33']['handoff_go_no_go_matrix_v45']
 assert state['delivery_handoff_composer_v33']['client_acceptance_receipt_v46']['schema_version'] == 'webstudio.delivery-client-acceptance-receipt.v46'
 assert len(state['delivery_handoff_composer_v33']['client_acceptance_receipt_v46']['receipt_sections']) >= 6
 assert state['delivery_handoff_composer_v33']['client_acceptance_receipt_v46']['default_acceptance_status'] == 'PASS_WITH_APPROVAL_BLOCKERS'
+assert state['delivery_handoff_composer_v33']['issue_response_playbook_v48']['schema_version'] == 'webstudio.delivery-issue-response-playbook.v48'
+assert len(state['delivery_handoff_composer_v33']['issue_response_playbook_v48']['scenarios']) >= 5
+assert state['delivery_handoff_composer_v33']['issue_response_playbook_v48']['mode'] == 'read_only_issue_response_playbook'
 assert state['delivery_handoff_composer_v33']['followup_planner_v37']['storage_key'] == 'webstudio.delivery.followupPlanner.v37'
 assert len(state['delivery_handoff_composer_v33']['followup_planner_v37']['tasks']) >= 5
 assert 'enabled' in state['work_factory']
