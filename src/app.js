@@ -863,9 +863,33 @@ function readDeliveryAcceptanceOverlay() {
 function writeDeliveryAcceptanceOverlay(overlay) {
   localStorage.setItem(DELIVERY_ACCEPTANCE_STORAGE_KEY, JSON.stringify(overlay, null, 2));
 }
+function deliveryAcceptanceSummary(composer, overlay) {
+  const rows = asArray((composer.acceptance_tracker || {}).rows);
+  const statusOf = r => overlay[r.id] || r.default_state || 'needs_review';
+  const counts = rows.reduce((acc, r) => {
+    const st = statusOf(r);
+    acc[st] = (acc[st] || 0) + 1;
+    return acc;
+  }, {ready: 0, needs_review: 0, blocked_until_owner: 0, waived: 0});
+  const total = rows.length;
+  const cleared = (counts.ready || 0) + (counts.waived || 0);
+  const blockers = (counts.blocked_until_owner || 0) + (counts.needs_review || 0);
+  return {
+    total,
+    ready: counts.ready || 0,
+    waived: counts.waived || 0,
+    needs_review: counts.needs_review || 0,
+    blocked_until_owner: counts.blocked_until_owner || 0,
+    cleared,
+    blockers,
+    percent: total ? Math.round((cleared / total) * 100) : 0,
+    gate: total && blockers === 0 ? 'PASS_READY_TO_HANDOFF' : 'WATCH_REVIEW_BEFORE_HANDOFF'
+  };
+}
 function deliveryAcceptancePacket(composer, order, overlay) {
   const tracker = composer.acceptance_tracker || {};
   const rows = asArray(tracker.rows);
+  const summary = deliveryAcceptanceSummary(composer, overlay);
   const acceptance = rows.map(r => `${r.id}: ${overlay[r.id] || r.default_state || 'needs_review'} — ${r.label}`).join('\n') || '—';
   return [
     `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
@@ -874,19 +898,21 @@ function deliveryAcceptancePacket(composer, order, overlay) {
     `Pages: ${asArray(order.required_pages).join(', ') || '—'}`,
     `Assets: ${asArray(order.assets_needed).join(', ') || '—'}`,
     `QA gates: ${asArray(composer.qa_gates).join(', ') || '—'}`,
-    `Acceptance tracker v34:\n${acceptance}`,
+    `Acceptance summary v35: ${summary.cleared}/${summary.total} cleared · ${summary.percent}% · gate=${summary.gate}`,
+    `Acceptance tracker v35:\n${acceptance}`,
     `Hand-off note: ${composer.handoff_note || 'Read-only demo packet; live client data stays gated.'}`
   ].join('\n');
 }
 function deliveryAcceptanceTracker(composer) {
   const tracker = composer.acceptance_tracker || {};
   const overlay = readDeliveryAcceptanceOverlay();
+  const summary = deliveryAcceptanceSummary(composer, overlay);
   const options = ['ready','needs_review','blocked_until_owner','waived'];
   const rowsHtml = asArray(tracker.rows).map(r => {
     const value = overlay[r.id] || r.default_state || 'needs_review';
     return `<article class="capability-card acceptance-row"><div class="capability-top"><h4>${fmt(r.label)}</h4>${badge(value)}</div><p><b>Evidence:</b> ${fmt(r.required_evidence)}</p><label class="field"><span>Status</span><select data-delivery-acceptance="${esc(r.id)}">${options.map(x => `<option value="${esc(x)}" ${x === value ? 'selected' : ''}>${fmt(ru(x))}</option>`).join('')}</select></label></article>`;
   }).join('');
-  return `<section class="card span-12 delivery-acceptance-tracker"><h3>Client acceptance tracker v34</h3><p class="label">Owner-safe финальный чек перед передачей клиенту. Статусы сохраняются только в browser localStorage; CRM/DB/client-send не трогаются.</p><div class="capability-grid">${rowsHtml || '<div class="empty">Acceptance tracker not configured.</div>'}</div></section>`;
+  return `<section class="card span-12 delivery-acceptance-tracker"><h3>Client acceptance tracker v35</h3><p class="label">Owner-safe финальный чек перед передачей клиенту. Статусы сохраняются только в browser localStorage; CRM/DB/client-send не трогаются.</p><div class="metric-row acceptance-summary-v35">${metric('Acceptance cleared', `${summary.cleared}/${summary.total}`, 'span-3')}${metric('Readiness', summary.percent + '%', 'span-3')}${metric('Needs review', summary.needs_review, 'span-3')}${metric('Blocked', summary.blocked_until_owner, 'span-3')}</div>${card('Acceptance handoff gate v35', kv({gate: summary.gate, cleared: summary.cleared, blockers: summary.blockers, storage: 'localStorage only'}), 'span-12')}<div class="capability-grid">${rowsHtml || '<div class="empty">Acceptance tracker not configured.</div>'}</div></section>`;
 }
 function deliveryHandoffComposer() {
   const composer = state.delivery_handoff_composer_v33 || {};

@@ -111,7 +111,9 @@ required_js_symbols = [
     'deliveryHandoffComposer',
     'Client handoff composer v34',
     'deliveryAcceptanceTracker',
-    'Client acceptance tracker v34',
+    'Client acceptance tracker v35',
+    'deliveryAcceptanceSummary',
+    'Acceptance handoff gate v35',
     'DELIVERY_ACCEPTANCE_STORAGE_KEY',
 ]
 for symbol in required_js_symbols:
