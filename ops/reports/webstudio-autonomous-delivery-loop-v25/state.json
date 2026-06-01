@@ -1,0 +1,31 @@
+{
+  "status": "BASELINE_READY",
+  "task": "WEBSTUDIO V2.5 — AUTONOMOUS DELIVERY LOOP BASELINE",
+  "output_root": "/workspace/output/webstudio-autonomous-delivery-loop-v25",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "default_branch": "webstudio/product-build-v31",
+  "start_commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+  "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "pages_http": 200,
+  "latest_deploy_status": "success",
+  "latest_deploy_run_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26732558193",
+  "supabase_operational_tables_verified": true,
+  "supabase_row_written": true,
+  "pushed_commit": null,
+  "blockers": [],
+  "files": {
+    "final-report.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/final-report.md",
+    "state.json": "/workspace/output/webstudio-autonomous-delivery-loop-v25/state.json",
+    "events.jsonl": "/workspace/output/webstudio-autonomous-delivery-loop-v25/events.jsonl",
+    "delivery-loop-policy.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/delivery-loop-policy.md",
+    "github-policy.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/github-policy.md",
+    "supabase-policy.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/supabase-policy.md",
+    "deploy-policy.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/deploy-policy.md",
+    "qa-gates.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/qa-gates.md",
+    "incident-response.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/incident-response.md",
+    "validation.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/validation.md",
+    "continuation-prompt.md": "/workspace/output/webstudio-autonomous-delivery-loop-v25/continuation-prompt.md"
+  },
+  "updated_at": "2026-06-01T02:56:55.095897+00:00",
+  "supabase_row_id": "e68f16b2-e8ee-416f-b7a9-1c675b25e5a5"
+}

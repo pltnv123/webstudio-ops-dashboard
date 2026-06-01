@@ -1,0 +1,4 @@
+{"ts": "2026-06-01T02:56:08.466224+00:00", "event": "start", "task": "WEBSTUDIO V2.5", "status": "IN_PROGRESS"}
+{"ts": "2026-06-01T02:56:08.910690+00:00", "event": "preflight.verified", "status": "PASS", "commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886"}
+{"ts": "2026-06-01T02:56:08.910767+00:00", "event": "policy.artifacts.created", "status": "PASS"}
+{"ts": "2026-06-01T02:56:55.096690+00:00", "event": "supabase.row.written", "row_id": "e68f16b2-e8ee-416f-b7a9-1c675b25e5a5", "status": "BASELINE_READY"}
