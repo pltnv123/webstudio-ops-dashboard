@@ -1,0 +1,2 @@
+{"ts": "2026-06-01T03:32:16Z", "event": "v28.snapshot.created", "status": "PASS", "counts": {"queued": 7, "running": 0, "blocked": 0, "completed": 28, "owner_approval_needed": 3, "supabase_status_rows": 5, "supabase_job_rows": 3}}
+{"ts": "2026-06-01T03:39:02.501526+00:00", "event": "v28.validation.local.final", "status": "PASS"}

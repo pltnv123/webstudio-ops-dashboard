@@ -5,6 +5,9 @@ const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
 let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','supabase-memory','bot-activity','audit'].includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
   wf: '',
+  wfStatus: 'all',
+  wfComponent: 'all',
+  wfTime: 'all',
   kanban: '',
   kanbanLane: 'all',
   kanbanKind: 'all',
@@ -30,6 +33,8 @@ const stringify = (v, limit = 1400) => {
 };
 const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
+
+const WORK_FACTORY_STATUS_CHIPS = ['PASS','DEPLOYED','RUNNING','QUEUED','PARTIAL','BLOCKED','NEEDS_OWNER'];
 
 const RU = {
   overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
@@ -538,22 +543,81 @@ function wfTaskRow(t) {
   return row(t.id, t.title, t.status || t.category || 'task', `${t.category || '—'} · ${t.kind || '—'} · ${t.output || 'no output'}`, 'wf-task', jsonCopy(t));
 }
 
+function wfControlItemRow(t) {
+  const meta = `${t.component || 'work_factory'} · ${t.bucket || 'queue'} · ${t.time || '—'}${t.report ? ' · ' + t.report : ''}`;
+  return row(t.id || 'wf', t.title || 'Work item', t.status || 'QUEUED', `${meta} · ${shortText(t.summary || '—', 110)}`, 'wf-control-item', jsonCopy(t));
+}
+function wfControlOpsRow(t) {
+  const meta = `${t.version || '—'} · ${t.created_at || '—'} · ${t.deployment_target || t.url || '—'}`;
+  return row(t.component || 'component', t.summary || t.notes || t.component || 'status row', t.status || 'PASS', meta, 'wf-control-status', jsonCopy(t));
+}
+function wfControlRunRow(r) {
+  const st = r.conclusion === 'success' ? 'PASS' : (r.status === 'completed' ? 'PARTIAL' : 'RUNNING');
+  return row(r.databaseId || 'pages', `Pages run ${r.status || 'unknown'} / ${r.conclusion || 'pending'}`, st, `${r.updatedAt || r.createdAt || '—'} · ${shortText(r.headSha || '—', 12)} · ${r.url || '—'}`, 'wf-control-run', jsonCopy(r));
+}
+function wfControlCommitRow(c) {
+  return row(c.short || shortText(c.sha || 'commit', 8), c.message || 'GitHub commit', 'DEPLOYED', `${c.created_at || '—'} · ${c.url || '—'}`, 'wf-control-commit', jsonCopy(c));
+}
+function wfControlFilterItems(items, q, status, component, time) {
+  const now = Date.now();
+  const maxAge = time === '24h' ? 86400000 : time === '7d' ? 604800000 : time === '30d' ? 2592000000 : null;
+  return asArray(items).filter(t => {
+    const textOk = !q || includes(t, q);
+    const statusOk = status === 'all' || String(t.status || '').toLowerCase() === status.toLowerCase();
+    const componentOk = component === 'all' || String(t.component || '').toLowerCase() === component.toLowerCase();
+    let timeOk = true;
+    if (maxAge && t.time) {
+      const ts = Date.parse(t.time);
+      timeOk = Number.isFinite(ts) ? (now - ts <= maxAge) : true;
+    }
+    return textOk && statusOk && componentOk && timeOk;
+  });
+}
+function wfSelect(id, value, options) {
+  return `<select id="${id}" class="filter-select">${options.map(x => `<option value="${fmt(x)}" ${value===x?'selected':''}>${fmt(x)}</option>`).join('')}</select>`;
+}
+
 function workFactory() {
   const wf = state.work_factory || {};
-  const all = [...asArray(wf.pending), ...asArray(wf.approval_required), ...asArray(wf.blocked_error), ...asArray(wf.latest_completed)];
+  const control = state.work_factory_control || {};
+  const counts = control.counts || {};
+  const links = control.links || {};
+  const github = control.github || {};
   const q = filters.wf;
-  const filtered = all.filter(t => includes(t, q));
-  return `<div class="grid">
-    ${metric('Backlog total', wf.counts?.backlog_total)}${metric('Completed', wf.counts?.completed)}${metric('Ожидают', wf.counts?.pending)}${metric('Согласования', wf.counts?.approval_required || asArray(wf.approval_required).length)}
-    ${card('Tick / supervisor state', `${kv({source_of_truth: wf.source_of_truth, mode: wf.mode, enabled: wf.enabled, timer_enabled: wf.timer_enabled, updated_at: wf.updated_at, last_event: wf.last_event})}${toolbar([copyButton('Copy WF source path', wf.source_of_truth || '/workspace/output/work-factory-supervisor-state.json'), copyButton('Copy rebuild admin snapshot', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-6')}
-    ${card('Progress', kv(wf.progress), 'span-6')}
-    ${card('Roadmap manager', kv(wf.roadmap_manager), 'span-6')}
-    ${card('Capability inventory', kv(wf.capability_inventory), 'span-6')}
-    <section class="card span-12"><h3>Touchable Work Factory queue</h3>${searchBox('wfSearch', 'Search WF task / output / category…', q)}${rows(filtered, wfTaskRow, 'No WF tasks match')}</section>
-    ${card('Ожидают queue', rows(asArray(wf.pending), wfTaskRow), 'span-6')}
-    ${card('Approval required', rows(asArray(wf.approval_required), wfTaskRow), 'span-6')}
-    ${card('Blocked / errors', rows(asArray(wf.blocked_error), wfTaskRow), 'span-6')}
-    ${card('Latest completed', rows(asArray(wf.latest_completed).slice(0, 40), wfTaskRow), 'span-6')}
+  const allControl = [...asArray(control.queued_jobs), ...asArray(control.running_jobs), ...asArray(control.blocked_jobs), ...asArray(control.owner_approval_needed), ...asArray(control.completed_jobs)];
+  const statuses = ['all', ...new Set([...WORK_FACTORY_STATUS_CHIPS, ...allControl.map(x => x.status).filter(Boolean)])];
+  const components = ['all', ...new Set(allControl.map(x => x.component).filter(Boolean))];
+  const visible = wfControlFilterItems(allControl, q, filters.wfStatus, filters.wfComponent, filters.wfTime);
+  const ownerSummary = [
+    `Work Factory Control: ${control.summary?.status || 'PASS'}`,
+    `Queued: ${counts.queued || 0}`,
+    `Running: ${counts.running || 0}`,
+    `Blocked: ${counts.blocked || 0}`,
+    `Owner approvals: ${counts.owner_approval_needed || 0}`,
+    `Completed: ${counts.completed || 0}`,
+    `Next: ${control.next_safe_action || '—'}`
+  ].join('\n');
+  const legacy = [...asArray(wf.pending), ...asArray(wf.approval_required), ...asArray(wf.blocked_error), ...asArray(wf.latest_completed)].filter(t => includes(t, q));
+  return `<div class="grid work-factory-control-page">
+    ${metric('Queued', counts.queued ?? wf.counts?.pending ?? 0, 'span-2')}
+    ${metric('Running', counts.running ?? 0, 'span-2')}
+    ${metric('Blocked', counts.blocked ?? wf.counts?.blocked_error ?? 0, 'span-2')}
+    ${metric('Needs owner', counts.owner_approval_needed ?? wf.counts?.approval_required ?? 0, 'span-2')}
+    ${metric('Completed', counts.completed ?? wf.counts?.completed ?? 0, 'span-2')}
+    ${metric('Status rows', counts.supabase_status_rows ?? 0, 'span-2')}
+    ${card('Control filters', `<div class="filter-row">${searchBox('wfSearch', 'Search task / component / report…', q)}${wfSelect('wfStatusFilter', filters.wfStatus, statuses)}${wfSelect('wfComponentFilter', filters.wfComponent, components)}${wfSelect('wfTimeFilter', filters.wfTime, ['all','24h','7d','30d'])}</div><div class="chip-row">${(asArray(control.status_chips).length ? asArray(control.status_chips) : WORK_FACTORY_STATUS_CHIPS).map(x => badge(x, x)).join('')}</div>${toolbar([copyButton('Copy Work Factory summary', ownerSummary), copyButton('Copy Work Factory JSON', jsonCopy(control))])}`, 'span-12', 'work-factory-control-card')}
+    ${card('Active / queued production work', rowsTop(visible, wfControlItemRow, 16, 'No Work Factory items match current filters'), 'span-12', 'work-factory-control-card')}
+    ${card('Queued jobs', rowsTop(control.queued_jobs, wfControlItemRow, 8, 'No queued jobs in snapshot'), 'span-6')}
+    ${card('Running jobs', rowsTop(control.running_jobs, wfControlItemRow, 8, 'No running jobs in snapshot'), 'span-6')}
+    ${card('Blocked jobs', rowsTop(control.blocked_jobs, wfControlItemRow, 8, 'No blockers in snapshot'), 'span-6')}
+    ${card('Owner approval needed', rowsTop(control.owner_approval_needed, wfControlItemRow, 8, 'No owner approvals needed'), 'span-6')}
+    ${card('Last completed jobs', rowsTop(control.completed_jobs, wfControlItemRow, 12, 'No completed jobs in snapshot'), 'span-12')}
+    ${card('Next safe action', `<p class="owner-summary">${fmt(control.next_safe_action || 'Review owner approvals and blockers first.')}</p>${toolbar([links.github_repo ? copyButton('Copy GitHub repo', links.github_repo) : '', links.github_pr ? copyButton('Copy latest PR', links.github_pr) : '', links.latest_pages_run ? copyButton('Copy latest Pages run', links.latest_pages_run) : '', links.supabase_memory_route ? copyButton('Copy Supabase Memory route', links.supabase_memory_route) : '', links.bot_activity_route ? copyButton('Copy Bot Activity route', links.bot_activity_route) : ''].filter(Boolean))}`, 'span-6', 'work-factory-control-card')}
+    ${card('Latest GitHub PR / commit / Pages run', `${rowsTop(github.commits, wfControlCommitRow, 5, 'No commits in snapshot')}${rowsTop(github.pages_runs, wfControlRunRow, 5, 'No Pages runs in snapshot')}`, 'span-6', 'work-factory-control-card')}
+    ${card('Latest Supabase status rows', rowsTop(control.latest_supabase_status, wfControlOpsRow, 8, 'No Supabase status rows in snapshot'), 'span-12')}
+    ${card('Reports / handoff links', rowsTop(control.reports, r => row('report', r.title || 'Report', 'tracked', r.path || '—', 'wf-control-report', jsonCopy(r)), 10, 'No report links'), 'span-6')}
+    ${card('Static source / safety', kv({mode: control.source_mode || 'static_snapshot', control_mode: control.safety?.control_mode || 'read_only_copy_only', browser_side_supabase: control.safety?.browser_side_supabase === true ? 'enabled' : 'disabled', github_browser_access: control.safety?.browser_side_github_token === true ? 'enabled' : 'disabled', generated_at: control.generated_at || '—', source_path: control.source?.path || control.source_of_truth || '—'}), 'span-6')}
+    ${card('Legacy local Work Factory state', `${kv({source_of_truth: wf.source_of_truth, mode: wf.mode, enabled: wf.enabled, timer_enabled: wf.timer_enabled, updated_at: wf.updated_at, last_event: wf.last_event})}${rowsTop(legacy, wfTaskRow, 8, 'No local WF rows match')}`, 'span-12')}
   </div>`;
 }
 
@@ -1694,6 +1758,9 @@ function render() {
 
 function bindInputs() {
   $('#wfSearch')?.addEventListener('input', e => { filters.wf = e.target.value; render(); });
+  $('#wfStatusFilter')?.addEventListener('change', e => { filters.wfStatus = e.target.value; render(); });
+  $('#wfComponentFilter')?.addEventListener('change', e => { filters.wfComponent = e.target.value; render(); });
+  $('#wfTimeFilter')?.addEventListener('change', e => { filters.wfTime = e.target.value; render(); });
   $('#kanbanSearch')?.addEventListener('input', e => { filters.kanban = e.target.value; render(); });
   $('#kanbanLaneFilter')?.addEventListener('change', e => { filters.kanbanLane = e.target.value; render(); });
   $('#kanbanKindFilter')?.addEventListener('change', e => { filters.kanbanKind = e.target.value; render(); });

@@ -1,0 +1,20 @@
+{
+  "task": "WEBSTUDIO V2.8 — WORK FACTORY CONTROL PANEL",
+  "status": "BUILD_SMOKE_PASS",
+  "output_root": "/workspace/output/webstudio-work-factory-control-v28",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "branch": "webstudio/product-build-v31",
+  "base_commit": "6e2ee486acb33d98807b13cbab611b50d087a0b5",
+  "snapshot_path": "public/data/webstudio-work-factory-control-snapshot.json",
+  "browser_side_supabase": false,
+  "browser_side_github_token": false,
+  "pushed_commit": null,
+  "deploy_status": null,
+  "supabase_row_written": false,
+  "build": "PASS",
+  "smoke": "PASS",
+  "static_smoke": "PASS",
+  "secret_scan": "PASS",
+  "allowlist": "PASS",
+  "updated_at": "2026-06-01T03:39:02.498600+00:00"
+}

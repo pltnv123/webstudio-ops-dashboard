@@ -44,3 +44,6 @@ body{width:100%;min-width:0}.topbar,.tabs{width:100%;max-width:none;min-width:0}
 
 /* WebStudio Bot Activity UI v2.7 */
 .bot-activity-page .metric-card .metric{font-size:clamp(18px,2vw,28px);overflow-wrap:anywhere}.bot-activity-card{border-color:rgba(96,165,250,.26);background:linear-gradient(180deg,rgba(96,165,250,.08),rgba(12,18,26,.76))}.chip-row{display:flex;gap:8px;flex-wrap:wrap}.bot-activity-page .row strong,.bot-activity-page .row-meta{overflow-wrap:anywhere}.bot-activity-page .owner-summary{font-size:15px;line-height:1.55;color:var(--text)}
+
+/* WebStudio Work Factory Control UI v2.8 */
+.work-factory-control-page .filter-row{display:grid;grid-template-columns:minmax(220px,1fr) repeat(3,minmax(130px,180px));gap:10px;align-items:center}.work-factory-control-page .filter-select{width:100%;background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px}.work-factory-control-card{border-color:rgba(52,211,153,.28);background:linear-gradient(180deg,rgba(52,211,153,.07),rgba(12,18,26,.78))}.work-factory-control-page .row strong,.work-factory-control-page .row-meta{overflow-wrap:anywhere}@media(max-width:900px){.work-factory-control-page .filter-row{grid-template-columns:1fr}}

@@ -50,6 +50,7 @@ PRODUCT_PROGRESS_PATH = OUTPUT / "webstudio-product-progress-v1.json"
 CONTROL_HISTORY_PATH = PUBLIC_DATA / "webstudio-control-plane-history.json"
 SUPABASE_MEMORY_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-supabase-memory-snapshot.json"
 BOT_ACTIVITY_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-live-bot-activity-snapshot.json"
+WORK_FACTORY_CONTROL_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-work-factory-control-snapshot.json"
 
 FORBIDDEN_ACTIONS = [
     "dispatch", "run", "daemon", "unblock", "reclaim", "deploy", "release",
@@ -1505,6 +1506,56 @@ def build_bot_activity() -> dict[str, Any]:
         "summary": {**summary, "activity_items": len(activity), "heartbeat_rows": len(ops), "job_rows": len(jobs), "blockers": len(blockers)},
     }
 
+
+def build_work_factory_control() -> dict[str, Any]:
+    snapshot = load_json(WORK_FACTORY_CONTROL_SNAPSHOT_PATH, {})
+    if not isinstance(snapshot, dict):
+        snapshot = {}
+    queued = snapshot.get("queued_jobs") if isinstance(snapshot.get("queued_jobs"), list) else []
+    running = snapshot.get("running_jobs") if isinstance(snapshot.get("running_jobs"), list) else []
+    blocked = snapshot.get("blocked_jobs") if isinstance(snapshot.get("blocked_jobs"), list) else []
+    approvals = snapshot.get("owner_approval_needed") if isinstance(snapshot.get("owner_approval_needed"), list) else []
+    completed = snapshot.get("completed_jobs") if isinstance(snapshot.get("completed_jobs"), list) else []
+    ops = snapshot.get("latest_supabase_status") if isinstance(snapshot.get("latest_supabase_status"), list) else []
+    jobs = snapshot.get("latest_supabase_jobs") if isinstance(snapshot.get("latest_supabase_jobs"), list) else []
+    github = snapshot.get("github") if isinstance(snapshot.get("github"), dict) else {}
+    summary = snapshot.get("summary") if isinstance(snapshot.get("summary"), dict) else {}
+    counts = {
+        "queued": len(queued),
+        "running": len(running),
+        "blocked": len(blocked),
+        "completed": len(completed),
+        "owner_approval_needed": len(approvals),
+        "supabase_status_rows": len(ops),
+        "supabase_job_rows": len(jobs),
+    }
+    counts.update(snapshot.get("counts", {}) if isinstance(snapshot.get("counts"), dict) else {})
+    return {
+        "source_of_truth": str(WORK_FACTORY_CONTROL_SNAPSHOT_PATH),
+        "source": stat_info(WORK_FACTORY_CONTROL_SNAPSHOT_PATH),
+        "schema_version": snapshot.get("schema_version", "webstudio-work-factory-control.v2.8.empty"),
+        "generated_at": snapshot.get("generated_at"),
+        "source_mode": snapshot.get("source_mode", "static_snapshot"),
+        "safety": snapshot.get("safety", {"browser_side_supabase": False, "browser_side_github_token": False, "control_mode": "read_only_copy_only"}),
+        "links": snapshot.get("links", {}),
+        "status_chips": snapshot.get("status_chips", ["PASS", "DEPLOYED", "RUNNING", "QUEUED", "PARTIAL", "BLOCKED", "NEEDS_OWNER"]),
+        "filters": snapshot.get("filters", ["status", "component", "time"]),
+        "counts": counts,
+        "queued_jobs": queued,
+        "running_jobs": running,
+        "blocked_jobs": blocked,
+        "owner_approval_needed": approvals,
+        "completed_jobs": completed,
+        "latest_supabase_status": ops,
+        "latest_supabase_jobs": jobs,
+        "latest_artifacts": snapshot.get("latest_artifacts", []),
+        "latest_memory_index": snapshot.get("latest_memory_index", []),
+        "github": github,
+        "reports": snapshot.get("reports", []),
+        "next_safe_action": snapshot.get("next_safe_action", "Review owner approvals and blockers first."),
+        "summary": {**summary, **counts},
+    }
+
 def build_error_recovery_v37_1() -> dict[str, Any]:
     taxonomy = load_json(OUTPUT / "webstudio-error-taxonomy-v37-1.json", {})
     errors = taxonomy.get("errors") if isinstance(taxonomy.get("errors"), list) else []
@@ -1628,6 +1679,7 @@ def build_state() -> dict[str, Any]:
         "system_hardening": build_system_hardening_status(),
         "supabase_memory": build_supabase_memory(),
         "bot_activity": build_bot_activity(),
+        "work_factory_control": build_work_factory_control(),
         "marathon_12h": marathon_status,
         "d1_owner_feedback": build_d1_owner_feedback(),
         "d3_intake": build_d3_intake(),
@@ -1664,7 +1716,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

@@ -99,6 +99,9 @@ required_js_symbols = [
     'Supabase Memory',
     'botActivity',
     'Bot Activity',
+    'work_factory_control',
+    'Work Factory summary',
+    'NEEDS_OWNER',
 ]
 for symbol in required_js_symbols:
     assert symbol in js, f'missing JS symbol {symbol}'
@@ -108,7 +111,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
@@ -124,6 +127,10 @@ assert state['bot_activity']['safety']['browser_side_github_token'] is False
 assert len(state['bot_activity']['activity']) >= 3
 assert 'PASS' in state['bot_activity']['status_chips']
 assert 'BLOCKED' in state['bot_activity']['status_chips']
+assert state['work_factory_control']['safety']['browser_side_supabase'] is False
+assert state['work_factory_control']['safety']['browser_side_github_token'] is False
+assert 'NEEDS_OWNER' in state['work_factory_control']['status_chips']
+assert state['work_factory_control']['counts']['completed'] >= 1
 assert 'enabled' in state['work_factory']
 assert state['kanban'].get('executable_mirror_count', 0) == 0
 controller = state['continuation_controller']
