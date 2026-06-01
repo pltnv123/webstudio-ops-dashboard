@@ -856,24 +856,49 @@ function deliveryArtifactRow(path, idx) {
   return row('A' + (idx + 1), path, 'artifact', 'v29 delivery registry', 'artifact', jsonCopy({path, status:'PASS'}));
 }
 
+const DELIVERY_ACCEPTANCE_STORAGE_KEY = 'webstudio.delivery.acceptanceTracker.v34';
+function readDeliveryAcceptanceOverlay() {
+  try { return JSON.parse(localStorage.getItem(DELIVERY_ACCEPTANCE_STORAGE_KEY) || '{}') || {}; } catch { return {}; }
+}
+function writeDeliveryAcceptanceOverlay(overlay) {
+  localStorage.setItem(DELIVERY_ACCEPTANCE_STORAGE_KEY, JSON.stringify(overlay, null, 2));
+}
+function deliveryAcceptancePacket(composer, order, overlay) {
+  const tracker = composer.acceptance_tracker || {};
+  const rows = asArray(tracker.rows);
+  const acceptance = rows.map(r => `${r.id}: ${overlay[r.id] || r.default_state || 'needs_review'} — ${r.label}`).join('\n') || '—';
+  return [
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Package: ${order.pricing_package || '—'}`,
+    `Offer: ${order.offer_service_product || '—'}`,
+    `Pages: ${asArray(order.required_pages).join(', ') || '—'}`,
+    `Assets: ${asArray(order.assets_needed).join(', ') || '—'}`,
+    `QA gates: ${asArray(composer.qa_gates).join(', ') || '—'}`,
+    `Acceptance tracker v34:\n${acceptance}`,
+    `Hand-off note: ${composer.handoff_note || 'Read-only demo packet; live client data stays gated.'}`
+  ].join('\n');
+}
+function deliveryAcceptanceTracker(composer) {
+  const tracker = composer.acceptance_tracker || {};
+  const overlay = readDeliveryAcceptanceOverlay();
+  const options = ['ready','needs_review','blocked_until_owner','waived'];
+  const rowsHtml = asArray(tracker.rows).map(r => {
+    const value = overlay[r.id] || r.default_state || 'needs_review';
+    return `<article class="capability-card acceptance-row"><div class="capability-top"><h4>${fmt(r.label)}</h4>${badge(value)}</div><p><b>Evidence:</b> ${fmt(r.required_evidence)}</p><label class="field"><span>Status</span><select data-delivery-acceptance="${esc(r.id)}">${options.map(x => `<option value="${esc(x)}" ${x === value ? 'selected' : ''}>${fmt(ru(x))}</option>`).join('')}</select></label></article>`;
+  }).join('');
+  return `<section class="card span-12 delivery-acceptance-tracker"><h3>Client acceptance tracker v34</h3><p class="label">Owner-safe финальный чек перед передачей клиенту. Статусы сохраняются только в browser localStorage; CRM/DB/client-send не трогаются.</p><div class="capability-grid">${rowsHtml || '<div class="empty">Acceptance tracker not configured.</div>'}</div></section>`;
+}
 function deliveryHandoffComposer() {
   const composer = state.delivery_handoff_composer_v33 || {};
   const ob = state.order_builder || {};
   const o = ob.sample_order || {};
   const checklist = asArray(composer.client_ready_checklist);
-  const packet = [
-    `Client: ${o.client_profile || composer.sample_client || 'sanitized demo client'}`,
-    `Package: ${o.pricing_package || '—'}`,
-    `Offer: ${o.offer_service_product || '—'}`,
-    `Pages: ${asArray(o.required_pages).join(', ') || '—'}`,
-    `Assets: ${asArray(o.assets_needed).join(', ') || '—'}`,
-    `QA gates: ${asArray(composer.qa_gates).join(', ') || '—'}`,
-    `Hand-off note: ${composer.handoff_note || 'Read-only demo packet; live client data stays gated.'}`
-  ].join('\n');
-  return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v33</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
-    <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
+  const overlay = readDeliveryAcceptanceOverlay();
+  const packet = deliveryAcceptancePacket(composer, o, overlay);
+  return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v34</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
+    <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_acceptance_tracker_v34', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}`;
 }
 
 function delivery() {
@@ -1855,6 +1880,7 @@ function bindInputs() {
   $('#ownerFeedbackSearch')?.addEventListener('input', e => { filters.ownerFeedback = e.target.value; render(); });
   $('#ownerFeedbackStateFilter')?.addEventListener('change', e => { filters.ownerFeedbackState = e.target.value; render(); });
   document.querySelectorAll('[data-production-filter]').forEach(btn => btn.addEventListener('click', e => { filters.productionQuick = e.currentTarget.dataset.productionFilter || 'active'; render(); }));
+  document.querySelectorAll('[data-delivery-acceptance]').forEach(sel => sel.addEventListener('change', e => { const overlay = readDeliveryAcceptanceOverlay(); overlay[e.currentTarget.dataset.deliveryAcceptance] = e.currentTarget.value; writeDeliveryAcceptanceOverlay(overlay); render(); }));
 }
 
 async function copyText(value) {

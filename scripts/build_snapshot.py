@@ -1602,11 +1602,20 @@ def build_order_builder() -> dict[str, Any]:
 
 
 def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_system: dict[str, Any]) -> dict[str, Any]:
+    acceptance = [
+        {"id": "brief", "label": "Sanitized brief is complete", "required_evidence": "Order Builder production brief", "default_state": "ready"},
+        {"id": "scope", "label": "D1/D2/D3 scope is explicit", "required_evidence": "Selected package, pages, bot flow, automation map", "default_state": "ready"},
+        {"id": "assets", "label": "Assets and missing inputs are visible", "required_evidence": "Assets needed + content status", "default_state": "needs_review"},
+        {"id": "qa", "label": "QA gates passed before client send", "required_evidence": "build, smoke, changed-file secret scan", "default_state": "needs_review"},
+        {"id": "privacy", "label": "No private client data or credentials in packet", "required_evidence": "public demo/sanitized-only policy", "default_state": "ready"},
+        {"id": "approval", "label": "Owner approves any live CRM/DB/client-send action", "required_evidence": "owner approval before live writes", "default_state": "blocked_until_owner"},
+    ]
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v33",
+        "schema_version": "webstudio.delivery-handoff-composer.v34",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
+        "feature": "client_acceptance_tracker_v34",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1618,6 +1627,14 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
             "Run QA/readiness gate before client handoff",
             "Keep live credentials and private client data out of public packet",
         ],
+        "acceptance_tracker": {
+            "schema_version": "webstudio.client-handoff-acceptance.v34",
+            "persistence": "browser_local_storage_only",
+            "storage_key": "webstudio.delivery.acceptanceTracker.v34",
+            "safety": "read-only UI overlay; no DB/CRM/client-send writes",
+            "rows": acceptance,
+            "copy_packet_fields": ["client", "package", "offer", "pages", "assets", "qa_gates", "acceptance"],
+        },
         "qa_gates": [
             "brief_complete",
             "assets_status_known",
