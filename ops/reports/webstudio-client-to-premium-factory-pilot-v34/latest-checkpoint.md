@@ -1,7 +1,7 @@
 # Latest Checkpoint
 
-Status: PHASE_4_PASS_PHASE_5_IN_PROGRESS
+Status: PASS_SUPABASE_WRITTEN_HFINALIZE_PENDING
 
-Latest pushed commit: `75b68a9d9bbb620b7226fc5e9da8d7b25f348c0f`
+Final report commit: `6a7e420443dae401fc4dbfe97eac5d9171cecdd3`
 
-Next: copy sanitized reports into repo, push final report commit, write Supabase rows, run hfinalize, final answer.
+Next: run hfinalize and emit final PASS.
