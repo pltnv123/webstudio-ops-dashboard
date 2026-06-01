@@ -106,6 +106,8 @@ required_js_symbols = [
     'Order Builder',
     'Work Factory summary',
     'NEEDS_OWNER',
+    'routeNames',
+    "split('/').filter(Boolean).pop()",
     'deliveryHandoffComposer',
     'Client handoff composer v33',
 ]
