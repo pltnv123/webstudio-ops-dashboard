@@ -938,6 +938,29 @@ function deliveryEvidenceBinder(composer, summary) {
   const rowsHtml = evidence.map((x, idx) => row(x.id || ('E' + (idx + 1)), x.label || 'Evidence', x.status || 'unknown', `${x.source || 'static'} · ${x.owner_action || 'review'}`, 'delivery-evidence-v38', jsonCopy(x))).join('');
   return `<section class="card span-12 delivery-evidence-binder-v38"><h3>Delivery evidence binder v38</h3><p class="label">Собирает owner-safe доказательства перед передачей: build/smoke/secret-scan/Pages status видны в одном copy-only блоке, без CRM/DB/client-send writes.</p><div class="metric-row">${metric('Evidence items', evidence.length, 'span-3')}${metric('Ready', ready, 'span-3')}${metric('Needs review', blocked, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Evidence guardrail v38', kv({mode: binder.mode || 'read_only_static_evidence', storage: 'static sanitized state', safety: binder.safety || 'no external writes', next_safe_action: binder.next_safe_action || 'review evidence before client send'}), 'span-12')}<div class="list">${rowsHtml || '<div class="empty">Evidence binder not configured.</div>'}</div>${toolbar([copyButton('Copy evidence packet', packet), copyButton('Copy evidence JSON', jsonCopy(binder))])}</section>`;
 }
+function deliveryOwnerSignoffPacket(composer, order, summary) {
+  const signoff = composer.owner_signoff_packet_v39 || {};
+  const sections = asArray(signoff.required_sections);
+  const ready = sections.filter(x => /ready|pass/i.test(String(x.default_state || x.status || ''))).length;
+  const review = sections.filter(x => /needs|queued|blocked/i.test(String(x.default_state || x.status || ''))).length;
+  const evidence = asArray((composer.delivery_evidence_binder_v38 || {}).evidence).map(x => `${x.id}: ${x.status}`).join(', ') || '—';
+  const risks = asArray((composer.handoff_risk_digest_v36 || {}).risks).map(x => `${x.id}: ${x.status}`).join(', ') || '—';
+  const followup = asArray((composer.followup_planner_v37 || {}).tasks).map(x => `${x.id}: ${x.default_state}`).join(', ') || '—';
+  const packet = [
+    'Delivery owner sign-off packet v39',
+    `Client: ${order.client_profile || composer.sample_client || 'sanitized demo client'}`,
+    `Package: ${order.pricing_package || '—'}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Readiness: ${ready}/${sections.length} ready · ${review} owner-review items`,
+    `Evidence: ${evidence}`,
+    `Risks: ${risks}`,
+    `Follow-up: ${followup}`,
+    `Guardrail: ${signoff.safety || 'copy-only; no external writes'}`,
+    ...sections.map((x, idx) => `${x.id || ('s' + (idx + 1))}: ${x.default_state || x.status || 'unknown'} · ${x.label || 'Section'} · action=${x.owner_action || 'review'}`)
+  ].join('\n');
+  const rowsHtml = sections.map((x, idx) => row(x.id || ('S' + (idx + 1)), x.label || 'Sign-off section', x.default_state || x.status || 'unknown', x.owner_action || 'Owner review', 'delivery-signoff-v39', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-owner-signoff-packet-v39"><h3>Delivery owner sign-off packet v39</h3><p class="label">Единый copy-only пакет для решения владельца: scope + QA evidence + risks + follow-up + запрет live send/write без отдельного approval.</p><div class="metric-row">${metric('Sign-off sections', sections.length, 'span-3')}${metric('Ready', ready, 'span-3')}${metric('Owner review', review, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Sign-off guardrail v39', kv({mode: signoff.mode || 'read_only_copy_packet', storage: signoff.persistence || 'static sanitized state', safety: signoff.safety || 'no external writes', next_safe_action: signoff.next_safe_action || 'copy packet for owner review'}), 'span-12')}<div class="list">${rowsHtml || '<div class="empty">Sign-off packet not configured.</div>'}</div>${toolbar([copyButton('Copy owner sign-off packet', packet), copyButton('Copy sign-off JSON', jsonCopy(signoff))])}</section>`;
+}
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -983,7 +1006,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {

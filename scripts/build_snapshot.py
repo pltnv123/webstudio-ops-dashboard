@@ -1667,12 +1667,30 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["id", "status", "source", "owner_action", "acceptance_gate"],
         "next_safe_action": "Attach current validation artifacts, then keep external send/write blocked until explicit owner approval.",
     }
+    signoff_packet = {
+        "schema_version": "webstudio.delivery-owner-signoff-packet.v39",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_copy_packet",
+        "persistence": "static_sanitized_state_plus_browser_copy_only",
+        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
+        "purpose": "Give the owner a single copy-only acceptance packet that joins scope, QA evidence, risks, follow-up, and the external-action guardrail.",
+        "required_sections": [
+            {"id": "scope", "label": "Scope and package match the sanitized order", "default_state": "ready", "owner_action": "Confirm package, pages, and product line before handoff."},
+            {"id": "qa-evidence", "label": "QA evidence is attached", "default_state": "needs_review", "owner_action": "Review build, smoke, changed-file secret scan, and public route proof."},
+            {"id": "risk-review", "label": "Known handoff risks are reviewed", "default_state": "needs_review", "owner_action": "Accept asset/QA/live-write risks or return to production."},
+            {"id": "follow-up", "label": "Post-delivery follow-up is planned", "default_state": "queued", "owner_action": "Confirm next manual touch after client acceptance."},
+            {"id": "external-actions", "label": "Any live send/write remains separately approved", "default_state": "blocked_until_owner", "owner_action": "Approve exact external action outside this read-only dashboard."},
+        ],
+        "copy_packet_fields": ["client", "package", "acceptance_gate", "evidence", "risks", "follow_up", "external_action_guardrail"],
+        "next_safe_action": "Copy the sign-off packet for owner review; keep all live send/write actions blocked until explicit approval.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v38",
+        "schema_version": "webstudio.delivery-handoff-composer.v39",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "delivery_evidence_binder_v38",
+        "feature": "delivery_owner_signoff_packet_v39",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1702,6 +1720,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "handoff_note": "Public dashboard composes a safe handoff packet with acceptance + risk digest from sanitized state only; production writes and private client data remain gated.",
         "handoff_risk_digest_v36": risk_digest,
         "delivery_evidence_binder_v38": evidence_binder,
+        "owner_signoff_packet_v39": signoff_packet,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {
