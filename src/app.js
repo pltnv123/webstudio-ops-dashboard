@@ -979,6 +979,24 @@ function deliveryLaunchReadinessReceipt(composer, order, summary) {
   const rowsHtml = rows.map((x, idx) => row(x.id || ('R' + (idx + 1)), x.label || 'Readiness row', x.status || 'unknown', `${x.source || 'static'} · ${x.owner_action || 'review'}`, 'delivery-receipt-v40', jsonCopy(x))).join('');
   return `<section class="card span-12 delivery-launch-readiness-receipt-v40"><h3>Delivery launch-readiness receipt v40</h3><p class="label">Финальный owner-safe чек перед передачей: что готово, что требует review, что заблокировано до отдельного approval. Только copy/read, без внешних действий.</p><div class="metric-row">${metric('Receipt rows', rows.length, 'span-3')}${metric('Ready', ready, 'span-3')}${metric('Review / blocked', blocked, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Receipt guardrail v40', kv({mode: receipt.mode || 'read_only_copy_receipt', storage: receipt.persistence || 'static sanitized state', safety: receipt.safety || 'no external writes', next_safe_action: receipt.next_safe_action || 'owner review before live action'}), 'span-12')}<div class="list">${rowsHtml || '<div class="empty">Launch-readiness receipt not configured.</div>'}</div>${toolbar([copyButton('Copy launch-readiness receipt', packet), copyButton('Copy receipt JSON', jsonCopy(receipt))])}</section>`;
 }
+function deliveryEvidenceFreshnessMonitor(composer, summary) {
+  const monitor = composer.evidence_freshness_monitor_v41 || {};
+  const checks = asArray(monitor.checks);
+  const fresh = checks.filter(x => /fresh|pass/i.test(String(x.status || ''))).length;
+  const watch = checks.filter(x => /watch|stale|blocked|needs/i.test(String(x.status || ''))).length;
+  const packet = [
+    'Delivery evidence freshness monitor v41',
+    `Mode: ${monitor.mode || 'read_only_freshness_monitor'}`,
+    `Acceptance gate: ${summary.gate}`,
+    `Fresh: ${fresh}/${checks.length}`,
+    `Watch/stale: ${watch}`,
+    `Guardrail: ${monitor.safety || 'copy-only; no external writes'}`,
+    `Next safe action: ${monitor.next_safe_action || 'refresh stale proof before owner/client handoff'}`,
+    ...checks.map((x, idx) => `${x.id || ('f' + (idx + 1))}: ${x.status || 'unknown'} · ${x.label || 'Freshness check'} · threshold=${x.threshold || '—'} · action=${x.owner_action || 'review'}`)
+  ].join('\n');
+  const rowsHtml = checks.map((x, idx) => row(x.id || ('F' + (idx + 1)), x.label || 'Freshness check', x.status || 'unknown', `${x.threshold || 'current'} · ${x.owner_action || 'review'}`, 'delivery-freshness-v41', jsonCopy(x))).join('');
+  return `<section class="card span-12 delivery-evidence-freshness-monitor-v41"><h3>Delivery evidence freshness monitor v41</h3><p class="label">Показывает, какие proof-артефакты ещё свежие перед owner/client handoff, а какие нужно обновить. Только read/copy, без внешних записей.</p><div class="metric-row">${metric('Freshness checks', checks.length, 'span-3')}${metric('Fresh', fresh, 'span-3')}${metric('Watch / stale', watch, 'span-3')}${metric('Acceptance gate', summary.gate, 'span-3')}</div>${card('Freshness guardrail v41', kv({mode: monitor.mode || 'read_only_freshness_monitor', storage: monitor.persistence || 'static sanitized state', safety: monitor.safety || 'no external writes', next_safe_action: monitor.next_safe_action || 'refresh stale proof before handoff'}), 'span-12')}<div class="list">${rowsHtml || '<div class="empty">Freshness monitor not configured.</div>'}</div>${toolbar([copyButton('Copy freshness packet', packet), copyButton('Copy freshness JSON', jsonCopy(monitor))])}</section>`;
+}
 function deliveryFollowupPlanner(composer, summary) {
   const planner = composer.followup_planner_v37 || {};
   const overlay = readDeliveryFollowupOverlay();
@@ -1024,7 +1042,7 @@ function deliveryHandoffComposer() {
   return `<section class="card span-12 delivery-handoff-composer"><h3>Client handoff composer v36</h3><p class="label">Собирает owner-safe пакет передачи из Order Builder + delivery pipeline. Без записи в CRM/DB и без приватных данных.</p><div class="handoff-grid">
     <article>${kv({status: composer.status || 'PASS_LOCAL_READY', mode: composer.mode || 'read_only_static_composer', feature: composer.feature || 'client_handoff_risk_digest_v36', source: composer.source || 'order_builder.sample_order', owner_action_required: composer.owner_action_required || false})}</article>
     <article><h4>Client-ready checklist</h4>${rowsTop(checklist.map((x,i)=>({id:'C'+(i+1), title:x, status:'ready'})), x=>row(x.id, x.title, x.status), 12, 'Checklist not configured')}</article>
-  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryFollowupPlanner(composer, summary)}`;
+  </div>${toolbar([copyButton('Copy client handoff packet', packet), copyButton('Copy handoff JSON', jsonCopy(composer)), copyButton('Copy QA gates', asArray(composer.qa_gates).join('\n'))])}</section>${deliveryAcceptanceTracker(composer)}${deliveryHandoffRiskDigest(composer, summary)}${deliveryEvidenceBinder(composer, summary)}${deliveryOwnerSignoffPacket(composer, o, summary)}${deliveryLaunchReadinessReceipt(composer, o, summary)}${deliveryEvidenceFreshnessMonitor(composer, summary)}${deliveryFollowupPlanner(composer, summary)}`;
 }
 
 function delivery() {

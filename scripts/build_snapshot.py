@@ -1702,12 +1702,30 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "copy_packet_fields": ["client", "package", "readiness", "blocked_until_owner", "evidence", "next_safe_action"],
         "next_safe_action": "Use the receipt as a final owner checkpoint; do not perform live send/write until explicit owner approval is recorded.",
     }
+    evidence_freshness_monitor = {
+        "schema_version": "webstudio.delivery-evidence-freshness-monitor.v41",
+        "generated_at": utc_now(),
+        "status": "PASS_LOCAL_READY",
+        "mode": "read_only_freshness_monitor",
+        "persistence": "static_sanitized_state_plus_copy_packet",
+        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
+        "purpose": "Prevent stale proof from being reused in owner/client handoff by making freshness thresholds visible and copyable.",
+        "checks": [
+            {"id": "build-smoke", "label": "Build and smoke proof is from the current delivery cycle", "status": "fresh", "threshold": "same cron shift or after latest UI copy change", "owner_action": "Use current build/smoke artifact; rerun if UI changed."},
+            {"id": "secret-scan", "label": "Changed-file secret scan covers current diff", "status": "fresh", "threshold": "after every source/report change", "owner_action": "Keep scan attached before any public/client handoff."},
+            {"id": "pages-route", "label": "GitHub Pages route was re-smoked after push", "status": "watch_until_push", "threshold": "after safe host autopush and Pages refresh", "owner_action": "Re-smoke /delivery/ after remote branch contains this commit."},
+            {"id": "owner-signoff", "label": "Owner sign-off packet matches current evidence", "status": "needs_review", "threshold": "before external send/write", "owner_action": "Review packet and keep live action approval separate."},
+            {"id": "follow-up", "label": "Follow-up plan is still aligned with acceptance state", "status": "queued", "threshold": "after acceptance decision", "owner_action": "Update local follow-up overlay only after owner/client acceptance."},
+        ],
+        "copy_packet_fields": ["id", "status", "threshold", "owner_action", "acceptance_gate"],
+        "next_safe_action": "Refresh any WATCH/STALE evidence before owner/client handoff; do not perform live send/write without explicit owner approval.",
+    }
     return {
-        "schema_version": "webstudio.delivery-handoff-composer.v40",
+        "schema_version": "webstudio.delivery-handoff-composer.v41",
         "generated_at": utc_now(),
         "status": "PASS_LOCAL_READY",
         "mode": "read_only_static_composer",
-        "feature": "delivery_launch_readiness_receipt_v40",
+        "feature": "delivery_evidence_freshness_monitor_v41",
         "source": "order_builder.sample_order + delivery_system_v29",
         "sample_client": "sanitized demo order",
         "owner_action_required": False,
@@ -1739,6 +1757,7 @@ def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_
         "delivery_evidence_binder_v38": evidence_binder,
         "owner_signoff_packet_v39": signoff_packet,
         "launch_readiness_receipt_v40": handoff_receipt,
+        "evidence_freshness_monitor_v41": evidence_freshness_monitor,
         "followup_planner_v37": followup_planner,
         "route": "#delivery",
         "upstream_status": {
