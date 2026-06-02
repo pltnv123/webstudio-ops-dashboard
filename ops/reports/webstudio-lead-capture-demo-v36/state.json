@@ -1,0 +1,45 @@
+{
+  "schema_version": "webstudio.v36.lead-capture-demo.v1",
+  "task": "WEBSTUDIO V3.6 — LEAD CAPTURE DEMO + CLIENT REQUEST PIPELINE",
+  "output_root": "/workspace/output/webstudio-lead-capture-demo-v36",
+  "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
+  "branch": "webstudio/product-build-v31",
+  "head_before": "35c7860e6e5952148d47eee888c543f07f8d9a14",
+  "status": "GATES_PASS",
+  "started_at": "2026-06-02T10:15:53.029600+00:00",
+  "allowed_scope": [
+    "dashboard UI/routes",
+    "sanitized static demo data",
+    "Supabase ops/status/artifact rows",
+    "Supabase schema proposal",
+    "commit/push/deploy verification"
+  ],
+  "forbidden_scope": [
+    "real private client data",
+    "live Telegram/CRM/email writes",
+    "service role keys in browser",
+    "destructive Supabase changes",
+    "force push",
+    "officebot",
+    "gateway/systemd restart"
+  ],
+  "phase1_reports": "PASS",
+  "ui_implementation": "PASS_LOCAL",
+  "changed_files_precommit": [
+    "scripts/build_snapshot.py",
+    "scripts/smoke_check.py",
+    "src/app.js",
+    "src/index.html",
+    "src/styles.css"
+  ],
+  "changed_file_count_precommit": 5,
+  "allowlist_pass": true,
+  "allowlist_violations": [],
+  "gates": {
+    "npm_run_build": "PASS",
+    "npm_run_smoke": "PASS",
+    "local_static_smoke": "PASS",
+    "git_diff_check": "PASS",
+    "secret_scan_changed_diff": "PASS"
+  }
+}

@@ -2043,6 +2043,49 @@ def build_generated_demo_site_v35() -> dict[str, Any]:
         "next_safe_action": "Owner review of the generated static demo; live booking, CRM, payments, real health copy, and public client use remain approval-gated.",
     }
 
+
+def build_lead_capture_demo_v36() -> dict[str, Any]:
+    """Safe static lead-capture/client-request demo snapshot."""
+    return {
+        "schema_version": "webstudio.lead-capture-demo.v36",
+        "status": "PASS_LOCAL_READY",
+        "route": "/lead-capture-demo/",
+        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/lead-capture-demo/",
+        "markers": ["lead-capture-demo-v36", "Demo only", "D1 website", "D2 AI-intake bot", "D3 automation"],
+        "safety": {
+            "demo_only": True,
+            "live_submission": False,
+            "real_private_client_data": False,
+            "browser_side_supabase_secret": False,
+            "telegram_crm_email_writes": False,
+            "payment_writes": False,
+            "external_writes": False,
+        },
+        "lead_snapshot": {
+            "business_type": "Boutique wellness studio demo",
+            "project_goal": "Launch a premium website and guided intake flow for a sanitized demo client.",
+            "website_or_service_needed": "D1 website + D2 AI-intake bot + D3 automation preview",
+            "budget_range": "$5k-$15k demo range",
+            "timeline": "2-4 weeks demo planning window",
+            "current_website": "demo-current-site.example.invalid",
+            "required_pages": ["Home", "Services", "About", "FAQ", "Contact"],
+            "content_assets_readiness": "Outline ready; real assets approval-gated",
+            "preferred_contact_method_demo_placeholder": "Demo-only owner review queue",
+            "notes_sanitized_demo_text": "Sanitized demo note only. No real phone, email, address, token, payment, or private client data.",
+        },
+        "qualification_preview": {
+            "score": 86,
+            "routes": ["D1 website", "D2 AI-intake bot", "D3 automation"],
+            "next_safe_action": "Review generated request in Order Builder; keep all live writes approval-gated.",
+        },
+        "handoff_links": {
+            "order_builder": "/order-builder/",
+            "work_factory": "/work-factory/",
+            "bot_activity": "/bot-activity/",
+            "supabase_memory": "/supabase-memory/",
+        },
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2118,6 +2161,7 @@ def build_state() -> dict[str, Any]:
         "premium_website_generator_v32": premium_website_generator_v32,
         "premium_factory_v34": premium_factory_v34,
         "generated_demo_site_v35": build_generated_demo_site_v35(),
+        "lead_capture_demo_v36": build_lead_capture_demo_v36(),
         "error_recovery_v37_1": build_error_recovery_v37_1(),
         "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
@@ -2169,7 +2213,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -37,8 +37,41 @@ const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().include
 
 const WORK_FACTORY_STATUS_CHIPS = ['PASS','DEPLOYED','RUNNING','QUEUED','PARTIAL','BLOCKED','NEEDS_OWNER'];
 
+const LEAD_CAPTURE_DEMO_V36_DEFAULT = {
+  schema_version: 'webstudio.lead_capture_demo.v36',
+  marker: 'lead-capture-demo-v36',
+  request_id: 'demo-lead-v36-001',
+  safety: {
+    demo_only: true,
+    live_submission: false,
+    real_private_data: false,
+    browser_side_supabase_secret: false,
+    external_writes: false
+  },
+  lead_snapshot: {
+    business_type: 'Boutique wellness studio demo',
+    project_goal: 'Launch a premium website and guided intake flow for a sanitized demo client.',
+    website_or_service_needed: 'D1 website + D2 AI-intake bot + D3 automation preview',
+    budget_range: '$5k-$15k demo range',
+    timeline: '2-4 weeks demo planning window',
+    current_website: 'demo-current-site.example.invalid',
+    required_pages: ['Home', 'Services', 'About', 'FAQ', 'Contact'],
+    content_assets_readiness: 'Outline ready; real assets approval-gated',
+    preferred_contact_method_demo_placeholder: 'Demo-only owner review queue',
+    notes_sanitized_demo_text: 'Sanitized demo note only. No real phone, email, address, token, payment, or private client data.'
+  },
+  qualification_preview: {
+    score: 86,
+    routes: ['D1 website', 'D2 AI-intake bot', 'D3 automation'],
+    next_safe_action: 'Review generated request in Order Builder; keep all live writes approval-gated.'
+  },
+  handoff_links: ['/order-builder/', '/work-factory/', '/bot-activity/', '/supabase-memory/']
+};
+let leadCapturePreview = null;
+
+
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1383,6 +1416,38 @@ function generatedDemoSiteV35() {
   </div>`;
 }
 
+function leadCaptureDemoV36() {
+  const demo = state.lead_capture_demo_v36 || LEAD_CAPTURE_DEMO_V36_DEFAULT;
+  const snapshot = leadCapturePreview?.lead_snapshot || demo.lead_snapshot || LEAD_CAPTURE_DEMO_V36_DEFAULT.lead_snapshot;
+  const preview = leadCapturePreview || demo;
+  const q = preview.qualification_preview || demo.qualification_preview || LEAD_CAPTURE_DEMO_V36_DEFAULT.qualification_preview;
+  const pages = asArray(snapshot.required_pages).join(', ');
+  const previewJson = jsonCopy({schema_version: demo.schema_version || 'webstudio.lead_capture_demo.v36', request_id: demo.request_id || 'demo-lead-v36-001', safety: demo.safety || LEAD_CAPTURE_DEMO_V36_DEFAULT.safety, lead_snapshot: snapshot, qualification_preview: q});
+  return `<div class="grid lead-capture-page" data-marker="lead-capture-demo-v36 Demo only D1 website D2 AI-intake bot D3 automation">
+    ${metric('Mode', 'Demo only', 'span-3')}
+    ${metric('Live submission', 'disabled', 'span-3')}
+    ${metric('Private data', 'not collected', 'span-3')}
+    ${metric('Qualification', (q.score || 0) + '/100', 'span-3')}
+    <section class="card span-12 lead-capture-hero"><p class="eyebrow">lead-capture-demo-v36</p><h2>Lead Capture Demo + Client Request Pipeline</h2><p class="owner-summary"><b>Demo only — no live data is submitted.</b> This safe MVP uses sanitized static fixture data and browser-local preview state only. No Telegram, CRM, email, payment, or Supabase browser write is triggered.</p><div class="toolbar">${openButton('Order Builder handoff', '/order-builder/')}${openButton('Work Factory visibility', '/work-factory/')}${openButton('Bot Activity', '/bot-activity/')}${openButton('Supabase Memory', '/supabase-memory/')}</div></section>
+    <section class="card span-6 lead-capture-form-card"><h3>Demo lead capture form</h3><p class="label">Static fixture inputs. Editing them only changes the browser preview.</p><form id="leadCaptureForm" class="lead-capture-form">
+      <label class="field"><span>Business type</span><input name="business_type" value="${esc(snapshot.business_type)}"></label>
+      <label class="field"><span>Project goal</span><textarea name="project_goal">${esc(snapshot.project_goal)}</textarea></label>
+      <label class="field"><span>Website/service needed</span><input name="website_or_service_needed" value="${esc(snapshot.website_or_service_needed)}"></label>
+      <label class="field"><span>Budget range</span><select name="budget_range"><option ${snapshot.budget_range === '$5k-$15k demo range' ? 'selected' : ''}>$5k-$15k demo range</option><option>$15k-$40k demo range</option><option>Needs owner review</option></select></label>
+      <label class="field"><span>Timeline</span><select name="timeline"><option ${snapshot.timeline === '2-4 weeks demo planning window' ? 'selected' : ''}>2-4 weeks demo planning window</option><option>4-8 weeks demo planning window</option><option>Urgent — review risk</option></select></label>
+      <label class="field"><span>Current website</span><input name="current_website" value="${esc(snapshot.current_website)}"></label>
+      <label class="field"><span>Required pages</span><input name="required_pages" value="${esc(pages)}"></label>
+      <label class="field"><span>Content/assets readiness</span><input name="content_assets_readiness" value="${esc(snapshot.content_assets_readiness)}"></label>
+      <label class="field"><span>Preferred contact method placeholder</span><input name="preferred_contact_method_demo_placeholder" value="${esc(snapshot.preferred_contact_method_demo_placeholder)}"></label>
+      <label class="field"><span>Sanitized notes</span><textarea name="notes_sanitized_demo_text">${esc(snapshot.notes_sanitized_demo_text)}</textarea></label>
+      <button class="copy primary" type="button" data-lead-capture-preview="1">Generate request preview</button>
+    </form></section>
+    <section class="card span-6 lead-capture-preview-card"><h3>Structured request summary</h3>${kv({business_type:snapshot.business_type, project_goal:shortText(snapshot.project_goal, 140), website_or_service_needed:snapshot.website_or_service_needed, budget_range:snapshot.budget_range, timeline:snapshot.timeline, current_website:snapshot.current_website, required_pages:pages, content_assets_readiness:snapshot.content_assets_readiness, preferred_contact_method:snapshot.preferred_contact_method_demo_placeholder})}${toolbar([copyButton('Copy sanitized request JSON', previewJson), detailPayloadButton({lead_snapshot:snapshot, qualification_preview:q, safety:demo.safety}, 'Подробнее', 'lead-capture-demo-v36')])}</section>
+    <section class="card span-12 qualification-flow-card"><h3>Qualification preview</h3><div class="lead-route-grid"><article><span>D1 website</span><b>Website / landing route</b><p>Premium website scope, required pages, content readiness, proof/CTA plan.</p></article><article><span>D2 AI-intake bot</span><b>Guided intake route</b><p>Turns the same safe request fields into bot questions and owner review handoff.</p></article><article><span>D3 automation</span><b>Automation route</b><p>Future CRM/Sheets/email workflow stays proposal-only until live approval.</p></article></div><div class="demo-progress"><span>Qualification score</span><b>${fmt(q.score || 0)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, Number(q.score || 0)))}%"></i></div></div><p class="owner-summary"><b>Next safe action:</b> ${fmt(q.next_safe_action || 'Review in Order Builder.')}</p></section>
+    <section class="card span-12"><h3>Dashboard visibility / handoff</h3><p class="label">Copy/read-only pipeline visibility. No live external writes.</p><div class="capability-grid"><article class="capability-card"><h4>Order Builder</h4><p>Use structured snapshot to prepare a production brief.</p>${openButton('Open /order-builder/', '/order-builder/')}</article><article class="capability-card"><h4>Work Factory</h4><p>Show future scoped implementation tasks after owner approval.</p>${openButton('Open /work-factory/', '/work-factory/')}</article><article class="capability-card"><h4>Bot Activity</h4><p>Preview D2 intake route without using live Telegram tokens.</p>${openButton('Open /bot-activity/', '/bot-activity/')}</article><article class="capability-card"><h4>Supabase Memory</h4><p>Show ops/status visibility without browser-side secrets.</p>${openButton('Open /supabase-memory/', '/supabase-memory/')}</article></div></section>
+  </div>`;
+}
+
 function recoveryStateLabel(s) {
   const map = {OK:'OK', WATCH:'WATCH', DEGRADED_SAFE:'DEGRADED SAFE', RECOVERING:'RECOVERING', BLOCKED_OWNER_APPROVAL:'BLOCKED OWNER APPROVAL', BLOCKED_SYSTEM:'BLOCKED SYSTEM', PASS:'PASS'};
   return map[String(s || '').toUpperCase()] || String(s || '—');
@@ -2222,7 +2287,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
@@ -2285,6 +2350,27 @@ function openDrawer(title, payload, actions='') {
 function closeDrawer() {
   $('#drawer').classList.remove('open');
   $('#drawer').setAttribute('aria-hidden', 'true');
+}
+
+function handleLeadCapturePreview() {
+  const form = $('#leadCaptureForm');
+  if (!form) return;
+  const data = Object.fromEntries(new FormData(form).entries());
+  const pages = String(data.required_pages || '').split(',').map(x => x.trim()).filter(Boolean);
+  const score = Math.min(100, 46 + (pages.length >= 4 ? 12 : 6) + (/\$15k|\$5k|review/i.test(data.budget_range || '') ? 14 : 6) + (/2-4|4-8/i.test(data.timeline || '') ? 12 : 6) + (String(data.content_assets_readiness || '').length > 8 ? 10 : 4) + (String(data.notes_sanitized_demo_text || '').length > 12 ? 8 : 4));
+  leadCapturePreview = {
+    schema_version: 'webstudio.lead_capture_demo.v36.local_preview',
+    request_id: 'demo-lead-v36-local-preview',
+    safety: LEAD_CAPTURE_DEMO_V36_DEFAULT.safety,
+    lead_snapshot: {...data, required_pages: pages},
+    qualification_preview: {
+      score,
+      routes: ['D1 website', 'D2 AI-intake bot', 'D3 automation'],
+      next_safe_action: score >= 80 ? 'High-fit demo request: review in Order Builder; no live send.' : 'Clarify scope/assets before creating any real client request.'
+    }
+  };
+  toast('Generated local request preview — no live submission');
+  render();
 }
 
 function handleDetail(type, raw) {
@@ -2615,6 +2701,8 @@ document.addEventListener('submit', e => {
 });
 document.addEventListener('click', e => {
   if (e.target.closest('summary') && e.target.closest('.raw-details')) return;
+  const leadPreview = e.target.closest('[data-lead-capture-preview]');
+  if (leadPreview) { handleLeadCapturePreview(); return; }
   const ownerScope = e.target.closest('[data-owner-feedback-scope]');
   if (ownerScope) { handleOwnerFeedbackScope(ownerScope.getAttribute('data-owner-feedback-scope'), ownerScope.getAttribute('data-scope-kind')); return; }
   const copy = e.target.closest('[data-copy]');
