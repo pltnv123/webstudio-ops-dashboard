@@ -32,7 +32,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'generated-demo-site-v35', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -152,7 +152,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder', 'delivery_handoff_composer_v33']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'generated_demo_site_v35', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder', 'delivery_handoff_composer_v33']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
@@ -318,6 +318,9 @@ assert 'premiumWebsiteGenerator' in js
 assert 'premium-generator' in html
 assert 'premiumFactoryV34' in js
 assert 'premium-factory-v34' in html
+assert 'generated-demo-site-v35' in html
+assert 'generatedDemoSiteV35' in js
+assert 'webstudio-v34-demo-client-order' in js
 if not ci_mode:
     premium = state['premium_visual_motion_v31']
     assert premium['status'] == 'PASS'

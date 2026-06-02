@@ -1982,6 +1982,67 @@ def build_day2_visual_sourcing_v37_1() -> dict[str, Any]:
     }
 
 
+
+def build_generated_demo_site_v35() -> dict[str, Any]:
+    """Sanitized static website snapshot generated from the V3.4 premium package."""
+    v34_root = OUTPUT / "webstudio-client-to-premium-factory-pilot-v34"
+    client_order = load_json(v34_root / "phase-1-demo-client-order" / "client-order.json", {})
+    package_root = v34_root / "phase-2-premium-factory-package"
+    def artifact(name: str) -> str:
+        return str(package_root / name)
+    return {
+        "schema_version": "webstudio.generated-demo-site.v35",
+        "status": "PASS_LOCAL_READY",
+        "route": "/generated-demo-site-v35/",
+        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/generated-demo-site-v35/",
+        "source_phase": "webstudio-client-to-premium-factory-pilot-v34",
+        "markers": ["generated-demo-site-v35", "Northstar Executive Wellness Studio", "webstudio-v34-demo-client-order", "PACKAGE_READY", "client_order_pilot"],
+        "safety": {
+            "demo_only": True,
+            "static_sanitized_data_only": True,
+            "browser_side_secrets": False,
+            "live_booking_writes": False,
+            "crm_writes": False,
+            "payment_writes": False,
+            "medical_claims_policy": "generic marketing only; no diagnosis, cure, guaranteed outcomes, or fake credentials",
+        },
+        "client": {
+            "business_name": client_order.get("business_name", "Northstar Executive Wellness Studio"),
+            "niche": client_order.get("niche", "premium executive wellness / physiotherapy / recovery studio"),
+            "offer": client_order.get("offer", "high-trust premium website for consult bookings, service education, and lead qualification"),
+            "target_audience": client_order.get("target_audience", ["founders", "executives", "busy professionals"]),
+            "brand_tone": client_order.get("brand_tone", ["calm", "clinical but human", "editorial", "precise"]),
+            "conversion_goal": client_order.get("conversion_goal", "request a fit call"),
+        },
+        "design_system": {
+            "name": "Warm Clinical Editorial",
+            "canvas": "warm ivory",
+            "text": "ink navy",
+            "accents": ["sage", "muted brass"],
+            "typography": "editorial headline with clean UI sans",
+            "layout": "high whitespace, hairline borders, calm proof cards",
+        },
+        "sections": [
+            {"id": "hero", "title": "Premium recovery and prevention for high-responsibility professionals", "marker": "homepage hero"},
+            {"id": "problem-solution", "title": "High-responsibility work needs a structured recovery system", "marker": "problem/solution"},
+            {"id": "services", "title": "Services and packages", "marker": "services/packages"},
+            {"id": "process", "title": "Assessment → plan → sessions → review", "marker": "process"},
+            {"id": "trust", "title": "Trust through artifacts, not invented claims", "marker": "trust/credibility"},
+            {"id": "faq", "title": "FAQ", "marker": "faq"},
+            {"id": "cta", "title": "Request a fit call", "marker": "cta"},
+        ],
+        "artifacts": {
+            "client_order": str(v34_root / "phase-1-demo-client-order" / "client-order.json"),
+            "production_brief": str(v34_root / "phase-1-demo-client-order" / "production-brief.md"),
+            "sitemap": artifact("sitemap.md"),
+            "copy_outline": artifact("page-by-page-copy-outline.md"),
+            "design_system": artifact("design-system.md"),
+            "component_plan": artifact("component-plan.md"),
+            "qa_checklist": artifact("qa-checklist.md"),
+        },
+        "next_safe_action": "Owner review of the generated static demo; live booking, CRM, payments, real health copy, and public client use remain approval-gated.",
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2056,6 +2117,7 @@ def build_state() -> dict[str, Any]:
         "premium_visual_motion_v31": premium_visual_motion_v31,
         "premium_website_generator_v32": premium_website_generator_v32,
         "premium_factory_v34": premium_factory_v34,
+        "generated_demo_site_v35": build_generated_demo_site_v35(),
         "error_recovery_v37_1": build_error_recovery_v37_1(),
         "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
@@ -2107,7 +2169,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)
