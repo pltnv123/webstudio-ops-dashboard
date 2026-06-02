@@ -1,12 +1,8 @@
 # V3.5 Recovery Host Bridge Push
 
-Status: QUEUED
-
-Repo: /workspace/tmp/webstudio-ops-dashboard-pr
-Branch: webstudio/product-build-v31
-Local commit candidate before recovery reports: c459b65e25d645bc7a49f43541eee9cdd20dd31a
-Remote before: b1d28764520fd82cb2f8612534443479a04f99a4
-Host bridge script: /workspace/output/webstudio-github-autopush-v1.sh
-Host runner: /workspace/.hermes/scripts/webstudio-host-job-runner.sh
-
-Method: queue allowlisted github/autopush job for host context. No force push, no secret output.
+Status: PASS
+Job path: /workspace/.hermes-host-jobs/github/webstudio-v35-recovery-direct-autopush.sh
+Expected commit: 0972af40b3f84f9b71547edb15929da98dd90833
+Remote SHA: 0972af40b3f84f9b71547edb15929da98dd90833
+Verification: PASS
+Previous failed jobs: npm unavailable in host job PATH; recovered by direct host push job after Docker gates passed.

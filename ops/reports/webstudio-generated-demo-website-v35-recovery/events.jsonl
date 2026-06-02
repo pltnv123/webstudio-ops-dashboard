@@ -1,3 +1,10 @@
 {"ts": "2026-06-02T08:17:04.267478+00:00", "event": "phase.start", "phase": "recovery-ledger"}
 {"ts": "2026-06-02T08:18:50.520031+00:00", "event": "validation.pass", "commit": "c459b65e25d645bc7a49f43541eee9cdd20dd31a"}
 {"ts": "2026-06-02T08:19:25.777991+00:00", "event": "recovery_reports.committed", "commit": "e73dceba347a9e66f99adfc2be74419c6c4bb76c"}
+{"ts": "2026-06-02T08:19:44.549297+00:00", "event": "host_bridge.queued", "job": "/workspace/.hermes-host-jobs/github/webstudio-v35-recovery-autopush.sh", "expected_commit": "0972af40b3f84f9b71547edb15929da98dd90833"}
+{"ts": "2026-06-02T08:26:48.315218+00:00", "event": "host_bridge.requeued", "job": "/workspace/.hermes-host-jobs/github/webstudio-v35-recovery-autopush-pathfix.sh", "reason": "pathfix_npm_not_found"}
+{"ts": "2026-06-02T08:34:21.283336+00:00", "event": "host_bridge.requeued_direct_push", "job": "/workspace/.hermes-host-jobs/github/webstudio-v35-recovery-direct-autopush.sh", "expected_commit": "0972af40b3f84f9b71547edb15929da98dd90833"}
+{"ts": "2026-06-02T08:40:37.715461+00:00", "event": "remote.sha.verified", "commit": "0972af40b3f84f9b71547edb15929da98dd90833"}
+{"ts": "2026-06-02T08:41:43.117849+00:00", "event": "deploy.route_smoke.pass", "status": 200}
+{"ts": "2026-06-02T08:42:51.380037+00:00", "event": "supabase.rows_updated", "status": "PASS"}
+{"ts": "2026-06-02T08:42:51.721633+00:00", "event": "recovery_final_reports.committed", "commit": "8f2886af4022406c87ae3d8b7166ff301b926f89"}

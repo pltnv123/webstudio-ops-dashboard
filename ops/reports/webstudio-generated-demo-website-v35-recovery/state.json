@@ -1,7 +1,7 @@
 {
   "schema_version": "webstudio.generated-demo-website-v35-recovery.v1",
   "task": "WEBSTUDIO V3.5 PUSH/DEPLOY RECOVERY — HOST BRIDGE AUTOPUSH",
-  "status": "RECOVERY_REPORTS_COMMITTED",
+  "status": "RECOVERY_FINAL_REPORTS_COMMITTED",
   "created_at": "2026-06-02T08:17:04.267478+00:00",
   "requested_repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
   "branch": "webstudio/product-build-v31",
@@ -11,5 +11,54 @@
   "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
   "local_commit": "c459b65e25d645bc7a49f43541eee9cdd20dd31a",
   "validation": "PASS",
-  "local_commit_with_recovery_reports": "e73dceba347a9e66f99adfc2be74419c6c4bb76c"
+  "local_commit_with_recovery_reports": "e73dceba347a9e66f99adfc2be74419c6c4bb76c",
+  "host_bridge_job": "/workspace/.hermes-host-jobs/github/webstudio-v35-recovery-direct-autopush.sh",
+  "expected_push_commit": "8f2886af4022406c87ae3d8b7166ff301b926f89",
+  "previous_host_job_failure": "host npm unavailable",
+  "pushed_commit": "0972af40b3f84f9b71547edb15929da98dd90833",
+  "remote_sha": "0972af40b3f84f9b71547edb15929da98dd90833",
+  "remote_branch": "webstudio/product-build-v31",
+  "host_bridge_status": "PASS",
+  "deploy": {
+    "workflow_run_id": 26808558769,
+    "workflow_status": "completed",
+    "workflow_conclusion": "success",
+    "workflow_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26808558769",
+    "head_sha": "0972af40b3f84f9b71547edb15929da98dd90833"
+  },
+  "route_smoke": {
+    "url": "https://pltnv123.github.io/webstudio-ops-dashboard/generated-demo-site-v35/",
+    "http_status": 200,
+    "markers": {
+      "generated-demo-site-v35": true,
+      "Northstar Executive Wellness Studio": true,
+      "webstudio-v34-demo-client-order": true,
+      "PACKAGE_READY": true,
+      "client_order_pilot": true
+    },
+    "pass": true
+  },
+  "supabase_rows_updated": [
+    {
+      "table": "webstudio_ops_status",
+      "id": "44010623-8937-41f9-9b90-0d87fd364212",
+      "status": "DEPLOYED"
+    },
+    {
+      "table": "webstudio_jobs",
+      "id": "4705f868-3bd1-4552-b6ba-46da620e20e4",
+      "status": "DEPLOYED"
+    },
+    {
+      "table": "webstudio_artifacts",
+      "id": "74acfef5-d81e-491c-8489-ff0740a75145",
+      "status": "DEPLOYED"
+    },
+    {
+      "table": "webstudio_memory_index",
+      "id": "ea079876-3e56-4c20-8045-875997dd4f25",
+      "status": "INDEXED"
+    }
+  ],
+  "final_reports_commit": "8f2886af4022406c87ae3d8b7166ff301b926f89"
 }
