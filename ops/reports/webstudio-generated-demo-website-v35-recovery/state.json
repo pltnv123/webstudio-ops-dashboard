@@ -1,0 +1,15 @@
+{
+  "schema_version": "webstudio.generated-demo-website-v35-recovery.v1",
+  "task": "WEBSTUDIO V3.5 PUSH/DEPLOY RECOVERY — HOST BRIDGE AUTOPUSH",
+  "status": "RECOVERY_REPORTS_COMMITTED",
+  "created_at": "2026-06-02T08:17:04.267478+00:00",
+  "requested_repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
+  "branch": "webstudio/product-build-v31",
+  "expected_commit": "b8aa99eda5cc2c7b52f521a1a324355fdc48129a",
+  "output_root": "/workspace/output/webstudio-generated-demo-website-v35-recovery",
+  "events": [],
+  "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
+  "local_commit": "c459b65e25d645bc7a49f43541eee9cdd20dd31a",
+  "validation": "PASS",
+  "local_commit_with_recovery_reports": "e73dceba347a9e66f99adfc2be74419c6c4bb76c"
+}
