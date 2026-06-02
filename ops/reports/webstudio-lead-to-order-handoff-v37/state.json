@@ -4,7 +4,7 @@
   "output_root": "/workspace/output/webstudio-lead-to-order-handoff-v37",
   "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
   "branch": "webstudio/product-build-v31",
-  "status": "GATES_PASS_LOCAL",
+  "status": "PASS_DEPLOYED_SUPABASE_VERIFIED_REPORTS_READY",
   "started_at": "2026-06-02T11:35:19.939175+00:00",
   "allowed_scope": [
     "static sanitized UI/routes",
@@ -50,5 +50,27 @@
     "ops/reports/webstudio-lead-to-order-handoff-v37/validation.md"
   ],
   "precommit_allowlist_pass": true,
-  "precommit_allowlist_violations": []
+  "precommit_allowlist_violations": [],
+  "commit": "9e8d47e405debaf169aff692162ff54db948cc84",
+  "precommit_secret_scan": "PASS",
+  "host_push_job": "/workspace/.hermes-host-jobs/github/webstudio-v37-lead-to-order-autopush.sh",
+  "expected_push_commit": "9e8d47e405debaf169aff692162ff54db948cc84",
+  "handoff_route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/lead-to-order-handoff/",
+  "github_actions": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_id": 26817801559,
+    "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26817801559"
+  },
+  "public_route_smoke": "PASS",
+  "supabase_status_row": {
+    "written": true,
+    "verified": true,
+    "id": "ac5a2004-d0c4-447a-b9df-43466c880d61",
+    "component": "webstudio-lead-to-order-handoff",
+    "version": "v3.7",
+    "status": "DEPLOYED"
+  },
+  "blockers": [],
+  "updated_at": "2026-06-02T11:52:12.607340+00:00"
 }
