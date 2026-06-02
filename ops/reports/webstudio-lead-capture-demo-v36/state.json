@@ -5,7 +5,7 @@
   "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
   "branch": "webstudio/product-build-v31",
   "head_before": "35c7860e6e5952148d47eee888c543f07f8d9a14",
-  "status": "GATES_PASS",
+  "status": "PARTIAL_DEPLOYED_SUPABASE_BLOCKED",
   "started_at": "2026-06-02T10:15:53.029600+00:00",
   "allowed_scope": [
     "dashboard UI/routes",
@@ -41,5 +41,36 @@
     "local_static_smoke": "PASS",
     "git_diff_check": "PASS",
     "secret_scan_changed_diff": "PASS"
-  }
+  },
+  "precommit_files": [
+    "scripts/build_snapshot.py",
+    "scripts/smoke_check.py",
+    "src/app.js",
+    "src/index.html",
+    "src/styles.css",
+    "ops/reports/webstudio-lead-capture-demo-v36/build-smoke-report.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/client-request-schema.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/continuation-prompt.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/deploy-report.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/events.jsonl",
+    "ops/reports/webstudio-lead-capture-demo-v36/final-report.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/github-push-report.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/lead-capture-design.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/qualification-flow.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/state.json",
+    "ops/reports/webstudio-lead-capture-demo-v36/supabase-schema-proposal.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/supabase-status-update.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/ui-implementation.md",
+    "ops/reports/webstudio-lead-capture-demo-v36/validation.md"
+  ],
+  "precommit_allowlist_pass": true,
+  "precommit_allowlist_violations": [],
+  "commit": "5230adcbe4a84afe25572d56610e0fdff172b7a4",
+  "precommit_secret_scan": "PASS",
+  "host_push_job": "/workspace/.hermes-host-jobs/github/webstudio-v36-lead-capture-autopush.sh",
+  "expected_push_commit": "5230adcbe4a84afe25572d56610e0fdff172b7a4",
+  "deploy_status": "PASS",
+  "supabase_row_written": false,
+  "supabase_blocker": "MCP server supabase is not connected",
+  "route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/lead-capture-demo/"
 }
