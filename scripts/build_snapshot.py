@@ -2086,6 +2086,58 @@ def build_lead_capture_demo_v36() -> dict[str, Any]:
         },
     }
 
+
+def build_lead_to_order_handoff_v37() -> dict[str, Any]:
+    """Safe static lead-capture to order-builder handoff snapshot."""
+    lead = build_lead_capture_demo_v36()
+    lead_snapshot = lead["lead_snapshot"]
+    order_payload = {
+        "client_profile": "Sanitized boutique wellness studio demo lead",
+        "business_type": lead_snapshot["business_type"],
+        "offer_service_product": "Premium website with AI intake and automation readiness",
+        "target_audience": "Local wellness clients and owner-reviewed demo inquiries",
+        "desired_style": "Editorial premium, warm canvas, proof-led conversion sections",
+        "required_pages": lead_snapshot["required_pages"],
+        "assets_needed": ["Brand direction", "Service copy", "Approved imagery", "FAQ answers"],
+        "content_status": lead_snapshot["content_assets_readiness"],
+        "pricing_package": "D1 website + D2 AI-intake bot + D3 automation preview",
+        "timeline": lead_snapshot["timeline"],
+        "generated_production_brief": "Prepare a D1 website order with D2 intake questions and D3 automation as proposal-only follow-up. Keep all live writes owner-approved.",
+    }
+    return {
+        "schema_version": "webstudio.lead-to-order-handoff.v37",
+        "status": "PASS_LOCAL_READY",
+        "route": "/lead-to-order-handoff/",
+        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/lead-to-order-handoff/",
+        "markers": ["lead-to-order-handoff-v37", "demo lead payload", "qualification preview", "order-builder handoff", "D1 website", "D2 AI-intake bot", "D3 automation"],
+        "safety": {
+            "demo_only": True,
+            "static_snapshot": True,
+            "real_private_client_data": False,
+            "live_submission": False,
+            "browser_side_supabase_secret": False,
+            "crm_telegram_email_writes": False,
+            "external_writes": False,
+        },
+        "demo_lead_payload": lead_snapshot,
+        "qualification_result": {
+            "score": 89,
+            "recommended_product_line": "D1 website + D2 AI-intake bot + D3 automation",
+            "routes": ["D1 website", "D2 AI-intake bot", "D3 automation"],
+            "rationale": "Demo lead needs a premium web presence, guided intake, and future approval-gated automation.",
+        },
+        "order_builder_payload": order_payload,
+        "missing_inputs": [
+            "Approved real client identity",
+            "Production contact destination",
+            "CRM/Telegram/email write approval",
+            "Final package price and timeline approval",
+            "Real content/assets",
+        ],
+        "next_safe_action": "Open Order Builder preview, review sanitized payload, then create owner-approved production task in Work Factory.",
+        "handoff_links": {"order_builder": "/order-builder/", "work_factory": "/work-factory/", "lead_capture_demo": "/lead-capture-demo/"},
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2162,6 +2214,7 @@ def build_state() -> dict[str, Any]:
         "premium_factory_v34": premium_factory_v34,
         "generated_demo_site_v35": build_generated_demo_site_v35(),
         "lead_capture_demo_v36": build_lead_capture_demo_v36(),
+        "lead_to_order_handoff_v37": build_lead_to_order_handoff_v37(),
         "error_recovery_v37_1": build_error_recovery_v37_1(),
         "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
@@ -2213,7 +2266,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

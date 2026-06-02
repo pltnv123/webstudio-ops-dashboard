@@ -1,0 +1,54 @@
+{
+  "schema_version": "webstudio.v37.lead-to-order-handoff.v1",
+  "task": "WEBSTUDIO V3.7 — LEAD CAPTURE TO ORDER BUILDER HANDOFF",
+  "output_root": "/workspace/output/webstudio-lead-to-order-handoff-v37",
+  "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
+  "branch": "webstudio/product-build-v31",
+  "status": "GATES_PASS_LOCAL",
+  "started_at": "2026-06-02T11:35:19.939175+00:00",
+  "allowed_scope": [
+    "static sanitized UI/routes",
+    "reports",
+    "build/smoke",
+    "commit/push/deploy verify",
+    "one non-sensitive Supabase status row"
+  ],
+  "forbidden_scope": [
+    "real private data",
+    "live form submission",
+    "browser Supabase service keys",
+    "CRM/Telegram/email writes",
+    "destructive Supabase changes",
+    "gateway/systemd restart"
+  ],
+  "phase_reports": "PASS",
+  "ui_implementation": "PASS_LOCAL",
+  "gates": {
+    "npm_run_build": "PASS",
+    "npm_run_smoke": "PASS",
+    "local_static_smoke": "PASS",
+    "git_diff_check": "PASS",
+    "secret_scan_changed_diff": "PASS"
+  },
+  "precommit_files": [
+    "scripts/build_snapshot.py",
+    "scripts/smoke_check.py",
+    "src/app.js",
+    "src/index.html",
+    "src/styles.css",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/build-smoke-report.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/continuation-prompt.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/deploy-report.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/events.jsonl",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/final-report.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/github-push-report.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/handoff-design.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/lead-to-order-schema.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/state.json",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/supabase-status-update.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/ui-implementation.md",
+    "ops/reports/webstudio-lead-to-order-handoff-v37/validation.md"
+  ],
+  "precommit_allowlist_pass": true,
+  "precommit_allowlist_violations": []
+}
