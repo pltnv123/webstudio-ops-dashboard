@@ -1,7 +1,7 @@
 {
   "schema_version": "webstudio.generated-demo-website-v35-recovery.v1",
   "task": "WEBSTUDIO V3.5 PUSH/DEPLOY RECOVERY — HOST BRIDGE AUTOPUSH",
-  "status": "RECOVERY_FINAL_REPORTS_COMMITTED",
+  "status": "PASS_REPORTS_READY_FOR_FINAL_PUSH",
   "created_at": "2026-06-02T08:17:04.267478+00:00",
   "requested_repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
   "branch": "webstudio/product-build-v31",
@@ -13,7 +13,7 @@
   "validation": "PASS",
   "local_commit_with_recovery_reports": "e73dceba347a9e66f99adfc2be74419c6c4bb76c",
   "host_bridge_job": "/workspace/.hermes-host-jobs/github/webstudio-v35-recovery-direct-autopush.sh",
-  "expected_push_commit": "8f2886af4022406c87ae3d8b7166ff301b926f89",
+  "expected_push_commit": "6d9e5eb46a6de7ec260b2cbe5d877eed090f6fc7",
   "previous_host_job_failure": "host npm unavailable",
   "pushed_commit": "0972af40b3f84f9b71547edb15929da98dd90833",
   "remote_sha": "0972af40b3f84f9b71547edb15929da98dd90833",
@@ -60,5 +60,7 @@
       "status": "INDEXED"
     }
   ],
-  "final_reports_commit": "8f2886af4022406c87ae3d8b7166ff301b926f89"
+  "final_reports_commit": "6d9e5eb46a6de7ec260b2cbe5d877eed090f6fc7",
+  "host_bridge_job_final_reports": "/workspace/.hermes-host-jobs/github/webstudio-v35-recovery-final-reports-autopush.sh",
+  "blockers": []
 }

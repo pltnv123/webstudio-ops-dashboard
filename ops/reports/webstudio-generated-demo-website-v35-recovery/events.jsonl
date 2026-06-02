@@ -8,3 +8,5 @@
 {"ts": "2026-06-02T08:41:43.117849+00:00", "event": "deploy.route_smoke.pass", "status": 200}
 {"ts": "2026-06-02T08:42:51.380037+00:00", "event": "supabase.rows_updated", "status": "PASS"}
 {"ts": "2026-06-02T08:42:51.721633+00:00", "event": "recovery_final_reports.committed", "commit": "8f2886af4022406c87ae3d8b7166ff301b926f89"}
+{"ts": "2026-06-02T08:43:16.611558+00:00", "event": "final_reports_push.queued", "job": "/workspace/.hermes-host-jobs/github/webstudio-v35-recovery-final-reports-autopush.sh", "expected_commit": "6d9e5eb46a6de7ec260b2cbe5d877eed090f6fc7"}
+{"ts": "2026-06-02T08:52:16.212803+00:00", "event": "final_repo_reports.ready"}
