@@ -1,7 +1,7 @@
 {
   "schema_version": "webstudio.v38.order-package-generator.v1",
   "task": "WEBSTUDIO V3.8 — ORDER PACKAGE GENERATOR",
-  "status": "GATES_PASS_LOCAL",
+  "status": "PASS_DEPLOYED_SUPABASE_VERIFIED_REPORTS_READY",
   "output_root": "/workspace/output/webstudio-order-package-generator-v38",
   "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
   "branch": "webstudio/product-build-v31",
@@ -22,7 +22,7 @@
   ],
   "phase_reports": "PASS",
   "ui_implementation": "PASS_LOCAL",
-  "updated_at": "2026-06-03T00:15:47.026457+00:00",
+  "updated_at": "2026-06-03T00:22:03.104300+00:00",
   "gates": {
     "npm_run_build": "PASS",
     "npm_run_smoke": "PASS",
@@ -50,5 +50,28 @@
     "ops/reports/webstudio-order-package-generator-v38/validation.md"
   ],
   "precommit_allowlist_pass": true,
-  "precommit_allowlist_violations": []
+  "precommit_allowlist_violations": [],
+  "commit": "f2669829287dea986e22edc9c33ac5290fe365f6",
+  "precommit_redaction_scan": "PASS",
+  "host_push_job": "/workspace/.hermes-host-jobs/github/webstudio-v38-order-package-autopush.sh",
+  "expected_push_commit": "f2669829287dea986e22edc9c33ac5290fe365f6",
+  "order_package_generator_url": "https://pltnv123.github.io/webstudio-ops-dashboard/order-package-generator/",
+  "github_actions": {
+    "status": "completed",
+    "conclusion": "success",
+    "run_id": 26855941562,
+    "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26855941562"
+  },
+  "latest_deploy_status": "completed/success",
+  "public_route_smoke": "PASS",
+  "supabase_status_row": {
+    "written": true,
+    "verified": true,
+    "id": "ecb28fd1-3561-43b0-8465-1477ee6d5ba1",
+    "component": "webstudio-order-package-generator",
+    "version": "v3.8",
+    "status": "DEPLOYED",
+    "git_commit": "f2669829287dea986e22edc9c33ac5290fe365f6"
+  },
+  "blockers": []
 }
