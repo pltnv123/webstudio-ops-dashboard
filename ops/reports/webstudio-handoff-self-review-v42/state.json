@@ -1,15 +1,12 @@
 {
   "component": "webstudio-handoff-review-matrix",
   "version": "v4.2",
-  "status": "PASS_LOCAL_READY",
+  "status": "DEPLOYED",
   "route": "/handoff-review-matrix/",
   "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/handoff-review-matrix/",
-  "created_at": "2026-06-03T22:15:37Z",
-  "updated_at": "2026-06-03T22:15:37Z",
-  "safety": {
-    "demo_static_sanitized_only": true,
-    "external_writes": false,
-    "browser_side_secrets": false,
-    "live_crm_email_telegram_payment_booking_writes": false
-  }
+  "git_commit": "09942866566ab9a4e6aedd22c168eadb252c4d8e",
+  "actions_run_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26916607506",
+  "supabase_ops_status_id": "f86fe38b-9398-413d-b6f1-1a7126763b46",
+  "supabase_artifact_id": "a634d082-6ce3-4077-816a-f3f099387ced",
+  "updated_at": "2026-06-03T22:23:10Z"
 }

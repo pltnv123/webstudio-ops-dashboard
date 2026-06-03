@@ -1,3 +1,5 @@
 # Validation
 
-Local gates PASS. Public route smoke and Supabase row pending.
+PASS
+
+All required local, GitHub, public route, and Supabase gates completed.
