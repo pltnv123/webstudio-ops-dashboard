@@ -79,3 +79,6 @@ body{width:100%;min-width:0}.topbar,.tabs{width:100%;max-width:none;min-width:0}
 }
 .order-package-page .capability-card small{display:block;color:var(--muted);line-height:1.5;margin-top:.55rem}
 .order-package-page .owner-summary b{color:#36d399}
+
+
+.page-builder-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.page-builder-card{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:16px;display:flex;flex-direction:column;gap:12px}.section-block{border-left:3px solid var(--accent);background:rgba(245,195,123,.08);border-radius:12px;padding:12px}.section-block span{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.section-block h4{margin:4px 0 6px}.website-builder-hero{background:linear-gradient(135deg,rgba(245,195,123,.14),rgba(255,255,255,.03))}

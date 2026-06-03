@@ -2187,6 +2187,107 @@ def build_order_package_generator_v38() -> dict[str, Any]:
         "links": {"lead_to_order_handoff": "/lead-to-order-handoff/", "order_builder": "/order-builder/", "premium_factory_v34": "/premium-factory-v34/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
     }
 
+
+def build_website_page_builder_v39() -> dict[str, Any]:
+    """Safe static Website Page Builder generated from the V3.8 order package."""
+    package = build_order_package_generator_v38()
+    source_order = package["source_order"]
+    pages = [
+        {
+            "page": "Home page",
+            "slug": "/",
+            "status": "READY_DEMO",
+            "sections": [
+                {"block": "Hero", "headline": "Premium wellness website package, ready for owner review", "subheadline": "A warm, proof-led homepage structure generated from the sanitized order package.", "cta": "Review the generated package", "component": "Editorial hero + safe CTA"},
+                {"block": "Services overview", "headline": "D1 website, D2 guided intake, D3 automation planning", "subheadline": "Three owner-approved lanes shown as static cards; no live writes in the demo.", "cta": "Open Services page", "component": "Three-card product line grid"},
+                {"block": "Proof / Process", "headline": "Artifacts before promises", "subheadline": "Show sitemap, QA reports, delivery checklist, and approval gates instead of fake testimonials.", "cta": "See process", "component": "Proof policy callout"},
+            ],
+            "qa_checklist": ["Hero has one clear CTA", "No fake testimonials/logos", "Internal links resolve", "Demo-only safety copy visible"],
+        },
+        {
+            "page": "Services page",
+            "slug": "/services/",
+            "status": "READY_DEMO",
+            "sections": [
+                {"block": "Service menu", "headline": "Website build packages shaped from the order brief", "subheadline": "D1 page build, D2 intake flow, and D3 automation readiness separated into safe scope cards.", "cta": "Compare packages", "component": "Pricing/package cards without payment collection"},
+                {"block": "Deliverables", "headline": "What the client receives", "subheadline": "Page map, content outline, design direction, QA checklist, and delivery handoff packet.", "cta": "Copy deliverables", "component": "Checklist block"},
+            ],
+            "qa_checklist": ["Pricing is demo/sanitized", "No payment or booking write path", "Service claims stay generic", "CTA routes to owner review"],
+        },
+        {
+            "page": "About page",
+            "slug": "/about/",
+            "status": "READY_DEMO",
+            "sections": [
+                {"block": "Studio story", "headline": "A calm client experience backed by visible production gates", "subheadline": "Positioning copy stays generic and artifact-based until real client inputs are approved.", "cta": "Review quality gates", "component": "Narrative card + principles list"},
+                {"block": "Quality gates", "headline": "Safe demo, production approval later", "subheadline": "Private data, integrations, public launch, and live booking are all separate approvals.", "cta": "Open QA checklist", "component": "Gate matrix"},
+            ],
+            "qa_checklist": ["No private identity", "No credentials or hidden form endpoints", "Approval gates are explicit", "Copy is safe for wellness/medical adjacency"],
+        },
+        {
+            "page": "Proof / Process page",
+            "slug": "/process/",
+            "status": "READY_DEMO",
+            "sections": [
+                {"block": "Process timeline", "headline": "Lead capture → order handoff → package → page sections", "subheadline": "A visible chain from sanitized request to build-ready page blocks.", "cta": "Open source package", "component": "Timeline with source links"},
+                {"block": "Proof policy", "headline": "Use artifacts, not invented social proof", "subheadline": "Reports, checklists, smoke markers, and owner approvals are the proof layer.", "cta": "Review validation", "component": "Artifact proof list"},
+            ],
+            "qa_checklist": ["Source routes linked", "No fake case studies", "Process is reproducible", "Next safe action is owner review"],
+        },
+        {
+            "page": "FAQ page",
+            "slug": "/faq/",
+            "status": "READY_DEMO",
+            "sections": [
+                {"block": "Scope FAQ", "headline": "What is included in the generated MVP?", "subheadline": "Static pages, section copy, component recommendations, QA checklist, and approval boundaries.", "cta": "Review scope", "component": "FAQ accordion/cards"},
+                {"block": "Safety FAQ", "headline": "Does this submit bookings or contact forms?", "subheadline": "No. The MVP is static and sanitized; live booking/contact writes require separate approval.", "cta": "Open Contact CTA", "component": "Safety answer card"},
+            ],
+            "qa_checklist": ["FAQ page marker visible", "No medical/health claims beyond generic marketing", "No live submission promise", "Safe contact language"],
+        },
+        {
+            "page": "Contact / Booking CTA page",
+            "slug": "/contact/",
+            "status": "REVIEW_ONLY",
+            "sections": [
+                {"block": "Contact CTA", "headline": "Ready for owner-approved contact setup", "subheadline": "The CTA is a placeholder until a real destination and write mode are approved.", "cta": "Request owner review", "component": "CTA panel without form submission"},
+                {"block": "Booking boundary", "headline": "Booking is not connected in this static MVP", "subheadline": "No calendar writes, no email writes, no CRM writes, and no Telegram writes occur from the browser.", "cta": "Keep as static demo", "component": "Safety boundary callout"},
+            ],
+            "qa_checklist": ["No form action endpoint", "No live booking write", "No private contact data", "Next action asks owner approval"],
+        },
+    ]
+    return {
+        "schema_version": "webstudio.website-page-builder.v39",
+        "marker": "website-page-builder-v39",
+        "status": "PASS_LOCAL_READY",
+        "route": "/website-page-builder/",
+        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/website-page-builder/",
+        "markers": ["website-page-builder-v39", "Home page", "Services page", "FAQ page", "generated sections", "QA checklist"],
+        "safety": {
+            "demo_only": True,
+            "static_snapshot": True,
+            "sanitized_only": True,
+            "real_private_client_data": False,
+            "live_submission": False,
+            "live_booking_writes": False,
+            "crm_email_telegram_writes": False,
+            "browser_side_secrets": False,
+            "external_writes": False,
+            "medical_health_claims": "safe generic marketing copy only",
+        },
+        "selected_demo_order": source_order,
+        "selected_package": {
+            "source_marker": "order-package-generator-v38",
+            "source_route": "/order-package-generator/",
+            "package_status": "sanitized static snapshot",
+            "generated_sitemap": package["generated_sitemap"],
+            "design_direction": package["design_direction"],
+        },
+        "generated_pages": pages,
+        "component_recommendations": ["Editorial hero", "Service cards", "Proof/process timeline", "FAQ cards", "Static CTA panel", "QA checklist chips"],
+        "links": {"order_package_generator": "/order-package-generator/", "premium_factory_v34": "/premium-factory-v34/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
+        "next_safe_action": "Review generated page sections, then approve a static implementation package before any live booking/contact integration.",
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2265,6 +2366,7 @@ def build_state() -> dict[str, Any]:
         "lead_capture_demo_v36": build_lead_capture_demo_v36(),
         "lead_to_order_handoff_v37": build_lead_to_order_handoff_v37(),
         "order_package_generator_v38": build_order_package_generator_v38(),
+        "website_page_builder_v39": build_website_page_builder_v39(),
         "error_recovery_v37_1": build_error_recovery_v37_1(),
         "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
@@ -2316,7 +2418,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "website-page-builder", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

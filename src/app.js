@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -149,8 +149,103 @@ const ORDER_PACKAGE_GENERATOR_V38_DEFAULT = {
   next_safe_action: 'Review package, then create an owner-approved D1/D2/D3 production task in Work Factory.'
 };
 
+
+const WEBSITE_PAGE_BUILDER_V39_DEFAULT = {
+  schema_version: 'webstudio.website-page-builder.v39',
+  marker: 'website-page-builder-v39',
+  status: 'PASS_LOCAL_READY',
+  route: '/website-page-builder/',
+  public_url: 'https://pltnv123.github.io/webstudio-ops-dashboard/website-page-builder/',
+  safety: {
+    demo_only: true,
+    static_snapshot: true,
+    sanitized_only: true,
+    real_private_client_data: false,
+    live_submission: false,
+    live_booking_writes: false,
+    crm_email_telegram_writes: false,
+    browser_side_secrets: false,
+    external_writes: false,
+    medical_health_claims: 'safe generic marketing copy only'
+  },
+  selected_demo_order: ORDER_PACKAGE_GENERATOR_V38_DEFAULT.source_order,
+  selected_package: {
+    source_marker: 'order-package-generator-v38',
+    source_route: '/order-package-generator/',
+    package_status: 'sanitized static snapshot',
+    generated_sitemap: ORDER_PACKAGE_GENERATOR_V38_DEFAULT.generated_sitemap,
+    design_direction: ORDER_PACKAGE_GENERATOR_V38_DEFAULT.design_direction
+  },
+  generated_pages: [
+    {
+      page: 'Home page',
+      slug: '/',
+      status: 'READY_DEMO',
+      sections: [
+        {block: 'Hero', headline: 'Premium wellness website package, ready for owner review', subheadline: 'A warm, proof-led homepage structure generated from the sanitized order package.', cta: 'Review the generated package', component: 'Editorial hero + safe CTA'},
+        {block: 'Services overview', headline: 'D1 website, D2 guided intake, D3 automation planning', subheadline: 'Three owner-approved lanes shown as static cards; no live writes in the demo.', cta: 'Open Services page', component: 'Three-card product line grid'},
+        {block: 'Proof / Process', headline: 'Artifacts before promises', subheadline: 'Show sitemap, QA reports, delivery checklist, and approval gates instead of fake testimonials.', cta: 'See process', component: 'Proof policy callout'}
+      ],
+      qa_checklist: ['Hero has one clear CTA', 'No fake testimonials/logos', 'Internal links resolve', 'Demo-only safety copy visible']
+    },
+    {
+      page: 'Services page',
+      slug: '/services/',
+      status: 'READY_DEMO',
+      sections: [
+        {block: 'Service menu', headline: 'Website build packages shaped from the order brief', subheadline: 'D1 page build, D2 intake flow, and D3 automation readiness separated into safe scope cards.', cta: 'Compare packages', component: 'Pricing/package cards without payment collection'},
+        {block: 'Deliverables', headline: 'What the client receives', subheadline: 'Page map, content outline, design direction, QA checklist, and delivery handoff packet.', cta: 'Copy deliverables', component: 'Checklist block'}
+      ],
+      qa_checklist: ['Pricing is demo/sanitized', 'No payment or booking write path', 'Service claims stay generic', 'CTA routes to owner review']
+    },
+    {
+      page: 'About page',
+      slug: '/about/',
+      status: 'READY_DEMO',
+      sections: [
+        {block: 'Studio story', headline: 'A calm client experience backed by visible production gates', subheadline: 'Positioning copy stays generic and artifact-based until real client inputs are approved.', cta: 'Review quality gates', component: 'Narrative card + principles list'},
+        {block: 'Quality gates', headline: 'Safe demo, production approval later', subheadline: 'Private data, integrations, public launch, and live booking are all separate approvals.', cta: 'Open QA checklist', component: 'Gate matrix'}
+      ],
+      qa_checklist: ['No private identity', 'No credentials or hidden form endpoints', 'Approval gates are explicit', 'Copy is safe for wellness/medical adjacency']
+    },
+    {
+      page: 'Proof / Process page',
+      slug: '/process/',
+      status: 'READY_DEMO',
+      sections: [
+        {block: 'Process timeline', headline: 'Lead capture → order handoff → package → page sections', subheadline: 'A visible chain from sanitized request to build-ready page blocks.', cta: 'Open source package', component: 'Timeline with source links'},
+        {block: 'Proof policy', headline: 'Use artifacts, not invented social proof', subheadline: 'Reports, checklists, smoke markers, and owner approvals are the proof layer.', cta: 'Review validation', component: 'Artifact proof list'}
+      ],
+      qa_checklist: ['Source routes linked', 'No fake case studies', 'Process is reproducible', 'Next safe action is owner review']
+    },
+    {
+      page: 'FAQ page',
+      slug: '/faq/',
+      status: 'READY_DEMO',
+      sections: [
+        {block: 'Scope FAQ', headline: 'What is included in the generated MVP?', subheadline: 'Static pages, section copy, component recommendations, QA checklist, and approval boundaries.', cta: 'Review scope', component: 'FAQ accordion/cards'},
+        {block: 'Safety FAQ', headline: 'Does this submit bookings or contact forms?', subheadline: 'No. The MVP is static and sanitized; live booking/contact writes require separate approval.', cta: 'Open Contact CTA', component: 'Safety answer card'}
+      ],
+      qa_checklist: ['FAQ page marker visible', 'No medical/health claims beyond generic marketing', 'No live submission promise', 'Safe contact language']
+    },
+    {
+      page: 'Contact / Booking CTA page',
+      slug: '/contact/',
+      status: 'REVIEW_ONLY',
+      sections: [
+        {block: 'Contact CTA', headline: 'Ready for owner-approved contact setup', subheadline: 'The CTA is a placeholder until a real destination and write mode are approved.', cta: 'Request owner review', component: 'CTA panel without form submission'},
+        {block: 'Booking boundary', headline: 'Booking is not connected in this static MVP', subheadline: 'No calendar writes, no email writes, no CRM writes, and no Telegram writes occur from the browser.', cta: 'Keep as static demo', component: 'Safety boundary callout'}
+      ],
+      qa_checklist: ['No form action endpoint', 'No live booking write', 'No private contact data', 'Next action asks owner approval']
+    }
+  ],
+  component_recommendations: ['Editorial hero', 'Service cards', 'Proof/process timeline', 'FAQ cards', 'Static CTA panel', 'QA checklist chips'],
+  links: {order_package_generator: '/order-package-generator/', premium_factory_v34: '/premium-factory-v34/', generated_demo_site_v35: '/generated-demo-site-v35/'},
+  next_safe_action: 'Review generated page sections, then approve a static implementation package before any live booking/contact integration.'
+};
+
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','order-package-generator':'Order Package Generator','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','order-package-generator':'Order Package Generator','website-page-builder':'Website Page Builder','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1579,6 +1674,29 @@ function orderPackageGeneratorV38() {
   </div>`;
 }
 
+
+function websitePageBuilderV39() {
+  const builder = state.website_page_builder_v39 || WEBSITE_PAGE_BUILDER_V39_DEFAULT;
+  const selected = builder.selected_demo_order || WEBSITE_PAGE_BUILDER_V39_DEFAULT.selected_demo_order;
+  const pkg = builder.selected_package || {};
+  const pages = asArray(builder.generated_pages);
+  const links = builder.links || {};
+  const payload = {schema_version: builder.schema_version, marker: builder.marker, selected_demo_order: selected, selected_package: pkg, generated_pages: pages, component_recommendations: builder.component_recommendations, safety: builder.safety, next_safe_action: builder.next_safe_action};
+  return `<div class="grid website-page-builder-page" data-marker="website-page-builder-v39 Home page Services page FAQ page generated sections QA checklist">
+    ${metric('Mode', 'Static sanitized builder', 'span-3')}
+    ${metric('Generated pages', pages.length, 'span-3')}
+    ${metric('Section blocks', pages.reduce((sum,p)=>sum + asArray(p.sections).length, 0), 'span-3')}
+    ${metric('External writes', builder.safety?.external_writes === true ? 'enabled' : 'disabled', 'span-3')}
+    <section class="card span-12 website-builder-hero"><p class="eyebrow">website-page-builder-v39</p><h2>Website Page Builder MVP</h2><p class="owner-summary"><b>Generated sections from the sanitized order package:</b> Home, Services, About, Proof / Process, FAQ, and Contact / Booking CTA. Demo/static only; no live CRM/email/Telegram writes, no booking writes, no browser-side secrets.</p><div class="toolbar">${openButton('Order Package Generator', links.order_package_generator || '/order-package-generator/')}${openButton('Premium Factory v34', links.premium_factory_v34 || '/premium-factory-v34/')}${openButton('Generated Demo Site v35', links.generated_demo_site_v35 || '/generated-demo-site-v35/')}${copyButton('Copy page builder JSON', jsonCopy(payload))}${detailPayloadButton(payload, 'Подробнее', 'website-page-builder-v39')}</div></section>
+    <section class="card span-6"><h3>Selected demo order/package</h3>${kv({client_profile:selected.client_profile, business_type:selected.business_type, offer_service_product:selected.offer_service_product, pricing_package:selected.pricing_package, timeline:selected.timeline, package_status:pkg.package_status, source_marker:pkg.source_marker})}</section>
+    <section class="card span-6"><h3>Generated page list</h3>${rowsTop(pages.map((p,i)=>({id:i+1,title:`${p.page} · ${p.slug}`,status:p.status || 'generated'})), x=>row(x.id,x.title,x.status), 12, 'No generated pages')}</section>
+    <section class="card span-12"><h3>Section blocks per page</h3><div class="page-builder-grid">${pages.map(p=>`<article class="page-builder-card ${statusClass(p.status)}"><div class="attention-head"><strong>${fmt(p.page)}</strong>${badge(p.status || 'generated')}</div><p class="label">${fmt(p.slug)} · generated sections</p>${asArray(p.sections).map(s=>`<div class="section-block"><span>${fmt(s.block)}</span><h4>${fmt(s.headline)}</h4><p>${fmt(s.subheadline)}</p><small><b>CTA:</b> ${fmt(s.cta)} · <b>Component:</b> ${fmt(s.component)}</small></div>`).join('')}<h4>QA checklist</h4>${rowsTop(asArray(p.qa_checklist).map((x,i)=>({id:i+1,title:x,status:'qa'})), x=>row(x.id,x.title,x.status), 8, 'No QA checklist')}</article>`).join('')}</div></section>
+    <section class="card span-6"><h3>Component recommendations</h3>${rowsTop(asArray(builder.component_recommendations).map((x,i)=>({id:i+1,title:x,status:'component'})), x=>row(x.id,x.title,x.status), 12, 'No recommendations')}</section>
+    <section class="card span-6"><h3>Safety / static boundaries</h3>${kv({demo_only:builder.safety?.demo_only ? 'yes' : 'no', static_snapshot:builder.safety?.static_snapshot ? 'yes' : 'no', sanitized_only:builder.safety?.sanitized_only ? 'yes' : 'no', live_submission:builder.safety?.live_submission ? 'enabled' : 'disabled', live_booking_writes:builder.safety?.live_booking_writes ? 'enabled' : 'disabled', browser_side_secrets:builder.safety?.browser_side_secrets ? 'present' : 'absent', medical_health_claims:builder.safety?.medical_health_claims})}</section>
+    <section class="card span-12"><h3>Next safe action</h3><p class="owner-summary">${fmt(builder.next_safe_action || 'Review generated sections before production work.')}</p>${toolbar([openButton('Open /order-package-generator/', '/order-package-generator/'), openButton('Open /premium-factory-v34/', '/premium-factory-v34/'), openButton('Open /generated-demo-site-v35/', '/generated-demo-site-v35/')])}</section>
+  </div>`;
+}
+
 function recoveryStateLabel(s) {
   const map = {OK:'OK', WATCH:'WATCH', DEGRADED_SAFE:'DEGRADED SAFE', RECOVERING:'RECOVERING', BLOCKED_OWNER_APPROVAL:'BLOCKED OWNER APPROVAL', BLOCKED_SYSTEM:'BLOCKED SYSTEM', PASS:'PASS'};
   return map[String(s || '').toUpperCase()] || String(s || '—');
@@ -2421,7 +2539,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
