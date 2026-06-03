@@ -1,0 +1,15 @@
+{
+  "component": "webstudio-pricing-package-catalog",
+  "version": "v4.5",
+  "status": "PASS_LOCAL_READY",
+  "route": "/pricing-packages/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/pricing-packages/",
+  "created_at": "2026-06-03T22:15:37Z",
+  "updated_at": "2026-06-03T22:15:37Z",
+  "safety": {
+    "demo_static_sanitized_only": true,
+    "external_writes": false,
+    "browser_side_secrets": false,
+    "live_crm_email_telegram_payment_booking_writes": false
+  }
+}
