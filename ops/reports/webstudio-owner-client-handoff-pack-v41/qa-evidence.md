@@ -1,16 +1,24 @@
 # QA Evidence
 
-Local gates planned/executed:
+Status: PASS
+
+Build/smoke:
 - Python compile: PASS
 - npm run build: PASS
 - npm run smoke: PASS
-- local static route marker smoke: pending at report creation
-- changed-file secret scan: pending at report creation
+- local static route marker smoke: PASS
+- changed-file secret scan: PASS
+- git diff check: PASS
 
-Required public markers after deploy:
-- client-handoff-pack-v41
-- client-facing preview
-- owner review checklist
-- QA evidence
-- revision plan
-- demo only
+Public route:
+- URL: `https://pltnv123.github.io/webstudio-ops-dashboard/client-handoff-pack/`
+- HTTP: 200
+- Marker smoke: PASS
+
+Verified markers:
+- `client-handoff-pack-v41`
+- `client-facing preview`
+- `owner review checklist`
+- `QA evidence`
+- `revision plan`
+- `demo only`
