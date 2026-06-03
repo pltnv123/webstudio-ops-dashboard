@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','client-handoff-pack','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -245,6 +245,68 @@ const WEBSITE_PAGE_BUILDER_V39_DEFAULT = {
 };
 
 
+
+const CLIENT_HANDOFF_PACK_V41_DEFAULT = {
+  schema_version: 'webstudio.client-handoff-pack.v41',
+  marker: 'client-handoff-pack-v41',
+  status: 'PASS_LOCAL_READY',
+  route: '/client-handoff-pack/',
+  public_url: 'https://pltnv123.github.io/webstudio-ops-dashboard/client-handoff-pack/',
+  preview_url: 'https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/',
+  source_marker: 'one-click-demo-assembly-v40',
+  safety: {
+    demo_only: true,
+    static_snapshot: true,
+    sanitized_only: true,
+    real_private_client_data: false,
+    live_submission: false,
+    live_booking_writes: false,
+    crm_email_telegram_writes: false,
+    browser_side_secrets: false,
+    external_writes: false,
+    medical_health_claims: 'safe generic marketing copy only'
+  },
+  client_summary: 'Client-facing preview pack for a sanitized static wellness website demo. It explains what is ready to review, what proof exists, and what still needs owner/client approval before production use.',
+  page_list: ['Home page', 'Services page', 'About page', 'Proof / Process page', 'FAQ page', 'Contact / Booking CTA page'],
+  sections_included: ['Hero', 'Problem / solution', 'Services/packages', 'Process', 'Proof/trust', 'FAQ', 'Static CTA', 'Safety boundary'],
+  feature_list: ['Client-facing preview link', 'Generated page list', 'Section composition', 'QA proof summary', 'Known limitations', 'Owner approval checklist', 'Next revision plan', 'Delivery-ready packet'],
+  qa_evidence: [
+    'V4.0 public route returned HTTP 200',
+    'Markers verified: one-click-demo-assembly-v40, full assembled landing page preview, FAQ, demo only',
+    'Local build and smoke gates passed before handoff pack creation',
+    'Changed-file secret scan required before client send',
+    'Static route contains demo-only and no-live-booking warnings'
+  ],
+  approval_checklist: [
+    'Approve static preview structure',
+    'Confirm real client name, brand assets, and approved copy',
+    'Confirm pages and sections to keep/remove',
+    'Approve contact destination before any live form or booking setup',
+    'Approve production launch target, rollback plan, analytics, and legal/medical copy review separately'
+  ],
+  known_limitations: [
+    'Static sanitized demo only, not a production website',
+    'No real private client data or real testimonials/logos',
+    'No live booking, CRM, email, Telegram, payment, or database submission',
+    'Generic wellness marketing copy only; no medical diagnosis, treatment, cure, or outcome claims',
+    'Real imagery, legal copy, analytics, DNS, and production integrations require separate approval'
+  ],
+  revision_plan: [
+    'Owner reviews preview link and checklist',
+    'Client confirms content changes and asset inputs',
+    'WebStudio applies revision pass to pages/sections',
+    'QA reruns build, smoke, marker, and changed-file secret scan',
+    'Owner approves production integration and public launch scope separately'
+  ],
+  links: {
+    one_click_demo_assembly: '/one-click-demo-assembly/',
+    website_page_builder: '/website-page-builder/',
+    order_package_generator: '/order-package-generator/',
+    generated_demo_site_v35: '/generated-demo-site-v35/'
+  },
+  next_safe_action: 'Owner reviews the handoff pack and returns PASS, PASS_WITH_REVISIONS, or BLOCKED with specific requested changes.'
+};
+
 const ONE_CLICK_DEMO_ASSEMBLY_V40_DEFAULT = {
   schema_version: 'webstudio.one-click-demo-assembly.v40',
   marker: 'one-click-demo-assembly-v40',
@@ -294,7 +356,7 @@ const ONE_CLICK_DEMO_ASSEMBLY_V40_DEFAULT = {
 };
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','order-package-generator':'Order Package Generator','website-page-builder':'Website Page Builder','one-click-demo-assembly':'One-Click Demo Assembly','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','order-package-generator':'Order Package Generator','website-page-builder':'Website Page Builder','one-click-demo-assembly':'One-Click Demo Assembly','client-handoff-pack':'Client Handoff Pack','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1775,6 +1837,32 @@ function oneClickDemoAssemblyV40() {
   </div>`;
 }
 
+
+function clientHandoffPackV41() {
+  const pack = state.client_handoff_pack_v41 || CLIENT_HANDOFF_PACK_V41_DEFAULT;
+  const assembly = state.one_click_demo_assembly_v40 || ONE_CLICK_DEMO_ASSEMBLY_V40_DEFAULT;
+  const links = pack.links || CLIENT_HANDOFF_PACK_V41_DEFAULT.links;
+  const payload = {schema_version: pack.schema_version, marker: pack.marker, preview_url: pack.preview_url, page_list: pack.page_list, sections_included: pack.sections_included, feature_list: pack.feature_list, qa_evidence: pack.qa_evidence, approval_checklist: pack.approval_checklist, known_limitations: pack.known_limitations, revision_plan: pack.revision_plan, safety: pack.safety, links, next_safe_action: pack.next_safe_action};
+  return `<div class="client-handoff-page" data-marker="client-handoff-pack-v41 client-facing preview owner review checklist QA evidence revision plan demo only">
+    <section class="handoff-hero">
+      <div class="handoff-demo-bar"><span>client-handoff-pack-v41</span><span>demo only / no live booking</span><span>sanitized static snapshot</span></div>
+      <p class="handoff-eyebrow">client-facing preview</p>
+      <h2>Owner Review + Client Handoff Pack</h2>
+      <p class="handoff-lede">${fmt(pack.client_summary)}</p>
+      <div class="handoff-actions"><a class="handoff-primary" href="${esc(pack.preview_url || links.one_click_demo_assembly || '/one-click-demo-assembly/')}">Open client-facing preview</a><a class="handoff-secondary" href="/one-click-demo-assembly/">One-Click Demo</a><a class="handoff-secondary" href="/website-page-builder/">Page Builder</a></div>
+      <div class="handoff-proof-grid"><span>Preview URL ready</span><span>No live booking</span><span>No browser-side secrets</span><span>QA evidence attached</span></div>
+    </section>
+    <section class="handoff-section handoff-preview"><p class="handoff-eyebrow">preview URL</p><h3>${fmt(pack.preview_url || assembly.public_url)}</h3><p>Share only after owner review. The preview is static, sanitized, and does not submit bookings, CRM records, email, Telegram messages, payments, or database writes.</p></section>
+    <section class="handoff-section"><p class="handoff-eyebrow">page list</p><h3>Pages included</h3><div class="handoff-card-grid">${asArray(pack.page_list).map((x,i)=>`<article><span>${fmt(String(i+1).padStart(2,'0'))}</span><h4>${fmt(x)}</h4><p>Included in the delivery-ready packet for owner/client review.</p></article>`).join('')}</div></section>
+    <section class="handoff-section"><p class="handoff-eyebrow">sections included</p><h3>Sections included</h3><div class="handoff-chip-grid">${asArray(pack.sections_included).map(x=>`<span>${fmt(x)}</span>`).join('')}</div></section>
+    <section class="handoff-section handoff-split"><div><p class="handoff-eyebrow">feature list</p><h3>Delivery-ready packet</h3>${rowsTop(asArray(pack.feature_list).map((x,i)=>({id:i+1,title:x,status:'ready'})), x=>row(x.id,x.title,x.status), 12, 'No features')}</div><div><p class="handoff-eyebrow">QA evidence</p><h3>QA proof</h3>${rowsTop(asArray(pack.qa_evidence).map((x,i)=>({id:i+1,title:x,status:'pass'})), x=>row(x.id,x.title,x.status), 12, 'No QA evidence')}</div></section>
+    <section class="handoff-section handoff-split"><div><p class="handoff-eyebrow">owner review checklist</p><h3>Approval checklist</h3>${rowsTop(asArray(pack.approval_checklist).map((x,i)=>({id:i+1,title:x,status:'needs_review'})), x=>row(x.id,x.title,x.status), 12, 'No approvals')}</div><div><p class="handoff-eyebrow">known limitations</p><h3>Known limitations</h3>${rowsTop(asArray(pack.known_limitations).map((x,i)=>({id:i+1,title:x,status:'watch'})), x=>row(x.id,x.title,x.status), 12, 'No limitations')}</div></section>
+    <section class="handoff-section"><p class="handoff-eyebrow">revision plan</p><h3>Next revision plan</h3><ol class="handoff-steps">${asArray(pack.revision_plan).map((x,i)=>`<li><b>${fmt(String(i+1).padStart(2,'0'))}</b><span>${fmt(x)}</span></li>`).join('')}</ol></section>
+    <section class="handoff-section handoff-warning"><p class="handoff-eyebrow">demo only / no live booking</p><h3>Safety boundary</h3>${kv({route:pack.route, preview_url:pack.preview_url, source:pack.source_marker, live_booking:pack.safety?.live_booking_writes ? 'enabled' : 'disabled', external_writes:pack.safety?.external_writes ? 'enabled' : 'disabled', browser_side_secrets:pack.safety?.browser_side_secrets ? 'present' : 'absent', medical_health_claims:pack.safety?.medical_health_claims})}</section>
+    <section class="handoff-section"><h3>Source chain links</h3><div class="toolbar">${openButton('One-Click Demo Assembly', links.one_click_demo_assembly || '/one-click-demo-assembly/')}${openButton('Website Page Builder', links.website_page_builder || '/website-page-builder/')}${openButton('Order Package Generator', links.order_package_generator || '/order-package-generator/')}${openButton('Generated Demo Site v35', links.generated_demo_site_v35 || '/generated-demo-site-v35/')}${copyButton('Copy handoff pack JSON', jsonCopy(payload))}${detailPayloadButton(payload, 'Подробнее', 'client-handoff-pack-v41')}</div></section>
+  </div>`;
+}
+
 function recoveryStateLabel(s) {
   const map = {OK:'OK', WATCH:'WATCH', DEGRADED_SAFE:'DEGRADED SAFE', RECOVERING:'RECOVERING', BLOCKED_OWNER_APPROVAL:'BLOCKED OWNER APPROVAL', BLOCKED_SYSTEM:'BLOCKED SYSTEM', PASS:'PASS'};
   return map[String(s || '').toUpperCase()] || String(s || '—');
@@ -2617,7 +2705,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'client-handoff-pack': clientHandoffPackV41, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

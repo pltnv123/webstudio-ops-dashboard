@@ -2342,6 +2342,67 @@ def build_one_click_demo_assembly_v40() -> dict[str, Any]:
         "next_safe_action": "Review the assembled static preview; approve real content and live integrations separately before production use.",
     }
 
+
+def build_client_handoff_pack_v41() -> dict[str, Any]:
+    """Safe static owner/client handoff pack generated from the V4.0 assembled demo website."""
+    assembly = build_one_click_demo_assembly_v40()
+    return {
+        "schema_version": "webstudio.client-handoff-pack.v41",
+        "marker": "client-handoff-pack-v41",
+        "status": "PASS_LOCAL_READY",
+        "route": "/client-handoff-pack/",
+        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-handoff-pack/",
+        "preview_url": assembly["public_url"],
+        "source_marker": "one-click-demo-assembly-v40",
+        "markers": ["client-handoff-pack-v41", "client-facing preview", "owner review checklist", "QA evidence", "revision plan", "demo only"],
+        "safety": {
+            "demo_only": True,
+            "static_snapshot": True,
+            "sanitized_only": True,
+            "real_private_client_data": False,
+            "live_submission": False,
+            "live_booking_writes": False,
+            "crm_email_telegram_writes": False,
+            "browser_side_secrets": False,
+            "external_writes": False,
+            "medical_health_claims": "safe generic marketing copy only",
+        },
+        "client_summary": "Client-facing preview pack for a sanitized static wellness website demo. It explains what is ready to review, what proof exists, and what still needs owner/client approval before production use.",
+        "page_list": ["Home page", "Services page", "About page", "Proof / Process page", "FAQ page", "Contact / Booking CTA page"],
+        "sections_included": ["Hero", "Problem / solution", "Services/packages", "Process", "Proof/trust", "FAQ", "Static CTA", "Safety boundary"],
+        "feature_list": ["Client-facing preview link", "Generated page list", "Section composition", "QA proof summary", "Known limitations", "Owner approval checklist", "Next revision plan", "Delivery-ready packet"],
+        "qa_evidence": [
+            "V4.0 public route returned HTTP 200",
+            "Markers verified: one-click-demo-assembly-v40, full assembled landing page preview, FAQ, demo only",
+            "Local build and smoke gates passed before handoff pack creation",
+            "Changed-file secret scan required before client send",
+            "Static route contains demo-only and no-live-booking warnings",
+        ],
+        "approval_checklist": [
+            "Approve static preview structure",
+            "Confirm real client name, brand assets, and approved copy",
+            "Confirm pages and sections to keep/remove",
+            "Approve contact destination before any live form or booking setup",
+            "Approve production launch target, rollback plan, analytics, and legal/medical copy review separately",
+        ],
+        "known_limitations": [
+            "Static sanitized demo only, not a production website",
+            "No real private client data or real testimonials/logos",
+            "No live booking, CRM, email, Telegram, payment, or database submission",
+            "Generic wellness marketing copy only; no medical diagnosis, treatment, cure, or outcome claims",
+            "Real imagery, legal copy, analytics, DNS, and production integrations require separate approval",
+        ],
+        "revision_plan": [
+            "Owner reviews preview link and checklist",
+            "Client confirms content changes and asset inputs",
+            "WebStudio applies revision pass to pages/sections",
+            "QA reruns build, smoke, marker, and changed-file secret scan",
+            "Owner approves production integration and public launch scope separately",
+        ],
+        "links": {"one_click_demo_assembly": "/one-click-demo-assembly/", "website_page_builder": "/website-page-builder/", "order_package_generator": "/order-package-generator/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
+        "next_safe_action": "Owner reviews the handoff pack and returns PASS, PASS_WITH_REVISIONS, or BLOCKED with specific requested changes.",
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2422,6 +2483,7 @@ def build_state() -> dict[str, Any]:
         "order_package_generator_v38": build_order_package_generator_v38(),
         "website_page_builder_v39": build_website_page_builder_v39(),
         "one_click_demo_assembly_v40": build_one_click_demo_assembly_v40(),
+        "client_handoff_pack_v41": build_client_handoff_pack_v41(),
         "error_recovery_v37_1": build_error_recovery_v37_1(),
         "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
@@ -2473,7 +2535,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "website-page-builder", "one-click-demo-assembly", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "website-page-builder", "one-click-demo-assembly", "client-handoff-pack", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

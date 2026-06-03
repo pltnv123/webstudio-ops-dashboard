@@ -1,0 +1,30 @@
+{
+  "task": "WEBSTUDIO V4.1 — OWNER REVIEW + CLIENT HANDOFF PACK",
+  "status": "PASS_LOCAL_READY",
+  "component": "webstudio-owner-client-handoff-pack",
+  "version": "v4.1",
+  "route": "/client-handoff-pack/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-handoff-pack/",
+  "preview_url": "https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/",
+  "source": "V4.0 one_click_demo_assembly_v40",
+  "base_commit": "ec7db0675d9a3239f48215bab9bfaa43c51de514",
+  "safety": {
+    "demo_static_sanitized_only": true,
+    "live_booking_writes": false,
+    "crm_email_telegram_writes": false,
+    "browser_side_secrets": false,
+    "destructive_supabase_changes": false
+  },
+  "required_markers": [
+    "client-handoff-pack-v41",
+    "client-facing preview",
+    "owner review checklist",
+    "QA evidence",
+    "revision plan",
+    "demo only"
+  ],
+  "created_at": "2026-06-03T21:46:09Z",
+  "updated_at": "2026-06-03T21:46:09Z",
+  "deploy_status": "LOCAL_READY",
+  "supabase_status": "PENDING"
+}
