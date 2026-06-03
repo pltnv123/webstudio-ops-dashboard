@@ -1,0 +1,30 @@
+{
+  "task": "WEBSTUDIO V4.0 — ONE-CLICK DEMO WEBSITE ASSEMBLY",
+  "status": "LOCAL_READY",
+  "component": "webstudio-one-click-demo-assembly",
+  "version": "v4.0",
+  "route": "/one-click-demo-assembly/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/",
+  "source": "V3.9 website_page_builder_v39",
+  "base_commit": "eda151b106384c817d8bd47992e7a48b185d03b5",
+  "safety": {
+    "demo_static_sanitized_only": true,
+    "live_booking_writes": false,
+    "crm_email_telegram_writes": false,
+    "browser_side_secrets": false,
+    "destructive_supabase_changes": false
+  },
+  "required_markers": [
+    "one-click-demo-assembly-v40",
+    "full assembled landing page preview",
+    "hero section",
+    "services/packages",
+    "FAQ",
+    "demo only"
+  ],
+  "created_at": "2026-06-03T11:19:03Z",
+  "updated_at": "2026-06-03T11:19:03Z",
+  "commit": null,
+  "deploy_status": "PENDING_PUSH",
+  "supabase_status": "PENDING"
+}

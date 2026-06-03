@@ -2288,6 +2288,60 @@ def build_website_page_builder_v39() -> dict[str, Any]:
         "next_safe_action": "Review generated page sections, then approve a static implementation package before any live booking/contact integration.",
     }
 
+
+def build_one_click_demo_assembly_v40() -> dict[str, Any]:
+    """Safe static one-click assembled demo website generated from V3.9 page builder data."""
+    builder = build_website_page_builder_v39()
+    return {
+        "schema_version": "webstudio.one-click-demo-assembly.v40",
+        "marker": "one-click-demo-assembly-v40",
+        "status": "PASS_LOCAL_READY",
+        "route": "/one-click-demo-assembly/",
+        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/",
+        "source_marker": "website-page-builder-v39",
+        "markers": ["one-click-demo-assembly-v40", "full assembled landing page preview", "hero section", "services/packages", "FAQ", "demo only"],
+        "safety": {
+            "demo_only": True,
+            "static_snapshot": True,
+            "sanitized_only": True,
+            "real_private_client_data": False,
+            "live_submission": False,
+            "live_booking_writes": False,
+            "crm_email_telegram_writes": False,
+            "browser_side_secrets": False,
+            "external_writes": False,
+            "medical_health_claims": "safe generic marketing copy only",
+        },
+        "source_pages": builder["generated_pages"],
+        "assembled_site": {
+            "client_label": "Northstar Executive Wellness Studio — sanitized demo preview",
+            "headline": "A calm, client-facing website preview assembled in one click.",
+            "subheadline": "Generated from V3.9 page builder sections into a full assembled landing page preview with safe static CTAs and no live booking.",
+            "sections": [
+                {"id": "hero", "marker": "hero section", "title": "Premium wellness website, assembled for client review", "body": "A warm editorial landing page preview using the generated Home page hero, services, proof, FAQ, and static CTA blocks.", "source": "Home page · Hero"},
+                {"id": "problem-solution", "marker": "problem/solution", "title": "From scattered wellness inquiries to a guided review path", "body": "The preview explains fit, scope, and next steps without collecting real private data or making regulated health promises.", "source": "Home page + Proof / Process page"},
+                {"id": "services-packages", "marker": "services/packages", "title": "Services/packages", "body": "D1 website, D2 guided intake, and D3 automation readiness are shown as clear static packages; payments and booking remain approval-gated.", "source": "Services page"},
+                {"id": "process", "marker": "process section", "title": "Lead capture → order handoff → package → assembled preview", "body": "A visible client journey links the existing production chain and turns section blocks into one readable website experience.", "source": "Proof / Process page"},
+                {"id": "proof-trust", "marker": "proof/trust section", "title": "Trust through artifacts, QA, and approval gates", "body": "The trust layer uses reports, checklists, static route smoke, and owner approvals instead of fake testimonials or logos.", "source": "About page + Proof policy"},
+                {"id": "faq", "marker": "FAQ", "title": "FAQ", "body": "Answers clarify scope, timeline, assets, live integrations, and the demo-only/no-live-booking boundary.", "source": "FAQ page"},
+                {"id": "cta", "marker": "CTA", "title": "Review this static demo before any live setup", "body": "The call to action is a safe owner-review CTA. No form action, no booking write, no CRM/email/Telegram write.", "source": "Contact / Booking CTA page"},
+            ],
+            "packages": [
+                {"name": "D1 Website Assembly", "detail": "Client-facing landing page preview from generated page sections.", "boundary": "Static preview only"},
+                {"name": "D2 Intake Readiness", "detail": "Questions and handoff path are visible through existing lead/order links.", "boundary": "No live Telegram write"},
+                {"name": "D3 Automation Plan", "detail": "Future CRM/email/ops automation remains proposal-only until approved.", "boundary": "No external writes"},
+            ],
+            "faq": [
+                ["Is this a real client website?", "No. This is a sanitized static demo preview generated from V3.9 page builder data."],
+                ["Does the CTA submit bookings?", "No. It is a demo-only CTA with no live booking, CRM, email, Telegram, payment, or database write."],
+                ["What proof is shown?", "Artifacts, section maps, QA checks, route smoke markers, and approval gates. No fake testimonials or logos."],
+                ["Can this become production?", "Yes, after real client identity, assets, copy, contact destination, and live integration approvals are provided."],
+            ],
+        },
+        "links": {"website_page_builder": "/website-page-builder/", "order_package_generator": "/order-package-generator/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
+        "next_safe_action": "Review the assembled static preview; approve real content and live integrations separately before production use.",
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2367,6 +2421,7 @@ def build_state() -> dict[str, Any]:
         "lead_to_order_handoff_v37": build_lead_to_order_handoff_v37(),
         "order_package_generator_v38": build_order_package_generator_v38(),
         "website_page_builder_v39": build_website_page_builder_v39(),
+        "one_click_demo_assembly_v40": build_one_click_demo_assembly_v40(),
         "error_recovery_v37_1": build_error_recovery_v37_1(),
         "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
@@ -2418,7 +2473,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "website-page-builder", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "website-page-builder", "one-click-demo-assembly", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

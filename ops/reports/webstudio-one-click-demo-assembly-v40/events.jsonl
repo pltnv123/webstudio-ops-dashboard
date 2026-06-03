@@ -1,0 +1,3 @@
+{"ts": "2026-06-03T11:19:03Z", "event": "phase.start", "detail": "Continue after V3.9 PASS; no restart from scratch"}
+{"ts": "2026-06-03T11:19:03Z", "event": "implementation.done", "detail": "Added /one-click-demo-assembly/ route, client-facing assembled static preview, state builder, smoke gates"}
+{"ts": "2026-06-03T11:19:03Z", "event": "gates.initial.pass", "detail": "npm run build, npm run smoke, local static marker smoke passed"}

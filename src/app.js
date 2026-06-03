@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -244,8 +244,57 @@ const WEBSITE_PAGE_BUILDER_V39_DEFAULT = {
   next_safe_action: 'Review generated page sections, then approve a static implementation package before any live booking/contact integration.'
 };
 
+
+const ONE_CLICK_DEMO_ASSEMBLY_V40_DEFAULT = {
+  schema_version: 'webstudio.one-click-demo-assembly.v40',
+  marker: 'one-click-demo-assembly-v40',
+  status: 'PASS_LOCAL_READY',
+  route: '/one-click-demo-assembly/',
+  public_url: 'https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/',
+  source_marker: 'website-page-builder-v39',
+  safety: {
+    demo_only: true,
+    static_snapshot: true,
+    sanitized_only: true,
+    real_private_client_data: false,
+    live_submission: false,
+    live_booking_writes: false,
+    crm_email_telegram_writes: false,
+    browser_side_secrets: false,
+    external_writes: false,
+    medical_health_claims: 'safe generic marketing copy only'
+  },
+  assembled_site: {
+    client_label: 'Northstar Executive Wellness Studio — sanitized demo preview',
+    headline: 'A calm, client-facing website preview assembled in one click.',
+    subheadline: 'Generated from V3.9 page builder sections into a full assembled landing page preview with safe static CTAs and no live booking.',
+    sections: [
+      {id:'hero', marker:'hero section', title:'Premium wellness website, assembled for client review', body:'A warm editorial landing page preview using the generated Home page hero, services, proof, FAQ, and static CTA blocks.', source:'Home page · Hero'},
+      {id:'problem-solution', marker:'problem/solution', title:'From scattered wellness inquiries to a guided review path', body:'The preview explains fit, scope, and next steps without collecting real private data or making regulated health promises.', source:'Home page + Proof / Process page'},
+      {id:'services-packages', marker:'services/packages', title:'Services/packages', body:'D1 website, D2 guided intake, and D3 automation readiness are shown as clear static packages; payments and booking remain approval-gated.', source:'Services page'},
+      {id:'process', marker:'process section', title:'Lead capture → order handoff → package → assembled preview', body:'A visible client journey links the existing production chain and turns section blocks into one readable website experience.', source:'Proof / Process page'},
+      {id:'proof-trust', marker:'proof/trust section', title:'Trust through artifacts, QA, and approval gates', body:'The trust layer uses reports, checklists, static route smoke, and owner approvals instead of fake testimonials or logos.', source:'About page + Proof policy'},
+      {id:'faq', marker:'FAQ', title:'FAQ', body:'Answers clarify scope, timeline, assets, live integrations, and the demo-only/no-live-booking boundary.', source:'FAQ page'},
+      {id:'cta', marker:'CTA', title:'Review this static demo before any live setup', body:'The call to action is a safe owner-review CTA. No form action, no booking write, no CRM/email/Telegram write.', source:'Contact / Booking CTA page'}
+    ],
+    packages: [
+      {name:'D1 Website Assembly', detail:'Client-facing landing page preview from generated page sections.', boundary:'Static preview only'},
+      {name:'D2 Intake Readiness', detail:'Questions and handoff path are visible through existing lead/order links.', boundary:'No live Telegram write'},
+      {name:'D3 Automation Plan', detail:'Future CRM/email/ops automation remains proposal-only until approved.', boundary:'No external writes'}
+    ],
+    faq: [
+      ['Is this a real client website?', 'No. This is a sanitized static demo preview generated from V3.9 page builder data.'],
+      ['Does the CTA submit bookings?', 'No. It is a demo-only CTA with no live booking, CRM, email, Telegram, payment, or database write.'],
+      ['What proof is shown?', 'Artifacts, section maps, QA checks, route smoke markers, and approval gates. No fake testimonials or logos.'],
+      ['Can this become production?', 'Yes, after real client identity, assets, copy, contact destination, and live integration approvals are provided.']
+    ]
+  },
+  links: {website_page_builder:'/website-page-builder/', order_package_generator:'/order-package-generator/', generated_demo_site_v35:'/generated-demo-site-v35/'},
+  next_safe_action: 'Review the assembled static preview; approve real content and live integrations separately before production use.'
+};
+
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','order-package-generator':'Order Package Generator','website-page-builder':'Website Page Builder','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','order-package-generator':'Order Package Generator','website-page-builder':'Website Page Builder','one-click-demo-assembly':'One-Click Demo Assembly','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1697,6 +1746,35 @@ function websitePageBuilderV39() {
   </div>`;
 }
 
+
+function oneClickDemoAssemblyV40() {
+  const assembly = state.one_click_demo_assembly_v40 || ONE_CLICK_DEMO_ASSEMBLY_V40_DEFAULT;
+  const builder = state.website_page_builder_v39 || WEBSITE_PAGE_BUILDER_V39_DEFAULT;
+  const site = assembly.assembled_site || ONE_CLICK_DEMO_ASSEMBLY_V40_DEFAULT.assembled_site;
+  const sections = asArray(site.sections);
+  const packages = asArray(site.packages);
+  const faq = asArray(site.faq);
+  const links = assembly.links || ONE_CLICK_DEMO_ASSEMBLY_V40_DEFAULT.links;
+  const payload = {schema_version: assembly.schema_version, marker: assembly.marker, source_marker: assembly.source_marker, assembled_site: site, source_pages: builder.generated_pages, safety: assembly.safety, links, next_safe_action: assembly.next_safe_action};
+  return `<div class="one-click-demo-page" data-marker="one-click-demo-assembly-v40 full assembled landing page preview hero section services/packages FAQ demo only">
+    <section class="assembled-hero" id="assembled-hero">
+      <div class="assembled-demo-bar"><span>one-click-demo-assembly-v40</span><span>demo only / no live booking</span><span>generated from V3.9 page builder data</span></div>
+      <p class="assembled-eyebrow">full assembled landing page preview</p>
+      <h2>${fmt(site.headline || 'One-click assembled demo website')}</h2>
+      <p class="assembled-lede">${fmt(site.subheadline || 'Static sanitized preview for owner/client review.')}</p>
+      <div class="assembled-actions"><a class="assembled-primary" href="#assembled-cta">Review static demo</a><a class="assembled-secondary" href="/website-page-builder/">Source page builder</a><a class="assembled-secondary" href="/order-package-generator/">Order package</a></div>
+      <div class="assembled-proof-grid"><span>Demo only</span><span>No live booking</span><span>No browser-side secrets</span><span>No private client data</span></div>
+    </section>
+    <section class="assembled-section assembled-split" id="assembled-problem-solution"><div><p class="assembled-eyebrow">problem/solution</p><h3>${fmt(sections.find(s=>s.id==='problem-solution')?.title || 'Problem / solution')}</h3></div><p>${fmt(sections.find(s=>s.id==='problem-solution')?.body || '')}</p></section>
+    <section class="assembled-section" id="assembled-services"><p class="assembled-eyebrow">services/packages</p><h3>${fmt(sections.find(s=>s.id==='services-packages')?.title || 'Services/packages')}</h3><div class="assembled-cards">${packages.map(p=>`<article><h4>${fmt(p.name)}</h4><p>${fmt(p.detail)}</p><small>${fmt(p.boundary)}</small></article>`).join('')}</div></section>
+    <section class="assembled-section assembled-process" id="assembled-process"><p class="assembled-eyebrow">process section</p><h3>${fmt(sections.find(s=>s.id==='process')?.title || 'Process')}</h3><ol>${sections.filter(s=>['hero','problem-solution','services-packages','process'].includes(s.id)).map((s,i)=>`<li><b>${fmt(String(i+1).padStart(2,'0'))}. ${fmt(s.marker)}</b><span>${fmt(s.source)}</span></li>`).join('')}</ol><p>${fmt(sections.find(s=>s.id==='process')?.body || '')}</p></section>
+    <section class="assembled-section" id="assembled-proof"><p class="assembled-eyebrow">proof/trust section</p><h3>${fmt(sections.find(s=>s.id==='proof-trust')?.title || 'Proof / trust')}</h3><div class="assembled-cards"><article><h4>Artifact proof</h4><p>Page map, section composition, reports, and smoke markers.</p></article><article><h4>Approval gates</h4><p>Real assets, live contact, public client use, and regulated copy remain separate approvals.</p></article><article><h4>Safety note</h4><p>Generic wellness marketing copy only; no medical claims, diagnosis, cure, or outcome guarantees.</p></article></div></section>
+    <section class="assembled-section" id="assembled-faq"><p class="assembled-eyebrow">FAQ</p><h3>FAQ</h3><div class="assembled-faq">${faq.map(([q,a])=>`<details><summary>${fmt(q)}</summary><p>${fmt(a)}</p></details>`).join('')}</div></section>
+    <section class="assembled-section assembled-cta" id="assembled-cta"><p class="assembled-eyebrow">CTA</p><h3>${fmt(sections.find(s=>s.id==='cta')?.title || 'Review this static demo')}</h3><p>${fmt(sections.find(s=>s.id==='cta')?.body || 'Demo only / no live booking.')}</p><button class="assembled-primary" type="button" data-demo-only="true">Demo only — no live submission</button></section>
+    <section class="assembled-section assembled-system"><h3>Source chain / internal links</h3>${kv({source:assembly.source_marker || 'website-page-builder-v39', client_label:site.client_label, route:assembly.route, public_url:assembly.public_url, live_booking:assembly.safety?.live_booking_writes ? 'enabled' : 'disabled', browser_side_secrets:assembly.safety?.browser_side_secrets ? 'present' : 'absent'})}<div class="toolbar">${openButton('Website Page Builder', links.website_page_builder || '/website-page-builder/')}${openButton('Order Package Generator', links.order_package_generator || '/order-package-generator/')}${openButton('Generated Demo Site v35', links.generated_demo_site_v35 || '/generated-demo-site-v35/')}${copyButton('Copy assembled site JSON', jsonCopy(payload))}${detailPayloadButton(payload, 'Подробнее', 'one-click-demo-assembly-v40')}</div></section>
+  </div>`;
+}
+
 function recoveryStateLabel(s) {
   const map = {OK:'OK', WATCH:'WATCH', DEGRADED_SAFE:'DEGRADED SAFE', RECOVERING:'RECOVERING', BLOCKED_OWNER_APPROVAL:'BLOCKED OWNER APPROVAL', BLOCKED_SYSTEM:'BLOCKED SYSTEM', PASS:'PASS'};
   return map[String(s || '').toUpperCase()] || String(s || '—');
@@ -2539,7 +2617,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
