@@ -1,6 +1,6 @@
 {
   "task": "WEBSTUDIO V4.0 — ONE-CLICK DEMO WEBSITE ASSEMBLY",
-  "status": "LOCAL_READY",
+  "status": "DEPLOYED",
   "component": "webstudio-one-click-demo-assembly",
   "version": "v4.0",
   "route": "/one-click-demo-assembly/",
@@ -23,8 +23,13 @@
     "demo only"
   ],
   "created_at": "2026-06-03T11:19:03Z",
-  "updated_at": "2026-06-03T11:19:03Z",
-  "commit": null,
-  "deploy_status": "PENDING_PUSH",
-  "supabase_status": "PENDING"
+  "updated_at": "2026-06-03T11:42:28Z",
+  "commit": "f299b717d1015514643ac9c2fc913b026e8a0bce",
+  "deploy_status": "DEPLOYED",
+  "supabase_status": "DEPLOYED",
+  "latest_deploy_status": "success",
+  "actions_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26882334114",
+  "public_route_verified": true,
+  "supabase_ops_row_id": "ff9c1de7-3e59-4d6c-a5c4-f9a6313fa2b5",
+  "supabase_artifact_row_id": "bae7ddb3-259a-40dc-9990-f1097505a613"
 }

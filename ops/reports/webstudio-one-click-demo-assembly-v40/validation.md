@@ -1,26 +1,27 @@
 # V4.0 Validation
 
-Current validation: LOCAL_READY
+Status: PASS
 
-Passed:
-- build snapshot generated route/state
-- npm build
-- npm smoke
-- local static route marker smoke
-- UI safety review: no form action, no live booking, no browser secrets
-
-Pending:
-- final changed-file secret scan
-- `git diff --check`
-- commit/push
-- GitHub Actions deploy
-- public route smoke
-- Supabase status row
-
-
-Final pre-commit validation update:
-- npm build: PASS
-- npm smoke: PASS
+Local gates:
+- `python3 -m py_compile scripts/build_snapshot.py scripts/smoke_check.py`: PASS
+- `npm run build`: PASS
+- `npm run smoke`: PASS
 - local static `/one-click-demo-assembly/`: PASS
 - changed-line secret scan: PASS
-- git diff check: PASS
+- `git diff --check`: PASS
+
+Deployment gates:
+- commit: `f299b717d1015514643ac9c2fc913b026e8a0bce`
+- push: PASS
+- remote SHA: PASS
+- GitHub Actions deploy: success
+- public route HTTP 200: PASS
+- public marker smoke: PASS
+
+Safety gates:
+- demo/static/sanitized only: PASS
+- no live CRM/email/Telegram writes: PASS
+- no live booking writes: PASS
+- no browser-side secrets: PASS
+- no destructive Supabase changes: PASS
+- safe generic wellness copy only: PASS
