@@ -2138,6 +2138,55 @@ def build_lead_to_order_handoff_v37() -> dict[str, Any]:
         "handoff_links": {"order_builder": "/order-builder/", "work_factory": "/work-factory/", "lead_capture_demo": "/lead-capture-demo/"},
     }
 
+
+def build_order_package_generator_v38() -> dict[str, Any]:
+    """Safe static production package generated from the V3.7 handoff order."""
+    handoff = build_lead_to_order_handoff_v37()
+    source_order = handoff["order_builder_payload"]
+    page_briefs = [
+        {"page": "Home", "goal": "Explain the offer and route visitors to safe demo intake.", "sections": ["Hero", "Proof policy", "Services overview", "Process", "CTA"]},
+        {"page": "Services", "goal": "Package D1/D2/D3 services into owner-reviewable offers.", "sections": ["Service menu", "Who it fits", "Deliverables", "Constraints", "CTA"]},
+        {"page": "About", "goal": "Show positioning without fake testimonials or private data.", "sections": ["Studio story", "Operating principles", "Quality gates"]},
+        {"page": "FAQ", "goal": "Answer scope, timeline, assets, approvals, and safety questions.", "sections": ["Scope", "Timeline", "Content assets", "Live integrations"]},
+        {"page": "Contact", "goal": "Use approval-gated intake/contact path only.", "sections": ["Safe intake prompt", "Missing inputs", "Next action"]},
+    ]
+    return {
+        "schema_version": "webstudio.order-package-generator.v38",
+        "status": "PASS_LOCAL_READY",
+        "route": "/order-package-generator/",
+        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/order-package-generator/",
+        "markers": ["order-package-generator-v38", "generated sitemap", "page briefs", "SEO checklist", "QA checklist", "delivery checklist"],
+        "safety": {
+            "demo_only": True,
+            "static_snapshot": True,
+            "real_private_client_data": False,
+            "live_submission": False,
+            "crm_email_telegram_writes": False,
+            "browser_side_secrets": False,
+            "external_writes": False,
+        },
+        "source_order": source_order,
+        "generated_sitemap": ["/", "/services/", "/about/", "/faq/", "/contact/"],
+        "page_briefs": page_briefs,
+        "section_copy_outlines": [
+            "Hero: premium website + guided intake, no live writes in demo.",
+            "Proof policy: artifacts and QA reports instead of fake social proof.",
+            "Process: lead capture → handoff → package → owner-approved production.",
+            "CTA: review generated order package before any live integration.",
+        ],
+        "design_direction": {
+            "style": "Editorial premium dashboard, warm accent cards, proof-led structure",
+            "typography": "Clear hierarchy, compact owner-readable cards",
+            "visual_rules": ["No fake logos/testimonials", "No stock claims", "Use artifact proof and checklists"],
+        },
+        "seo_checklist": ["Title and meta description per page", "One H1 per page", "Service keywords mapped to page briefs", "No fake local claims", "Structured internal links"],
+        "asset_checklist": ["Logo/wordmark approval", "Approved service copy", "Real imagery or generated concept labels", "FAQ answers", "Contact destination approval"],
+        "qa_checklist": ["Responsive layout", "No broken internal links", "No browser-side secrets", "No live submission", "Smoke markers present", "Copy is demo/sanitized"],
+        "delivery_checklist": ["Owner review", "Scope freeze", "Production content approval", "Integration approval", "Final smoke", "Handoff report"],
+        "next_safe_action": "Review package, then create an owner-approved D1/D2/D3 production task in Work Factory.",
+        "links": {"lead_to_order_handoff": "/lead-to-order-handoff/", "order_builder": "/order-builder/", "premium_factory_v34": "/premium-factory-v34/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
+    }
+
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2215,6 +2264,7 @@ def build_state() -> dict[str, Any]:
         "generated_demo_site_v35": build_generated_demo_site_v35(),
         "lead_capture_demo_v36": build_lead_capture_demo_v36(),
         "lead_to_order_handoff_v37": build_lead_to_order_handoff_v37(),
+        "order_package_generator_v38": build_order_package_generator_v38(),
         "error_recovery_v37_1": build_error_recovery_v37_1(),
         "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
         "control_plane_history": control_plane_history,
@@ -2266,7 +2316,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

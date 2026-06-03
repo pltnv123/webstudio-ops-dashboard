@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -107,8 +107,50 @@ const LEAD_TO_ORDER_HANDOFF_V37_DEFAULT = {
 };
 
 
+
+
+const ORDER_PACKAGE_GENERATOR_V38_DEFAULT = {
+  schema_version: 'webstudio.order-package-generator.v38',
+  marker: 'order-package-generator-v38',
+  route: '/order-package-generator/',
+  public_url: 'https://pltnv123.github.io/webstudio-ops-dashboard/order-package-generator/',
+  safety: {
+    demo_only: true,
+    static_snapshot: true,
+    real_private_client_data: false,
+    live_submission: false,
+    external_writes: false,
+    browser_side_secrets: false
+  },
+  source_order: LEAD_TO_ORDER_HANDOFF_V37_DEFAULT.order_builder_payload,
+  generated_sitemap: ['/', '/services/', '/about/', '/faq/', '/contact/'],
+  page_briefs: [
+    {page:'Home', goal:'Explain the offer and route visitors to safe demo intake.', sections:['Hero','Proof policy','Services overview','Process','CTA']},
+    {page:'Services', goal:'Package D1/D2/D3 services into owner-reviewable offers.', sections:['Service menu','Who it fits','Deliverables','Constraints','CTA']},
+    {page:'About', goal:'Show positioning without fake testimonials or private data.', sections:['Studio story','Operating principles','Quality gates']},
+    {page:'FAQ', goal:'Answer scope, timeline, assets, approvals, and safety questions.', sections:['Scope','Timeline','Content assets','Live integrations']},
+    {page:'Contact', goal:'Use approval-gated intake/contact path only.', sections:['Safe intake prompt','Missing inputs','Next action']}
+  ],
+  section_copy_outlines: [
+    'Hero: premium website + guided intake, no live writes in demo.',
+    'Proof policy: artifacts and QA reports instead of fake social proof.',
+    'Process: lead capture → handoff → package → owner-approved production.',
+    'CTA: review generated order package before any live integration.'
+  ],
+  design_direction: {
+    style: 'Editorial premium dashboard, warm accent cards, proof-led structure',
+    typography: 'Clear hierarchy, compact owner-readable cards',
+    visual_rules: ['No fake logos/testimonials', 'No stock claims', 'Use artifact proof and checklists']
+  },
+  seo_checklist: ['Title and meta description per page', 'One H1 per page', 'Service keywords mapped to page briefs', 'No fake local claims', 'Structured internal links'],
+  asset_checklist: ['Logo/wordmark approval', 'Approved service copy', 'Real imagery or generated concept labels', 'FAQ answers', 'Contact destination approval'],
+  qa_checklist: ['Responsive layout', 'No broken internal links', 'No browser-side secrets', 'No live submission', 'Smoke markers present', 'Copy is demo/sanitized'],
+  delivery_checklist: ['Owner review', 'Scope freeze', 'Production content approval', 'Integration approval', 'Final smoke', 'Handoff report'],
+  next_safe_action: 'Review package, then create an owner-approved D1/D2/D3 production task in Work Factory.'
+};
+
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
+  overview:'Обзор','work-factory':'Фабрика задач','owner-command-center':'Owner Command Center','order-builder':'Order Builder',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования','supabase-memory':'Supabase Memory','bot-activity':'Bot Activity',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит','premium-generator':'Premium Generator','premium-factory-v34':'Premium Factory v34','generated-demo-site-v35':'Generated Demo v35','lead-capture-demo':'Lead Capture Demo','lead-to-order-handoff':'Lead → Order Handoff','order-package-generator':'Order Package Generator','premium-factory-v37-day1':'Day 1 Premium Factory','error-recovery':'Ошибки и восстановление',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
 };
@@ -1483,7 +1525,7 @@ function leadCaptureDemoV36() {
     </form></section>
     <section class="card span-6 lead-capture-preview-card"><h3>Structured request summary</h3>${kv({business_type:snapshot.business_type, project_goal:shortText(snapshot.project_goal, 140), website_or_service_needed:snapshot.website_or_service_needed, budget_range:snapshot.budget_range, timeline:snapshot.timeline, current_website:snapshot.current_website, required_pages:pages, content_assets_readiness:snapshot.content_assets_readiness, preferred_contact_method:snapshot.preferred_contact_method_demo_placeholder})}${toolbar([copyButton('Copy sanitized request JSON', previewJson), openButton('Open handoff preview', '/lead-to-order-handoff/'), detailPayloadButton({lead_snapshot:snapshot, qualification_preview:q, safety:demo.safety}, 'Подробнее', 'lead-capture-demo-v36')])}</section>
     <section class="card span-12 qualification-flow-card"><h3>Qualification preview</h3><div class="lead-route-grid"><article><span>D1 website</span><b>Website / landing route</b><p>Premium website scope, required pages, content readiness, proof/CTA plan.</p></article><article><span>D2 AI-intake bot</span><b>Guided intake route</b><p>Turns the same safe request fields into bot questions and owner review handoff.</p></article><article><span>D3 automation</span><b>Automation route</b><p>Future CRM/Sheets/email workflow stays proposal-only until live approval.</p></article></div><div class="demo-progress"><span>Qualification score</span><b>${fmt(q.score || 0)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, Number(q.score || 0)))}%"></i></div></div><p class="owner-summary"><b>Next safe action:</b> ${fmt(q.next_safe_action || 'Review in Order Builder.')}</p></section>
-    <section class="card span-12"><h3>Dashboard visibility / handoff</h3><p class="label">Copy/read-only pipeline visibility. No live external writes.</p><div class="capability-grid"><article class="capability-card"><h4>Order Builder</h4><p>Use structured snapshot to prepare a production brief.</p>${openButton('Open /order-builder/', '/order-builder/')}</article><article class="capability-card"><h4>Work Factory</h4><p>Show future scoped implementation tasks after owner approval.</p>${openButton('Open /work-factory/', '/work-factory/')}</article><article class="capability-card"><h4>Bot Activity</h4><p>Preview D2 intake route without using live Telegram tokens.</p>${openButton('Open /bot-activity/', '/bot-activity/')}</article><article class="capability-card"><h4>Supabase Memory</h4><p>Show ops/status visibility without browser-side secrets.</p>${openButton('Open /supabase-memory/', '/supabase-memory/')}</article></div></section>
+    <section class="card span-12"><h3>Dashboard visibility / handoff</h3><p class="label">Copy/read-only pipeline visibility. No live external writes.</p><div class="capability-grid"><article class="capability-card"><h4>Order Builder</h4><p>Use structured snapshot to prepare a production brief.</p>${openButton('Open /order-builder/', '/order-builder/')}${openButton('Package Generator', '/order-package-generator/')}</article><article class="capability-card"><h4>Work Factory</h4><p>Show future scoped implementation tasks after owner approval.</p>${openButton('Open /work-factory/', '/work-factory/')}</article><article class="capability-card"><h4>Bot Activity</h4><p>Preview D2 intake route without using live Telegram tokens.</p>${openButton('Open /bot-activity/', '/bot-activity/')}</article><article class="capability-card"><h4>Supabase Memory</h4><p>Show ops/status visibility without browser-side secrets.</p>${openButton('Open /supabase-memory/', '/supabase-memory/')}</article></div></section>
   </div>`;
 }
 
@@ -1506,6 +1548,34 @@ function leadToOrderHandoffV37() {
     <section class="card span-8 order-builder-card"><h3>Order-builder handoff</h3>${kv({client_profile:order.client_profile, business_type:order.business_type, offer_service_product:order.offer_service_product, target_audience:order.target_audience, desired_style:order.desired_style, pricing_package:order.pricing_package, timeline:order.timeline})}<p class="owner-summary"><b>Generated brief:</b> ${fmt(order.generated_production_brief)}</p>${toolbar([copyButton('Copy order payload', jsonCopy(order)), openButton('Open /order-builder/', '/order-builder/')])}</section>
     <section class="card span-4"><h3>Missing inputs</h3>${rowsTop(missing.map((x,i)=>({id:i+1,title:x,status:'missing'})), x=>row(x.id,x.title,x.status), 10, 'No missing inputs')}<p class="owner-summary"><b>Next safe action:</b> ${fmt(h.next_safe_action || 'Review in Order Builder.')}</p>${openButton('Open /work-factory/', '/work-factory/')}</section>
     <section class="card span-12"><h3>Safety policy</h3>${kv({static_snapshot:h.safety?.static_snapshot !== false ? 'yes' : 'no', live_submission:h.safety?.live_submission === true ? 'enabled' : 'disabled', real_private_client_data:h.safety?.real_private_client_data === true ? 'present' : 'not collected', browser_side_supabase_secret:h.safety?.browser_side_supabase_secret === true ? 'present' : 'absent', external_writes:h.safety?.external_writes === true ? 'enabled' : 'disabled'})}</section>
+  </div>`;
+}
+
+
+function orderPackageGeneratorV38() {
+  const pkg = state.order_package_generator_v38 || ORDER_PACKAGE_GENERATOR_V38_DEFAULT;
+  const source = pkg.source_order || ORDER_PACKAGE_GENERATOR_V38_DEFAULT.source_order;
+  const briefs = asArray(pkg.page_briefs);
+  const sitemap = asArray(pkg.generated_sitemap);
+  const sections = asArray(pkg.section_copy_outlines);
+  const design = pkg.design_direction || {};
+  const payload = {schema_version: pkg.schema_version, source_order: source, generated_sitemap: sitemap, page_briefs: briefs, section_copy_outlines: sections, design_direction: design, seo_checklist: pkg.seo_checklist, asset_checklist: pkg.asset_checklist, qa_checklist: pkg.qa_checklist, delivery_checklist: pkg.delivery_checklist, next_safe_action: pkg.next_safe_action};
+  return `<div class="grid order-package-page" data-marker="order-package-generator-v38 generated sitemap page briefs SEO checklist QA checklist delivery checklist">
+    ${metric('Mode', 'Static sanitized package', 'span-3')}
+    ${metric('Pages', sitemap.length, 'span-3')}
+    ${metric('QA items', asArray(pkg.qa_checklist).length, 'span-3')}
+    ${metric('External writes', pkg.safety?.external_writes === true ? 'enabled' : 'disabled', 'span-3')}
+    <section class="card span-12 order-package-hero"><p class="eyebrow">order-package-generator-v38</p><h2>Order Package Generator</h2><p class="owner-summary"><b>Complete production package from a sanitized order:</b> sitemap, page briefs, section copy outlines, design direction, SEO plan, asset checklist, QA checklist, delivery checklist, and next safe action. Demo/static only; no live form submission.</p><div class="toolbar">${openButton('Lead → Order Handoff', '/lead-to-order-handoff/')}${openButton('Order Builder', '/order-builder/')}${openButton('Premium Factory v34', '/premium-factory-v34/')}${openButton('Generated Demo v35', '/generated-demo-site-v35/')}${copyButton('Copy package JSON', jsonCopy(payload))}${detailPayloadButton(payload, 'Подробнее', 'order-package-generator-v38')}</div></section>
+    <section class="card span-6"><h3>Source demo lead/order</h3>${kv({client_profile:source.client_profile, business_type:source.business_type, offer_service_product:source.offer_service_product, pricing_package:source.pricing_package, timeline:source.timeline, content_status:source.content_status})}</section>
+    <section class="card span-6"><h3>Generated sitemap</h3>${rowsTop(sitemap.map((x,i)=>({id:i+1,title:x,status:'generated'})), x=>row(x.id,x.title,x.status), 12, 'No sitemap')}</section>
+    <section class="card span-12"><h3>Page briefs</h3><div class="capability-grid">${briefs.map(b=>`<article class="capability-card"><h4>${fmt(b.page)}</h4><p>${fmt(b.goal)}</p><small>${asArray(b.sections).map(fmt).join(' · ')}</small></article>`).join('')}</div></section>
+    <section class="card span-6"><h3>Section copy outlines</h3>${rowsTop(sections.map((x,i)=>({id:i+1,title:x,status:'outline'})), x=>row(x.id,x.title,x.status), 12, 'No outlines')}</section>
+    <section class="card span-6"><h3>Design direction</h3>${kv({style:design.style, typography:design.typography, rules:asArray(design.visual_rules).join(' · ')})}</section>
+    <section class="card span-4"><h3>SEO checklist</h3>${rowsTop(asArray(pkg.seo_checklist).map((x,i)=>({id:i+1,title:x,status:'seo'})), x=>row(x.id,x.title,x.status), 12, 'No SEO checklist')}</section>
+    <section class="card span-4"><h3>Asset checklist</h3>${rowsTop(asArray(pkg.asset_checklist).map((x,i)=>({id:i+1,title:x,status:'asset'})), x=>row(x.id,x.title,x.status), 12, 'No asset checklist')}</section>
+    <section class="card span-4"><h3>QA checklist</h3>${rowsTop(asArray(pkg.qa_checklist).map((x,i)=>({id:i+1,title:x,status:'qa'})), x=>row(x.id,x.title,x.status), 12, 'No QA checklist')}</section>
+    <section class="card span-8"><h3>Delivery checklist</h3>${rowsTop(asArray(pkg.delivery_checklist).map((x,i)=>({id:i+1,title:x,status:'delivery'})), x=>row(x.id,x.title,x.status), 12, 'No delivery checklist')}</section>
+    <section class="card span-4"><h3>Next safe action</h3><p class="owner-summary">${fmt(pkg.next_safe_action || 'Review package before production.')}</p>${openButton('Open /work-factory/', '/work-factory/')}</section>
   </div>`;
 }
 
@@ -2328,7 +2398,7 @@ function orderBuilder() {
     ${metric('Sensitive data', ob.safety?.real_sensitive_client_data === true ? 'present' : 'not collected', 'span-3')}
     ${metric('Public demo only', ob.safety?.public_demo_only === false ? 'no' : 'yes', 'span-3')}
     ${metric('Task status', ob.production_task_template?.status || 'QUEUED_DEMO', 'span-3')}
-    ${card('Imported/demo request preview', `${kv({source:'lead-to-order-handoff-v37', client_profile:imported.client_profile, business_type:imported.business_type, offer_service_product:imported.offer_service_product, pricing_package:imported.pricing_package, timeline:imported.timeline})}<p class="owner-summary"><b>order-builder handoff:</b> ${fmt(imported.generated_production_brief || 'Open Lead → Order Handoff for sanitized payload.')}</p>${toolbar([openButton('Lead → Order Handoff', '/lead-to-order-handoff/'), copyButton('Copy imported handoff JSON', jsonCopy(imported))])}`, 'span-12', 'order-builder-card')}
+    ${card('Imported/demo request preview', `${kv({source:'lead-to-order-handoff-v37', client_profile:imported.client_profile, business_type:imported.business_type, offer_service_product:imported.offer_service_product, pricing_package:imported.pricing_package, timeline:imported.timeline})}<p class="owner-summary"><b>order-builder handoff:</b> ${fmt(imported.generated_production_brief || 'Open Lead → Order Handoff for sanitized payload.')}</p>${toolbar([openButton('Lead → Order Handoff', '/lead-to-order-handoff/'), openButton('Package Generator', '/order-package-generator/'), copyButton('Copy imported handoff JSON', jsonCopy(imported))])}`, 'span-12', 'order-builder-card')}
     ${card('Client profile', kv({client_profile:o.client_profile,business_type:o.business_type,target_audience:o.target_audience}), 'span-6')}
     ${card('Offer / product', kv({offer_service_product:o.offer_service_product,pricing_package:o.pricing_package,timeline:o.timeline}), 'span-6')}
     ${card('Desired style / pages', `${kv({desired_style:o.desired_style,content_status:o.content_status})}${rowsTop(asArray(o.required_pages).map(x=>({id:'page',title:x,status:'required'})), x=>row(x.id,x.title,x.status), 12, 'No pages')}`, 'span-6')}
@@ -2351,7 +2421,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

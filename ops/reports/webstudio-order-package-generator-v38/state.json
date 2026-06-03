@@ -1,0 +1,54 @@
+{
+  "schema_version": "webstudio.v38.order-package-generator.v1",
+  "task": "WEBSTUDIO V3.8 — ORDER PACKAGE GENERATOR",
+  "status": "GATES_PASS_LOCAL",
+  "output_root": "/workspace/output/webstudio-order-package-generator-v38",
+  "repo": "/workspace/tmp/webstudio-ops-dashboard-pr",
+  "branch": "webstudio/product-build-v31",
+  "started_at": "2026-06-03T00:13:02.956052+00:00",
+  "allowed_scope": [
+    "static sanitized UI/routes",
+    "reports",
+    "build/smoke",
+    "commit/push/deploy verify",
+    "one non-sensitive Supabase status row"
+  ],
+  "forbidden_scope": [
+    "real private data",
+    "live CRM/email/Telegram writes",
+    "destructive Supabase changes",
+    "browser-side secrets",
+    "gateway/systemd restart"
+  ],
+  "phase_reports": "PASS",
+  "ui_implementation": "PASS_LOCAL",
+  "updated_at": "2026-06-03T00:15:47.026457+00:00",
+  "gates": {
+    "npm_run_build": "PASS",
+    "npm_run_smoke": "PASS",
+    "local_static_smoke": "PASS",
+    "git_diff_check": "PASS",
+    "changed_diff_redaction_scan": "PASS"
+  },
+  "precommit_files": [
+    "scripts/build_snapshot.py",
+    "scripts/smoke_check.py",
+    "src/app.js",
+    "src/index.html",
+    "src/styles.css",
+    "ops/reports/webstudio-order-package-generator-v38/build-smoke-report.md",
+    "ops/reports/webstudio-order-package-generator-v38/continuation-prompt.md",
+    "ops/reports/webstudio-order-package-generator-v38/deploy-report.md",
+    "ops/reports/webstudio-order-package-generator-v38/events.jsonl",
+    "ops/reports/webstudio-order-package-generator-v38/final-report.md",
+    "ops/reports/webstudio-order-package-generator-v38/github-push-report.md",
+    "ops/reports/webstudio-order-package-generator-v38/order-package-schema.md",
+    "ops/reports/webstudio-order-package-generator-v38/package-generator-design.md",
+    "ops/reports/webstudio-order-package-generator-v38/state.json",
+    "ops/reports/webstudio-order-package-generator-v38/supabase-status-update.md",
+    "ops/reports/webstudio-order-package-generator-v38/ui-implementation.md",
+    "ops/reports/webstudio-order-package-generator-v38/validation.md"
+  ],
+  "precommit_allowlist_pass": true,
+  "precommit_allowlist_violations": []
+}

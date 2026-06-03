@@ -71,3 +71,11 @@ body{width:100%;min-width:0}.topbar,.tabs{width:100%;max-width:none;min-width:0}
 }
 .lead-to-order-page .compact article{min-height:88px}
 .lead-to-order-page .owner-summary b{color:#f5c37b}
+
+.order-package-page .order-package-hero,
+.order-package-page .order-builder-card{
+  border-color:rgba(54,211,153,.32);
+  background:linear-gradient(180deg,rgba(54,211,153,.10),rgba(12,18,26,.82));
+}
+.order-package-page .capability-card small{display:block;color:var(--muted);line-height:1.5;margin-top:.55rem}
+.order-package-page .owner-summary b{color:#36d399}

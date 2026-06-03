@@ -32,7 +32,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'generated-demo-site-v35', 'lead-capture-demo', 'lead-to-order-handoff', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'generated-demo-site-v35', 'lead-capture-demo', 'lead-to-order-handoff', 'order-package-generator', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -152,7 +152,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'generated_demo_site_v35', 'lead_capture_demo_v36', 'lead_to_order_handoff_v37', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder', 'delivery_handoff_composer_v33']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'generated_demo_site_v35', 'lead_capture_demo_v36', 'lead_to_order_handoff_v37', 'order_package_generator_v38', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder', 'delivery_handoff_composer_v33']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
@@ -174,6 +174,10 @@ assert state['lead_to_order_handoff_v37']['safety']['static_snapshot'] is True
 assert state['lead_to_order_handoff_v37']['safety']['external_writes'] is False
 for marker in ['lead-to-order-handoff-v37', 'demo lead payload', 'qualification preview', 'order-builder handoff', 'D1 website', 'D2 AI-intake bot', 'D3 automation']:
     assert marker in js, f'missing V3.7 marker {marker}'
+assert state['order_package_generator_v38']['safety']['static_snapshot'] is True
+assert state['order_package_generator_v38']['safety']['external_writes'] is False
+for marker in ['order-package-generator-v38', 'generated sitemap', 'page briefs', 'SEO checklist', 'QA checklist', 'delivery checklist']:
+    assert marker in js, f'missing V3.8 marker {marker}'
 
 assert len(state['bot_activity']['activity']) >= 3
 assert 'PASS' in state['bot_activity']['status_chips']
