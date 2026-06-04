@@ -1,6 +1,6 @@
 {
   "schema_version": "webstudio.real-asset-intake-pack.v50.state",
-  "status": "LOCAL_VALIDATED",
+  "status": "PASS_DEPLOYED",
   "version": "v5.0",
   "output_root": "/workspace/output/webstudio-real-asset-intake-pack-v50",
   "base_commit": "728de1a8bc75d9617b03b886b55c77085be3df6f",
@@ -18,5 +18,12 @@
   "build_smoke": "PASS",
   "route_smoke": "PASS /asset-intake-pack/",
   "validation": "PASS",
-  "updated_at": "2026-06-04T11:05:49.092090+00:00"
+  "updated_at": "2026-06-04T11:11:59.780330+00:00",
+  "commit_hash": "4c25b369f630c3d9a5d3fdef87cdcff2655add78",
+  "route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/asset-intake-pack/",
+  "deploy_status": "PASS",
+  "deploy_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26948086422",
+  "public_pages_smoke": "PASS",
+  "supabase_row_written": true,
+  "supabase_row_id": "ebe85a0e-94fc-47a9-a135-7f0a62e56547"
 }
