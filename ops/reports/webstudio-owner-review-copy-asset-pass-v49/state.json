@@ -1,7 +1,7 @@
 {
   "component": "webstudio-owner-review-copy-asset-pass",
   "version": "v4.9",
-  "status": "LOCAL_VALIDATED_PENDING_PUSH",
+  "status": "PASS_DEPLOYED",
   "created_at": "2026-06-04T10:14:36.197386+00:00",
   "repo": "pltnv123/webstudio-ops-dashboard",
   "branch": "webstudio/product-build-v31",
@@ -50,5 +50,12 @@
     "git_diff_check": "PASS"
   },
   "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
-  "supabase_row_written": false
+  "supabase_row_written": true,
+  "implementation_commit_hash": "17d673fa0dcc44405c66cedf9c5ffc266a59bbd0",
+  "latest_report_commit_hash": "pending-final-report-commit",
+  "deploy_status": "PASS",
+  "deploy_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26946255141",
+  "public_pages_smoke": "PASS 10/10",
+  "supabase_row_id": "5345e451-9926-4a73-969c-95d958c1c9c2",
+  "updated_at": "2026-06-04T10:32:33.518593+00:00"
 }
