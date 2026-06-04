@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','client-handoff-pack','handoff-review-matrix','revision-request-demo','webstudio-showcase','pricing-packages','route-health','morning-summary','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','owner-review','asset-intake-pack','client-safe-preview','client-approval-room','revision-workflow','real-client-readiness','sales-funnel','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','client-handoff-pack','handoff-review-matrix','revision-request-demo','webstudio-showcase','pricing-packages','route-health','morning-summary','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','owner-review','asset-intake-pack','client-safe-preview','client-approval-room','revision-workflow','real-client-readiness','sales-funnel','delivery-lifecycle','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -53,7 +53,8 @@ const COMMERCIAL_ROUTES_V48 = [
   {label:'Client Approval Room', href:'/client-approval-room/', status:'READY_TO_APPROVE'},
   {label:'Revision Workflow', href:'/revision-workflow/', status:'TRIAGED'},
   {label:'Real Client Readiness', href:'/real-client-readiness/', status:'NEEDS_REVIEW'},
-  {label:'Sales Funnel', href:'/sales-funnel/', status:'READY_FOR_DEMO'}
+  {label:'Sales Funnel', href:'/sales-funnel/', status:'READY_FOR_DEMO'},
+  {label:'Delivery Lifecycle', href:'/delivery-lifecycle/', status:'DELIVERY_TRACKING'}
 ];
 const COMMERCIAL_PRODUCT_CARDS_V48 = [
   {name:'Premium Website', detail:'Proof-led landing or multi-page site package with copy outline, QA, handoff pack, and owner-approved launch gates.', cta:'View generated demo site', href:'/generated-demo-site-v35/'},
@@ -77,7 +78,7 @@ function commercialHomeHero() {
   return `<section class="card span-12 commercial-home-hero" data-marker="webstudio-commercial-polish-v48 Lead Capture Order Builder Package Generator Page Builder Demo Assembly Handoff Premium Website AI Intake Bot Business Automation">
     <div class="commercial-hero-copy"><p class="eyebrow">WebStudio public product dashboard</p><h2>From lead to demo handoff — without risky live writes.</h2><p>WebStudio turns a client request into a reviewable product journey: safe intake, order shaping, package generation, page builder, demo assembly, and owner/client handoff. This public surface is static, sanitized, and explicit about what is demo-only versus what needs owner approval before live use.</p>${commercialBadgeBar()}</div>
     <div class="commercial-cta-grid">${[
-      ['Start demo order','/lead-capture-demo/'],['View generated demo site','/generated-demo-site-v35/'],['View pricing packages','/pricing-packages/'],['Owner review / next revisions','/owner-review/'],['Real Asset Intake Pack','/asset-intake-pack/'],['Client-Safe Preview','/client-safe-preview/'],['View route health','/route-health/']
+      ['Start demo order','/lead-capture-demo/'],['View generated demo site','/generated-demo-site-v35/'],['View pricing packages','/pricing-packages/'],['Owner review / next revisions','/owner-review/'],['Real Asset Intake Pack','/asset-intake-pack/'],['Client-Safe Preview','/client-safe-preview/'],['Delivery Lifecycle','/delivery-lifecycle/'],['View route health','/route-health/']
     ].map(([label,href])=>`<a class="commercial-cta" href="${href}">${label}<span>${href}</span></a>`).join('')}</div>
   </section>`;
 }
@@ -2121,6 +2122,25 @@ const REAL_ASSET_INTAKE_PACK_V50_DEFAULT = {
 
 
 
+
+const DELIVERY_LIFECYCLE_TRACKER_V57_DEFAULT = {
+  schema_version:'webstudio.delivery-lifecycle-tracker.v57', marker:'delivery-lifecycle-v57', route:'/delivery-lifecycle/', status:'DELIVERY_TRACKING',
+  chips:['INTAKE_READY','ASSET_WAITING','BUILD_READY','REVIEW_READY','REVISION_REQUESTED','APPROVED_FOR_HANDOFF','BLOCKED_FOR_LIVE'],
+  summary:'Client delivery lifecycle tracker for moving a sanitized WebStudio package from intake through approved handoff. Static snapshot only; no live client-send or CRM writes.',
+  lifecycle:[
+    {stage:'Intake captured',status:'INTAKE_READY',owner_action:'Confirm scope and package path',evidence:'/lead-capture-demo/'},
+    {stage:'Assets requested',status:'ASSET_WAITING',owner_action:'Collect approved logo/photos/proof outside public demo',evidence:'/asset-intake-pack/'},
+    {stage:'Build package ready',status:'BUILD_READY',owner_action:'Review generated order/site package',evidence:'/order-package-generator/'},
+    {stage:'Client-safe preview',status:'REVIEW_READY',owner_action:'Share sanitized preview only after owner approval',evidence:'/client-safe-preview/'},
+    {stage:'Revision loop',status:'REVISION_REQUESTED',owner_action:'Triage copy/design/assets/compliance changes',evidence:'/revision-workflow/'},
+    {stage:'Handoff approval',status:'APPROVED_FOR_HANDOFF',owner_action:'Approve handoff checklist and next safe action',evidence:'/client-approval-room/'},
+    {stage:'Live launch/integrations',status:'BLOCKED_FOR_LIVE',owner_action:'Separate explicit approval required',evidence:'/real-client-readiness/'}],
+  acceptance_gates:['Package scope approved','Real assets permissioned','Public copy reviewed','Proof/testimonials verified','Build/smoke/route smoke passed','Supabase ops row written','Owner handoff decision recorded'],
+  blocked_live_actions:['Live CRM writes','Client email/send actions','Telegram bot live messaging','Payment or booking writes','Publishing private client assets','Regulated claims without review'],
+  links:{lead_capture:'/lead-capture-demo/',asset_intake:'/asset-intake-pack/',client_safe_preview:'/client-safe-preview/',revision_workflow:'/revision-workflow/',client_approval_room:'/client-approval-room/',real_client_readiness:'/real-client-readiness/',route_health:'/route-health/'}
+};
+function deliveryLifecycleV57(){const d=state.delivery_lifecycle_tracker_v57||DELIVERY_LIFECYCLE_TRACKER_V57_DEFAULT;return `<div class="productization-page delivery-lifecycle-page" data-marker="delivery-lifecycle-v57 INTAKE_READY ASSET_WAITING BUILD_READY REVIEW_READY REVISION_REQUESTED APPROVED_FOR_HANDOFF BLOCKED_FOR_LIVE"><section class="productization-grid">${productizationHero(d.marker,'v5.7 delivery lifecycle','Delivery Lifecycle Tracker','Track a client-ready package from intake to approved handoff while keeping live/client-send actions blocked until explicit approval.',[{label:'Open client approval room',href:d.links.client_approval_room},{label:'Open route health',href:d.links.route_health}])}<section class="card span-12"><h3>Status chips</h3>${v5xChipBar(d.chips)}<p>${fmt(d.summary)}</p>${simpleRouteLinks(d.links)}</section><section class="card span-12"><h3>Lifecycle stages</h3>${v5xCards(d.lifecycle.map(x=>({item:x.stage,status:x.status,owner_action:x.owner_action,gate:x.evidence})))}</section><section class="card span-6"><h3>Acceptance gates</h3>${listPanel('acceptance gates',d.acceptance_gates,'APPROVED_FOR_HANDOFF')}</section><section class="card span-6"><h3>Blocked live actions</h3>${listPanel('blocked live actions',d.blocked_live_actions,'BLOCKED_FOR_LIVE')}</section><section class="card span-12"><h3>Machine-readable payload</h3>${detailPayloadButton(d,'Подробнее','delivery-lifecycle-v57')}</section></section></div>`;}
+
 const CLIENT_APPROVAL_ROOM_V52_DEFAULT = {
   schema_version:'webstudio.client-approval-room.v52', marker:'client-approval-room-v52', route:'/client-approval-room/', status:'APPROVED_FOR_DEMO', preview_url:'/client-safe-preview/',
   chips:['READY_TO_APPROVE','NEEDS_REVISION','NEEDS_REAL_ASSET','BLOCKED_FOR_LIVE','APPROVED_FOR_DEMO','OWNER_REQUIRED'],
@@ -3072,7 +3092,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'client-handoff-pack': clientHandoffPackV41, 'handoff-review-matrix': handoffReviewMatrixV42, 'revision-request-demo': revisionRequestDemoV43, 'webstudio-showcase': webstudioShowcaseV44, 'pricing-packages': pricingPackagesV45, 'route-health': routeHealthDashboardV46, 'owner-review': ownerReviewV49, 'asset-intake-pack': assetIntakePackV50, 'client-safe-preview': clientSafePreviewV51, 'client-approval-room': clientApprovalRoomV52, 'revision-workflow': revisionWorkflowV53, 'real-client-readiness': realClientReadinessV54, 'sales-funnel': salesFunnelV55, 'morning-summary': morningSummaryV47, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'client-handoff-pack': clientHandoffPackV41, 'handoff-review-matrix': handoffReviewMatrixV42, 'revision-request-demo': revisionRequestDemoV43, 'webstudio-showcase': webstudioShowcaseV44, 'pricing-packages': pricingPackagesV45, 'route-health': routeHealthDashboardV46, 'owner-review': ownerReviewV49, 'asset-intake-pack': assetIntakePackV50, 'client-safe-preview': clientSafePreviewV51, 'client-approval-room': clientApprovalRoomV52, 'revision-workflow': revisionWorkflowV53, 'real-client-readiness': realClientReadinessV54, 'sales-funnel': salesFunnelV55, 'delivery-lifecycle': deliveryLifecycleV57, 'morning-summary': morningSummaryV47, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
