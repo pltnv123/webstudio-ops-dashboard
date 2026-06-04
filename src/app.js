@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','client-handoff-pack','handoff-review-matrix','revision-request-demo','webstudio-showcase','pricing-packages','route-health','morning-summary','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','owner-review','asset-intake-pack','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','client-handoff-pack','handoff-review-matrix','revision-request-demo','webstudio-showcase','pricing-packages','route-health','morning-summary','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','owner-review','asset-intake-pack','client-safe-preview','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -48,7 +48,8 @@ const COMMERCIAL_ROUTES_V48 = [
   {label:'Pricing packages', href:'/pricing-packages/', status:'DEMO ONLY'},
   {label:'Route health', href:'/route-health/', status:'DEPLOYED'},
   {label:'Owner review', href:'/owner-review/', status:'REVIEW READY'},
-  {label:'Asset Intake Pack', href:'/asset-intake-pack/', status:'CLIENT_REQUIRED'}
+  {label:'Asset Intake Pack', href:'/asset-intake-pack/', status:'CLIENT_REQUIRED'},
+  {label:'Client-Safe Preview', href:'/client-safe-preview/', status:'APPROVED_FOR_PREVIEW'}
 ];
 const COMMERCIAL_PRODUCT_CARDS_V48 = [
   {name:'Premium Website', detail:'Proof-led landing or multi-page site package with copy outline, QA, handoff pack, and owner-approved launch gates.', cta:'View generated demo site', href:'/generated-demo-site-v35/'},
@@ -72,7 +73,7 @@ function commercialHomeHero() {
   return `<section class="card span-12 commercial-home-hero" data-marker="webstudio-commercial-polish-v48 Lead Capture Order Builder Package Generator Page Builder Demo Assembly Handoff Premium Website AI Intake Bot Business Automation">
     <div class="commercial-hero-copy"><p class="eyebrow">WebStudio public product dashboard</p><h2>From lead to demo handoff — without risky live writes.</h2><p>WebStudio turns a client request into a reviewable product journey: safe intake, order shaping, package generation, page builder, demo assembly, and owner/client handoff. This public surface is static, sanitized, and explicit about what is demo-only versus what needs owner approval before live use.</p>${commercialBadgeBar()}</div>
     <div class="commercial-cta-grid">${[
-      ['Start demo order','/lead-capture-demo/'],['View generated demo site','/generated-demo-site-v35/'],['View pricing packages','/pricing-packages/'],['Owner review / next revisions','/owner-review/'],['Real Asset Intake Pack','/asset-intake-pack/'],['View route health','/route-health/']
+      ['Start demo order','/lead-capture-demo/'],['View generated demo site','/generated-demo-site-v35/'],['View pricing packages','/pricing-packages/'],['Owner review / next revisions','/owner-review/'],['Real Asset Intake Pack','/asset-intake-pack/'],['Client-Safe Preview','/client-safe-preview/'],['View route health','/route-health/']
     ].map(([label,href])=>`<a class="commercial-cta" href="${href}">${label}<span>${href}</span></a>`).join('')}</div>
   </section>`;
 }
@@ -2114,6 +2115,55 @@ const REAL_ASSET_INTAKE_PACK_V50_DEFAULT = {
   next_safe_action:'Send the template to the client, collect approved assets outside the public demo, then update copy/assets only after owner/client approval.'
 };
 
+
+const CLIENT_SAFE_PREVIEW_V51_DEFAULT = {
+  schema_version:'webstudio.client-safe-preview.v51',
+  marker:'client-safe-preview-v51',
+  status:'APPROVED_FOR_PREVIEW',
+  route:'/client-safe-preview/',
+  public_url:'https://pltnv123.github.io/webstudio-ops-dashboard/client-safe-preview/',
+  preview_link:'/one-click-demo-assembly/',
+  safety:{demo_only:true, static_snapshot:true, sanitized_only:true, real_private_client_data:false, live_upload:false, live_submission:false, external_writes:false, browser_side_secrets:false, fake_testimonials:false, medical_legal_overclaims:false},
+  section_readiness:[
+    {section:'Hero', status:'READY_FOR_DEMO', placeholder:'Demo brand name and concept hero image', asset_requirement:'Approved logo, hero photo, final positioning line', copy_boundary:'No outcome guarantee; demo CTA only.'},
+    {section:'Services', status:'NEEDS_REAL_ASSET', placeholder:'Sanitized service cards and generic offer names', asset_requirement:'Real service descriptions, exclusions, package notes', copy_boundary:'No fixed price/timeline unless approved.'},
+    {section:'Proof', status:'BLOCKED_FOR_PUBLIC', placeholder:'Artifact proof only', asset_requirement:'Consent-backed testimonials, logos, case metrics', copy_boundary:'No fake testimonials, fake logos, or invented numbers.'},
+    {section:'Process', status:'APPROVED_FOR_PREVIEW', placeholder:'Demo workflow: intake → package → page → handoff', asset_requirement:'Client-specific process notes if public', copy_boundary:'No live automation claim; no CRM/email/Telegram/payment writes.'},
+    {section:'FAQ', status:'NEEDS_OWNER', placeholder:'Generic safety/scope answers', asset_requirement:'Approved policy answers and compliance disclaimers', copy_boundary:'No medical/legal/financial advice or overclaims.'},
+    {section:'CTA / Contact', status:'NEEDS_OWNER', placeholder:'Demo-only CTA button', asset_requirement:'Approved public contact or booking destination', copy_boundary:'No live submission or hidden endpoint.'}
+  ],
+  placeholder_map:[
+    {item:'Logo / wordmark', status:'NEEDS_REAL_ASSET', safe_demo_use:'Use labeled text mark or concept placeholder.'},
+    {item:'Hero image', status:'NEEDS_REAL_ASSET', safe_demo_use:'Use generated/concept visual clearly marked as demo.'},
+    {item:'Testimonials', status:'BLOCKED_FOR_PUBLIC', safe_demo_use:'Use artifact proof and checklist evidence only.'},
+    {item:'Pricing', status:'NEEDS_OWNER', safe_demo_use:'Use custom quote / draft range wording only.'},
+    {item:'Contact destination', status:'NEEDS_OWNER', safe_demo_use:'Use demo-only CTA with no live submission.'}
+  ],
+  real_asset_requirements:['Approved logo/brand colors','Hero and service photos with usage rights','Real service descriptions and exclusions','Approved testimonials/proof if any','Approved public contact/booking preference','Compliance notes for regulated wording'],
+  approval_gates:[
+    {gate:'Owner accepts preview for demo only', status:'APPROVED_FOR_PREVIEW'},
+    {gate:'Client approves real assets and identity', status:'NEEDS_REAL_ASSET'},
+    {gate:'Testimonials/proof verified and consent-backed', status:'BLOCKED_FOR_PUBLIC'},
+    {gate:'Medical/legal/financial copy reviewed', status:'BLOCKED_FOR_PUBLIC'},
+    {gate:'Live contact/upload/submission/integration approved', status:'NEEDS_OWNER'}
+  ],
+  copy_safety_notes:['Use visible placeholder labels in every unfinished section.','Use artifact proof instead of social proof until proof is approved.','Keep public copy generic for regulated industries until review is complete.','Do not imply live automation, booking, payment, CRM, email, or Telegram writes.','Do not publish private data, credentials, internal notes, or unapproved contact details.'],
+  client_ready_checklist:[
+    {item:'Preview has visible demo labels', status:'APPROVED_FOR_PREVIEW'},
+    {item:'Section readiness reviewed', status:'READY_FOR_DEMO'},
+    {item:'Real asset gaps are listed', status:'NEEDS_REAL_ASSET'},
+    {item:'Approval gates are explicit', status:'NEEDS_OWNER'},
+    {item:'Public launch blockers are separated from demo readiness', status:'BLOCKED_FOR_PUBLIC'}
+  ],
+  owner_decision_panel:{demo:'Approved for sanitized preview sharing after owner review.', ready:'Structure, route, static preview, checklist, artifact proof.', needs_real_assets:'Brand identity, photos, approved service copy, testimonials/proof, contact destination.', blocked_for_public:'Unapproved proof, regulated claims, live submissions/integrations, private data.'},
+  links:{one_click_demo_assembly:'/one-click-demo-assembly/', generated_demo_site_v35:'/generated-demo-site-v35/', asset_intake_pack:'/asset-intake-pack/', client_handoff_pack:'/client-handoff-pack/', owner_review:'/owner-review/'},
+  next_safe_action:'Use the preview for owner/client review, then collect real assets through the Asset Intake Pack before public launch.'
+};
+
+function previewChipBarV51(){return `<div class="client-preview-chipbar">${['READY_FOR_DEMO','NEEDS_REAL_ASSET','NEEDS_OWNER','BLOCKED_FOR_PUBLIC','APPROVED_FOR_PREVIEW'].map(x=>`<span class="preview-chip ${statusClass(x)}">${fmt(x)}</span>`).join('')}</div>`;}
+function previewCardsV51(items){return `<div class="client-preview-cards">${asArray(items).map(x=>`<article><div class="attention-head"><strong>${fmt(x.section||x.item||x.gate)}</strong>${badge(x.status)}</div>${x.placeholder?`<p><b>Placeholder label:</b> ${fmt(x.placeholder)}</p>`:''}${x.asset_requirement?`<p><b>Asset requirement:</b> ${fmt(x.asset_requirement)}</p>`:''}${x.copy_boundary?`<p><b>Copy safety boundary:</b> ${fmt(x.copy_boundary)}</p>`:''}${x.safe_demo_use?`<p><b>Safe demo use:</b> ${fmt(x.safe_demo_use)}</p>`:''}</article>`).join('')}</div>`;}
+function clientSafePreviewV51(){const d=state.client_safe_preview_v51||CLIENT_SAFE_PREVIEW_V51_DEFAULT;return `<div class="productization-page client-safe-preview-page" data-marker="client-safe-preview-v51 placeholder map approval gates client-ready checklist NEEDS_REAL_ASSET APPROVED_FOR_PREVIEW"><section class="productization-grid">${productizationHero(d.marker,'client-safe preview upgrade','Client-Safe Preview Mode','A sanitized preview control layer for the generated demo website: what is demo, what is ready, what needs real assets, and what is blocked until owner/client approval.',[{label:'Open One-Click Demo Assembly',href:d.links.one_click_demo_assembly},{label:'Asset Intake Pack',href:d.links.asset_intake_pack},{label:'Owner Review',href:d.links.owner_review}])}<section class="card span-12"><h3>Status chips</h3>${previewChipBarV51()}<p class="owner-summary">Static sanitized snapshot only. No live upload, live submission, CRM/email/Telegram/payment writes, browser-side secrets, fake testimonials/proof, or medical/legal overclaims.</p></section><section class="card span-12"><h3>Preview link</h3><p>Client-safe review target points to the assembled demo while this page explains visible placeholder labels and approval gates.</p><div class="toolbar">${openButton('One-Click Demo Assembly',d.links.one_click_demo_assembly)}${openButton('Generated Demo Site v35',d.links.generated_demo_site_v35)}${openButton('Asset Intake Pack',d.links.asset_intake_pack)}${openButton('Client Handoff Pack',d.links.client_handoff_pack)}${openButton('Owner Review',d.links.owner_review)}</div></section><section class="card span-12"><h3>Section-by-section readiness</h3>${previewCardsV51(d.section_readiness)}</section><section class="card span-6"><h3>Placeholder map</h3>${previewCardsV51(d.placeholder_map)}</section><section class="card span-6"><h3>Real asset requirements</h3>${listPanel('real assets',d.real_asset_requirements,'NEEDS_REAL_ASSET')}</section><section class="card span-12"><h3>Approval gates</h3>${previewCardsV51(d.approval_gates)}</section><section class="card span-6"><h3>Copy safety notes</h3>${listPanel('copy safety',d.copy_safety_notes,'READY_FOR_DEMO')}</section><section class="card span-6"><h3>Client-ready checklist</h3>${previewCardsV51(d.client_ready_checklist)}</section><section class="card span-12"><h3>Owner decision panel</h3>${kv(d.owner_decision_panel)}<p class="owner-summary"><b>Next safe action:</b> ${fmt(d.next_safe_action)}</p>${detailPayloadButton(d,'Подробнее','client-safe-preview-v51')}</section></section></div>`;}
+
 function assetIntakeStatusChips() {
   return `<div class="asset-intake-chipbar">${['REQUIRED','OPTIONAL','NEEDS_OWNER','CLIENT_REQUIRED','APPROVED_FOR_DEMO','BLOCKED_FOR_PUBLIC'].map(x=>`<span class="asset-chip ${statusClass(x)}">${fmt(x)}</span>`).join('')}</div>`;
 }
@@ -2968,7 +3018,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'client-handoff-pack': clientHandoffPackV41, 'handoff-review-matrix': handoffReviewMatrixV42, 'revision-request-demo': revisionRequestDemoV43, 'webstudio-showcase': webstudioShowcaseV44, 'pricing-packages': pricingPackagesV45, 'route-health': routeHealthDashboardV46, 'owner-review': ownerReviewV49, 'asset-intake-pack': assetIntakePackV50, 'morning-summary': morningSummaryV47, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'client-handoff-pack': clientHandoffPackV41, 'handoff-review-matrix': handoffReviewMatrixV42, 'revision-request-demo': revisionRequestDemoV43, 'webstudio-showcase': webstudioShowcaseV44, 'pricing-packages': pricingPackagesV45, 'route-health': routeHealthDashboardV46, 'owner-review': ownerReviewV49, 'asset-intake-pack': assetIntakePackV50, 'client-safe-preview': clientSafePreviewV51, 'morning-summary': morningSummaryV47, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
