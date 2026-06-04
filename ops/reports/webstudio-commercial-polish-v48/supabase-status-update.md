@@ -1,15 +1,16 @@
 # Supabase status update
 
-Status: pending row write at time of report push.
+Status: PASS
 
 Target table: `public.webstudio_ops_status`
 
-Planned sanitized row:
+Inserted sanitized operational row:
+- id: `ea235bd8-1777-4681-b0a2-5a70cc8d3ed1`
 - component: `webstudio-commercial-polish`
 - version: `v4.8`
 - status: `DEPLOYED`
-- git_commit: final report commit or deployed implementation commit
+- git_commit: `f8a9f07f87ad46e8bc6972624e3d28a6d17e20df`
 - deployment_target: `https://pltnv123.github.io/webstudio-ops-dashboard/`
-- notes: static/demo/sanitized commercial polish; no live CRM/email/Telegram/payment writes; GitHub Actions deploy success; Pages route smoke PASS.
+- created_at: `2026-06-04 09:59:01.685572+00`
 
-Write proof is recorded in `/workspace/output/webstudio-commercial-polish-v48/supabase-status-update.md` after MCP execution.
+Notes: static/demo/sanitized commercial polish; no live CRM/email/Telegram/payment writes.

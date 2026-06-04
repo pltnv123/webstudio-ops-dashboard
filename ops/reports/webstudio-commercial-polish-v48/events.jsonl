@@ -4,4 +4,5 @@
 {"event":"github.push.blocked_sandbox","detail":"git push failed: missing HTTPS credentials; host autopush job queued"}
 {"event":"github.push.pass","commit":"c53395c3148c3cebcdcfa6e240cb2a475a61e018","method":"host autopush"}
 {"event":"deploy.verified","run":"https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26944314328","pages":"https://pltnv123.github.io/webstudio-ops-dashboard/"}
-{"event":"github.reports.push","method":"mcp_github_push_files"}
+{"event":"github.reports.push","commit":"f8a9f07f87ad46e8bc6972624e3d28a6d17e20df","method":"mcp_github_push_files"}
+{"event":"supabase.row_written","id":"ea235bd8-1777-4681-b0a2-5a70cc8d3ed1","status":"DEPLOYED"}
