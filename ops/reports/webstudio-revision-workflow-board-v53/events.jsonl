@@ -1,0 +1,2 @@
+{"ts": "2026-06-04T23:18:36.364916+00:00", "event": "start", "status": "START", "component": "webstudio-revision-workflow-board"}
+{"ts": "2026-06-04T23:21:06.226100+00:00", "phase": "local_validation", "status": "PASS", "route": "/revision-workflow/"}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "webstudio-revision-workflow-board.state",
+  "status": "LOCAL_VALIDATED",
+  "component": "webstudio-revision-workflow-board",
+  "version": "v5.3",
+  "route": "/revision-workflow/",
+  "output_root": "/workspace/output/webstudio-revision-workflow-board-v53",
+  "created_at": "2026-06-04T23:18:36.364916+00:00",
+  "safety": {
+    "static_sanitized_snapshot_only": true,
+    "private_data": false,
+    "live_writes": false,
+    "browser_side_secrets": false
+  },
+  "route_smoke": "PASS",
+  "build_smoke": "PASS",
+  "validation": "PASS",
+  "updated_at": "2026-06-04T23:21:06.226100+00:00"
+}
