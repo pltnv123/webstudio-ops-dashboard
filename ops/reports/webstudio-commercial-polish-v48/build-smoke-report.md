@@ -1,0 +1,33 @@
+# Build / smoke report
+
+```text
+
+> webstudio-ops-dashboard@0.1.0 build
+> python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static
+
+snapshot=/workspace/projects/webstudio-ops-dashboard.gitcheck/public/data/webstudio-control-plane-state.json size=3632205 sha256=3f47485277a0720768615b4bdc1eaa872d7d94e1064cc885304622fa853cf89a
+canonical=/workspace/output/webstudio-control-plane-state.json size=3632205 sha256=3f47485277a0720768615b4bdc1eaa872d7d94e1064cc885304622fa853cf89a
+safety=pass mirror_executable_count=0 duplicate_keys=0
+dist=/workspace/output/webstudio-ops-dashboard-static files=258
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.16.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.16.0
+npm notice To update run: npm install -g npm@11.16.0
+npm notice
+
+> webstudio-ops-dashboard@0.1.0 smoke
+> python3 scripts/smoke_check.py
+
+SMOKE PASS
+generated_at=2026-06-04T09:42:20Z
+kanban_task_total=852
+wf_completed=144
+routes=overview,work-factory,owner-command-center,order-builder,kanban,production,demo-products,agent-workflow,capabilities,motion-factory,intake-orders,delivery,real-clients,premium-factory,premium-generator,premium-factory-v34,generated-demo-site-v35,lead-capture-demo,lead-to-order-handoff,order-package-generator,website-page-builder,one-click-demo-assembly,client-handoff-pack,handoff-review-matrix,revision-request-demo,webstudio-showcase,pricing-packages,route-health,morning-summary,d3-intake,owner-feedback,clients,sales-pack,morning-desk,approvals,supabase-memory,bot-activity,health,artifacts,marathon,audit
+executable_mirror_count=0
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.16.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.16.0
+npm notice To update run: npm install -g npm@11.16.0
+npm notice
+
+```

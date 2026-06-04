@@ -1,0 +1,47 @@
+{
+  "component": "webstudio-commercial-polish",
+  "version": "v4.8",
+  "status": "LOCAL_COMMITTED_PENDING_PUSH",
+  "created_at": "2026-06-04T09:45:05.851480+00:00",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "branch": "webstudio/product-build-v31",
+  "output_root": "/workspace/output/webstudio-commercial-polish-v48",
+  "reports_repo_path": "ops/reports/webstudio-commercial-polish-v48/",
+  "changed_files": [
+    "src/app.js",
+    "src/index.html",
+    "src/styles.css"
+  ],
+  "routes": [
+    "/",
+    "/lead-capture-demo/",
+    "/lead-to-order-handoff/",
+    "/order-builder/",
+    "/order-package-generator/",
+    "/website-page-builder/",
+    "/one-click-demo-assembly/",
+    "/generated-demo-site-v35/",
+    "/client-handoff-pack/",
+    "/handoff-review-matrix/",
+    "/revision-request-demo/",
+    "/webstudio-showcase/",
+    "/pricing-packages/",
+    "/route-health/",
+    "/morning-summary/",
+    "/work-factory/",
+    "/owner-command-center/",
+    "/bot-activity/",
+    "/supabase-memory/"
+  ],
+  "checks": {
+    "node_check": "PASS",
+    "npm_run_build": "PASS",
+    "npm_run_smoke": "PASS",
+    "static_route_smoke": "PASS",
+    "changed_file_secret_scan": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "commit_hash": "RECORDED_IN_FINAL_OUTPUT_AFTER_COMMIT",
+  "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "supabase_row_written": false
+}
