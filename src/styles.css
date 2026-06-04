@@ -108,3 +108,7 @@ body{width:100%;min-width:0}.topbar,.tabs{width:100%;max-width:none;min-width:0}
 
 .owner-review-page .route-health-list article { border-color: rgba(245,195,123,.34); }
 .owner-review-page .productization-hero { background: linear-gradient(135deg, rgba(245,195,123,.12), rgba(93,210,255,.08)); }
+
+
+/* WebStudio V5.0 Real Asset Intake Pack */
+.asset-intake-page .asset-intake-chipbar{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 4px}.asset-chip{border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:800;letter-spacing:.06em;background:rgba(255,255,255,.06)}.asset-chip.required{color:#ffd166}.asset-chip.optional{color:#9bdcff}.asset-chip.needs_owner{color:#ffb86b}.asset-chip.client_required{color:#fca5a5}.asset-chip.approved_for_demo{color:#86efac}.asset-chip.blocked_for_public{color:#ff7b7b}.asset-intake-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.asset-intake-cards article{border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:14px;background:rgba(255,255,255,.045)}.asset-template{white-space:pre-wrap;max-height:560px;overflow:auto}.asset-intake-page .owner-summary{border-left:3px solid rgba(134,239,172,.72);padding-left:14px}

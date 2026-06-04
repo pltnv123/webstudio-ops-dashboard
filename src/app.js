@@ -1,7 +1,7 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
 
 let state = null;
-const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','client-handoff-pack','handoff-review-matrix','revision-request-demo','webstudio-showcase','pricing-packages','route-health','morning-summary','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','owner-review','audit'];
+const routeNames = ['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','premium-factory','premium-generator','premium-factory-v34','generated-demo-site-v35','lead-capture-demo','lead-to-order-handoff','order-package-generator','website-page-builder','one-click-demo-assembly','client-handoff-pack','handoff-review-matrix','revision-request-demo','webstudio-showcase','pricing-packages','route-health','morning-summary','premium-factory-v37-day1','error-recovery','d3-intake','clients','sales-pack','morning-desk','work-factory','owner-command-center','order-builder','supabase-memory','bot-activity','owner-review','asset-intake-pack','audit'];
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean).pop() || '';
 let route = window.location.hash.replace('#', '') || (routeNames.includes(pathRoute) ? pathRoute : 'overview');
 let filters = {
@@ -47,7 +47,8 @@ const COMMERCIAL_ROUTES_V48 = [
   {label:'Generated demo site', href:'/generated-demo-site-v35/', status:'DEPLOYED'},
   {label:'Pricing packages', href:'/pricing-packages/', status:'DEMO ONLY'},
   {label:'Route health', href:'/route-health/', status:'DEPLOYED'},
-  {label:'Owner review', href:'/owner-review/', status:'REVIEW READY'}
+  {label:'Owner review', href:'/owner-review/', status:'REVIEW READY'},
+  {label:'Asset Intake Pack', href:'/asset-intake-pack/', status:'CLIENT_REQUIRED'}
 ];
 const COMMERCIAL_PRODUCT_CARDS_V48 = [
   {name:'Premium Website', detail:'Proof-led landing or multi-page site package with copy outline, QA, handoff pack, and owner-approved launch gates.', cta:'View generated demo site', href:'/generated-demo-site-v35/'},
@@ -71,7 +72,7 @@ function commercialHomeHero() {
   return `<section class="card span-12 commercial-home-hero" data-marker="webstudio-commercial-polish-v48 Lead Capture Order Builder Package Generator Page Builder Demo Assembly Handoff Premium Website AI Intake Bot Business Automation">
     <div class="commercial-hero-copy"><p class="eyebrow">WebStudio public product dashboard</p><h2>From lead to demo handoff — without risky live writes.</h2><p>WebStudio turns a client request into a reviewable product journey: safe intake, order shaping, package generation, page builder, demo assembly, and owner/client handoff. This public surface is static, sanitized, and explicit about what is demo-only versus what needs owner approval before live use.</p>${commercialBadgeBar()}</div>
     <div class="commercial-cta-grid">${[
-      ['Start demo order','/lead-capture-demo/'],['View generated demo site','/generated-demo-site-v35/'],['View pricing packages','/pricing-packages/'],['Owner review / next revisions','/owner-review/'],['View route health','/route-health/']
+      ['Start demo order','/lead-capture-demo/'],['View generated demo site','/generated-demo-site-v35/'],['View pricing packages','/pricing-packages/'],['Owner review / next revisions','/owner-review/'],['Real Asset Intake Pack','/asset-intake-pack/'],['View route health','/route-health/']
     ].map(([label,href])=>`<a class="commercial-cta" href="${href}">${label}<span>${href}</span></a>`).join('')}</div>
   </section>`;
 }
@@ -2039,6 +2040,88 @@ function pricingPackagesV45(){const d=state.pricing_package_catalog_v45||PRICING
 
 function ownerReviewV49(){const d=state.owner_review_v49||OWNER_REVIEW_V49_DEFAULT;return `<div class="productization-page owner-review-page" data-marker="owner-review-v49 Owner Review Next Revisions Asset Gaps Demo Only No Live Writes"><section class="productization-grid">${productizationHero(d.marker,'owner review / next revisions','Owner Review + Asset Gap Pass',d.summary,[{label:'Start demo order',href:'/lead-capture-demo/'},{label:'Client Handoff Pack',href:'/client-handoff-pack/'},{label:'Pricing Packages',href:'/pricing-packages/'}])}${commercialProductNav('Owner review navigation')}<section class="card span-12"><h3>Safe copy changes</h3>${listPanel('safe copy',d.safe_copy_changes,'PASS')}</section><section class="card span-12"><h3>Route review matrix</h3><div class="route-health-list">${asArray(d.route_notes).map(x=>`<article class="attention-item review-ready"><div class="attention-head"><strong>${fmt(x.route)}</strong>${badge(x.cta==='clear'?'PASS':'REVIEW_READY')}</div><p><b>Purpose:</b> ${fmt(x.purpose)} · <b>Audience:</b> ${fmt(x.audience)}</p><p><b>CTA:</b> ${fmt(x.cta)} · <b>Copy:</b> ${fmt(x.copy)} · <b>Guardrails:</b> ${fmt(x.guardrails)}</p><p><b>Asset gap:</b> ${fmt(x.asset_gap)}</p><p><b>Risk:</b> ${fmt(x.risk)}</p><p><b>Recommended revision:</b> ${fmt(x.revision)}</p></article>`).join('')}</div></section>${card('Asset gaps before live sales use',listPanel('assets',d.asset_gaps,'NEEDS_OWNER'),'span-6')}${card('Next revision plan',listPanel('next revision',d.next_revision_plan,'REVIEW_READY'),'span-6')}<section class="card span-12"><h3>Approval boundary</h3><p class="owner-summary"><b>Demo/static/sanitized only.</b> No real private client data, no browser-side secrets, and no live CRM, email, Telegram, payment, or database writes from the public route. Live usage needs owner approval and implementation scope.</p>${detailPayloadButton(d,'Подробнее','owner-review-v49')}</section></section></div>`;}
 
+
+const CLIENT_ASSET_REQUEST_TEMPLATE_V50 = `Hi — to prepare a safe and accurate website/demo pack, please send only materials you are allowed to share publicly or approve for project use.
+
+Please send:
+1. Logo / wordmark / favicon, if available.
+2. Brand colors and fonts, if you already have them.
+3. Real photos you approve for the site: team, space, product, process, portfolio, or service examples.
+4. Service descriptions: what you offer, who it is for, what is included, and what should not be promised.
+5. Pricing/package notes: ranges, custom quote policy, deposits, payment/booking preferences, or “do not show pricing publicly”.
+6. Legal/compliance notes: required disclaimers, regulated wording, forbidden claims, licenses, approvals, or review contacts.
+7. Testimonials/proof only if approved: reviews, ratings, client logos, case study metrics, before/after examples, with permission to use them.
+8. Contact/booking preferences: email, phone, booking link, messenger, manual review, or “do not publish contact details yet”.
+
+Please do not send private credentials, API keys, passwords, sensitive personal data for public demo, fake reviews, unapproved testimonials, or unapproved health/legal/financial/outcome claims.
+
+Default safety rule: if an item is not approved for public use, we keep it out of the public demo and use a clearly labeled placeholder or artifact-based proof instead.`;
+
+const REAL_ASSET_INTAKE_PACK_V50_DEFAULT = {
+  schema_version:'webstudio.real-asset-intake-pack.v50',
+  marker:'asset-intake-pack-v50',
+  status:'READY_FOR_DEMO',
+  route:'/asset-intake-pack/',
+  public_url:'https://pltnv123.github.io/webstudio-ops-dashboard/asset-intake-pack/',
+  safety:{demo_only:true, static_snapshot:true, sanitized_only:true, real_private_client_data:false, live_upload:false, live_submission:false, external_writes:false, browser_side_secrets:false, fake_testimonials:false, medical_legal_overclaims:false},
+  required_assets:[
+    {title:'Logo / wordmark / favicon', status:'REQUIRED', note:'Use real brand assets only after owner/client approval; otherwise use a labeled placeholder.'},
+    {title:'Service descriptions', status:'REQUIRED', note:'Real offers, scope boundaries, exclusions, and plain-language service notes.'},
+    {title:'Contact or booking preference', status:'CLIENT_REQUIRED', note:'Email/phone/booking/messenger/manual handoff must be approved before public use.'},
+    {title:'Legal/compliance notes', status:'CLIENT_REQUIRED', note:'Required for regulated, health, legal, finance, safety, children, or local-license claims.'}
+  ],
+  optional_assets:[
+    {title:'Brand colors/fonts', status:'OPTIONAL', note:'Use if available; otherwise propose a concept direction.'},
+    {title:'Real photos', status:'OPTIONAL', note:'Team, workspace, product, process, location, portfolio, or before/after photos with rights.'},
+    {title:'FAQ and objections', status:'OPTIONAL', note:'Common customer questions, sales objections, and support boundaries.'},
+    {title:'Existing materials', status:'OPTIONAL', note:'Brochures, PDFs, decks, old site screenshots, SEO notes, analytics summaries.'}
+  ],
+  proof_policy:[
+    {title:'Artifact proof is safe by default', status:'APPROVED_FOR_DEMO', note:'Use sitemaps, page briefs, QA reports, route smoke, and build reports.'},
+    {title:'Testimonials require approval', status:'CLIENT_REQUIRED', note:'No fake testimonials; reviews need consent and traceable source.'},
+    {title:'Metrics require evidence', status:'NEEDS_OWNER', note:'Revenue, conversion, bookings, rankings, before/after, or outcome claims need proof.'},
+    {title:'Unapproved social proof is blocked', status:'BLOCKED_FOR_PUBLIC', note:'No fake logos, fake ratings, invented client names, or made-up case studies.'}
+  ],
+  compliance_review:[
+    {title:'Industry category checked', status:'NEEDS_OWNER', note:'General / health / medical / legal / finance / children / regulated.'},
+    {title:'Claims reviewed', status:'CLIENT_REQUIRED', note:'Remove diagnosis, cure, legal advice, financial promise, guarantee, or outcome assurance unless approved.'},
+    {title:'Image rights reviewed', status:'CLIENT_REQUIRED', note:'Confirm rights, model/location permission, and whether public use is allowed.'},
+    {title:'Privacy reviewed', status:'BLOCKED_FOR_PUBLIC', note:'Private addresses, phones, emails, patient/client/customer details, credentials, and internal notes stay out unless explicitly approved.'}
+  ],
+  missing_content_tracker:[
+    {title:'Approved brand identity', status:'NEEDS_OWNER'},
+    {title:'Approved hero/service photos', status:'CLIENT_REQUIRED'},
+    {title:'Consent-backed proof/testimonials', status:'CLIENT_REQUIRED'},
+    {title:'Compliance-approved copy', status:'NEEDS_OWNER'},
+    {title:'Public contact destination', status:'CLIENT_REQUIRED'}
+  ],
+  approval_gates:[
+    {title:'Safe demo/public placeholder use', status:'APPROVED_FOR_DEMO'},
+    {title:'Real client identity or photos', status:'CLIENT_REQUIRED'},
+    {title:'Testimonials/proof/public claims', status:'CLIENT_REQUIRED'},
+    {title:'Health/legal/financial claims', status:'BLOCKED_FOR_PUBLIC'},
+    {title:'Live upload/submission/integration', status:'NEEDS_OWNER'}
+  ],
+  safe_demo_rules:[
+    'Use generic placeholders or generated/concept visuals clearly labeled as demo.',
+    'Use artifact proof instead of fake testimonials or fake logos.',
+    'Do not publish private credentials, sensitive personal data, internal notes, or unapproved contact details.',
+    'Do not make medical/legal/financial/outcome claims without review and approval.',
+    'No live upload, live submission, CRM/email/Telegram/payment write, or browser-side secret.'
+  ],
+  links:{owner_review:'/owner-review/', client_handoff_pack:'/client-handoff-pack/', one_click_demo_assembly:'/one-click-demo-assembly/', generated_demo_site_v35:'/generated-demo-site-v35/', lead_capture_demo:'/lead-capture-demo/'},
+  client_asset_request_template: CLIENT_ASSET_REQUEST_TEMPLATE_V50,
+  next_safe_action:'Send the template to the client, collect approved assets outside the public demo, then update copy/assets only after owner/client approval.'
+};
+
+function assetIntakeStatusChips() {
+  return `<div class="asset-intake-chipbar">${['REQUIRED','OPTIONAL','NEEDS_OWNER','CLIENT_REQUIRED','APPROVED_FOR_DEMO','BLOCKED_FOR_PUBLIC'].map(x=>`<span class="asset-chip ${statusClass(x)}">${fmt(x)}</span>`).join('')}</div>`;
+}
+function assetIntakeCards(items) {
+  return `<div class="asset-intake-cards">${asArray(items).map(x=>`<article><div class="attention-head"><strong>${fmt(x.title)}</strong>${badge(x.status)}</div>${x.note ? `<p>${fmt(x.note)}</p>` : ''}</article>`).join('')}</div>`;
+}
+function assetIntakePackV50(){const d=state.real_asset_intake_pack_v50||REAL_ASSET_INTAKE_PACK_V50_DEFAULT;return `<div class="productization-page asset-intake-page" data-marker="asset-intake-pack-v50 required assets proof policy compliance review checklist client asset request template no fake testimonials"><section class="productization-grid">${productizationHero(d.marker,'real asset intake pack','Real Asset Intake Pack','Collect real client assets safely: required assets, optional materials, proof/testimonial rules, compliance review, missing content, approval gates, and safe demo/public usage.',[{label:'Owner Review',href:d.links.owner_review},{label:'Client Handoff Pack',href:d.links.client_handoff_pack},{label:'Lead Capture Demo',href:d.links.lead_capture_demo}])}<section class="card span-12"><h3>Status chips</h3>${assetIntakeStatusChips()}<p class="owner-summary">Demo/static/sanitized only. No live upload, no live submission, no CRM/email/Telegram/payment writes, no browser-side secrets.</p></section>${commercialProductNav('Asset intake navigation')}<section class="card span-6"><h3>Required assets</h3>${assetIntakeCards(d.required_assets)}</section><section class="card span-6"><h3>Optional assets</h3>${assetIntakeCards(d.optional_assets)}</section><section class="card span-12"><h3>Proof policy</h3>${assetIntakeCards(d.proof_policy)}</section><section class="card span-12"><h3>Compliance review checklist</h3>${assetIntakeCards(d.compliance_review)}</section>${card('Missing content tracker',assetIntakeCards(d.missing_content_tracker),'span-6')}${card('Approval gates',assetIntakeCards(d.approval_gates),'span-6')}<section class="card span-12"><h3>Safe demo/public usage rules</h3>${listPanel('safe demo rules',d.safe_demo_rules,'APPROVED_FOR_DEMO')}</section><section class="card span-12"><h3>Client asset request template</h3><p class="owner-summary">Polite reusable request text. Copy it into client communication only after choosing the project scope.</p><pre class="code block asset-template">${fmt(d.client_asset_request_template)}</pre><div class="toolbar">${copyButton('Copy client asset request template', d.client_asset_request_template)}${detailPayloadButton(d,'Подробнее','asset-intake-pack-v50')}</div></section><section class="card span-12"><h3>Linked product routes</h3><div class="toolbar">${openButton('Owner Review',d.links.owner_review)}${openButton('Client Handoff Pack',d.links.client_handoff_pack)}${openButton('One-Click Demo Assembly',d.links.one_click_demo_assembly)}${openButton('Generated Demo Site v35',d.links.generated_demo_site_v35)}${openButton('Lead Capture Demo',d.links.lead_capture_demo)}</div></section></section></div>`;}
+
 function routeHealthDashboardV46(){const d=state.route_health_dashboard_v46||ROUTE_HEALTH_DASHBOARD_V46_DEFAULT;return `<div class="productization-page" data-marker="route-health-v46 route table HTTP status marker status latest published commit known blockers"><section class="productization-grid">${productizationHero(d.marker,'regression monitor','Regression + Route Health Dashboard','Static route health index with HTTP status, marker status, latest commit, status chips, and next safe action.',[{label:'GitHub Pages root',href:'https://pltnv123.github.io/webstudio-ops-dashboard/'}])}${commercialProductNav('Route health navigation')}<section class="card span-12"><h3>Route table</h3><div class="route-health-list">${asArray(d.routes).map(x=>`<article class="attention-item ${statusClass(x.status)}"><div class="attention-head"><strong>${fmt(x.route)}</strong>${badge(x.status||'WATCH')}</div><p><b>HTTP status:</b> ${fmt(x.http_status)} · <b>marker status:</b> ${fmt(x.marker_status)}</p><p><b>Latest commit:</b> ${fmt(d.latest_commit)}</p><p><b>Next safe action:</b> ${fmt(x.next_safe_action)}</p></article>`).join('')}</div>${detailPayloadButton(d,'Подробнее','route-health-v46')}</section></section></div>`;}
 function morningSummaryV47(){const d=state.morning_summary_v47||MORNING_SUMMARY_V47_DEFAULT;return `<div class="productization-page" data-marker="morning-summary-v47 morning executive summary completed phases published routes supabase updates github commits"><section class="productization-grid">${productizationHero(d.marker,'morning executive summary','Night Shift Executive Summary',d.summary,[{label:'Route Health',href:'/route-health/'},{label:'WebStudio Showcase',href:'/webstudio-showcase/'}])}${card('Completed phases',listPanel('phases',d.phases,'completed'),'span-6')}${card('Next sprint options',listPanel('next',d.next_sprint_options,'option'),'span-6')}<section class="card span-12"><h3>Recommended next safe action</h3><p class="owner-summary">${fmt(d.next_safe_action)}</p>${detailPayloadButton(d,'Подробнее','morning-summary-v47')}</section></section></div>`;}
 
@@ -2885,7 +2968,7 @@ function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
   const app = $('#app');
   const map = {overview, 'work-factory': workFactory, 'owner-command-center': ownerCommandCenter, 'order-builder': orderBuilder, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'premium-factory': premiumFactory,
-    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'client-handoff-pack': clientHandoffPackV41, 'handoff-review-matrix': handoffReviewMatrixV42, 'revision-request-demo': revisionRequestDemoV43, 'webstudio-showcase': webstudioShowcaseV44, 'pricing-packages': pricingPackagesV45, 'route-health': routeHealthDashboardV46, 'owner-review': ownerReviewV49, 'morning-summary': morningSummaryV47, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
+    'premium-generator': premiumWebsiteGenerator, 'premium-factory-v34': premiumFactoryV34, 'generated-demo-site-v35': generatedDemoSiteV35, 'lead-capture-demo': leadCaptureDemoV36, 'lead-to-order-handoff': leadToOrderHandoffV37, 'order-package-generator': orderPackageGeneratorV38, 'website-page-builder': websitePageBuilderV39, 'one-click-demo-assembly': oneClickDemoAssemblyV40, 'client-handoff-pack': clientHandoffPackV41, 'handoff-review-matrix': handoffReviewMatrixV42, 'revision-request-demo': revisionRequestDemoV43, 'webstudio-showcase': webstudioShowcaseV44, 'pricing-packages': pricingPackagesV45, 'route-health': routeHealthDashboardV46, 'owner-review': ownerReviewV49, 'asset-intake-pack': assetIntakePackV50, 'morning-summary': morningSummaryV47, 'premium-factory-v37-day1': premiumFactoryV34, 'error-recovery': errorRecovery, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, 'supabase-memory': supabaseMemory, 'bot-activity': botActivity, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
