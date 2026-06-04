@@ -1,6 +1,6 @@
 # Final Report — WebStudio V5.1 Client-Safe Preview
 
-Status: LOCAL_VALIDATED / PENDING_PUSH
+Status: PASS / DEPLOYED
 
 ## What was done
 - Created Client-Safe Preview content and report pack.
@@ -23,10 +23,11 @@ Status: LOCAL_VALIDATED / PENDING_PUSH
 - `npm run build`: PASS
 - `npm run smoke`: PASS
 - local static smoke `/client-safe-preview/`: PASS
+- public Pages smoke `/client-safe-preview/`: PASS
 - `git diff --check`: PASS
 - changed-file credential pattern scan: PASS
 
-## Markers verified locally
+## Public markers verified
 - `client-safe-preview-v51`
 - `placeholder map`
 - `approval gates`
@@ -34,9 +35,15 @@ Status: LOCAL_VALIDATED / PENDING_PUSH
 - `NEEDS_REAL_ASSET`
 - `APPROVED_FOR_PREVIEW`
 
-## Remaining before final PASS
-- Commit and push.
-- Verify GitHub Actions deploy.
-- Verify public Pages URL `/client-safe-preview/` HTTP 200 + markers.
-- Write Supabase ops/status row.
-- Run `hfinalize`.
+## Deployment
+- Commit: `bf5d3f5d31ab9b0c2c3219e46d2fbaca80cbfb93`
+- Client-Safe Preview URL: https://pltnv123.github.io/webstudio-ops-dashboard/client-safe-preview/
+- GitHub Actions: https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26949448130
+- Supabase status row: `096fce6a-4dc5-4462-b4cd-da88e088dcb6`
+
+## Remaining risks / next safe action
+- Use preview for owner/client review only.
+- Collect real assets through Asset Intake Pack before public launch.
+- Keep proof/testimonials blocked until consent-backed.
+- Review medical/legal/financial copy before public use.
+- Enable live upload/submission/contact/integrations only under separate owner-approved scope.

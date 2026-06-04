@@ -1,6 +1,6 @@
 {
   "schema_version": "webstudio.client-safe-preview.v51.state",
-  "status": "LOCAL_VALIDATED",
+  "status": "PASS_DEPLOYED",
   "version": "v5.1",
   "output_root": "/workspace/output/webstudio-client-safe-preview-v51",
   "base_commit": "5b1499340a247a41ae15d5f2d754e966d990506e",
@@ -18,5 +18,12 @@
   "build_smoke": "PASS",
   "route_smoke": "PASS /client-safe-preview/",
   "validation": "PASS",
-  "updated_at": "2026-06-04T11:34:34.853291+00:00"
+  "updated_at": "2026-06-04T11:41:55.044595+00:00",
+  "commit_hash": "bf5d3f5d31ab9b0c2c3219e46d2fbaca80cbfb93",
+  "route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-safe-preview/",
+  "deploy_status": "PASS",
+  "deploy_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26949448130",
+  "public_pages_smoke": "PASS",
+  "supabase_row_written": true,
+  "supabase_row_id": "096fce6a-4dc5-4462-b4cd-da88e088dcb6"
 }
