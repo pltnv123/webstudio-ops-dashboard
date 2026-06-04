@@ -1,6 +1,6 @@
 {
   "schema_version": "webstudio-client-approval-room.state",
-  "status": "LOCAL_VALIDATED",
+  "status": "PASS_DEPLOYED",
   "component": "webstudio-client-approval-room",
   "version": "v5.2",
   "route": "/client-approval-room/",
@@ -15,5 +15,10 @@
   "route_smoke": "PASS",
   "build_smoke": "PASS",
   "validation": "PASS",
-  "updated_at": "2026-06-04T23:21:06.226100+00:00"
+  "updated_at": "2026-06-04T23:31:59.566846+00:00",
+  "commit_hash": "a4e8937b41c333b098808b7074babb3163bcedb1",
+  "route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-approval-room/",
+  "deploy_status": "PASS",
+  "deploy_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26985832244",
+  "supabase_row_id": "446451e9-e5a5-4e79-b8ec-238f5e29f936"
 }

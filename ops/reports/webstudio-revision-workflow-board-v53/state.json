@@ -1,6 +1,6 @@
 {
   "schema_version": "webstudio-revision-workflow-board.state",
-  "status": "LOCAL_VALIDATED",
+  "status": "PASS_DEPLOYED",
   "component": "webstudio-revision-workflow-board",
   "version": "v5.3",
   "route": "/revision-workflow/",
@@ -15,5 +15,10 @@
   "route_smoke": "PASS",
   "build_smoke": "PASS",
   "validation": "PASS",
-  "updated_at": "2026-06-04T23:21:06.226100+00:00"
+  "updated_at": "2026-06-04T23:31:59.566846+00:00",
+  "commit_hash": "a4e8937b41c333b098808b7074babb3163bcedb1",
+  "route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/revision-workflow/",
+  "deploy_status": "PASS",
+  "deploy_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26985832244",
+  "supabase_row_id": "8faa7400-4124-4ee1-b192-a3e51ca68d62"
 }
