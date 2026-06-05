@@ -1,28 +1,42 @@
 {
   "phase": "V5.8 Public Sales Pages / Offer Detail Layer",
-  "status": "PARTIAL_GITHUB_PUSH_PENDING",
-  "timestamp": "2026-06-05T00:53:57Z",
+  "status": "PASS_DEPLOYED_VERIFIED",
+  "timestamp": "2026-06-05T02:04:28Z",
   "changed_files": [
+    "ops/reports/webstudio-public-sales-offer-detail-v58/build-smoke-report.md",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/changed-files.txt",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/events.jsonl",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/final-report.md",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/github-push-report.md",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/offer-detail-design.md",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/route-smoke-report.md",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/state.json",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/supabase-status-update.md",
+    "ops/reports/webstudio-public-sales-offer-detail-v58/validation.md",
     "scripts/build_snapshot.py",
     "scripts/smoke_check.py",
     "src/app.js",
     "src/index.html",
     "src/styles.css"
   ],
+  "commit": "a4dacc249f209714e944a3c70bb14718f1ed8ff7",
   "validation": {
     "npm_build": "PASS",
     "npm_smoke": "PASS",
     "route_smoke": "PASS",
-    "credential_scan": "PASS"
+    "credential_scan": "PASS",
+    "remote_sha": "PASS",
+    "github_actions": "PASS",
+    "pages_marker": "PASS"
   },
   "supabase": "BLOCKED_TOOL_UNAVAILABLE_FOR_PHASE_ONLY",
   "github": {
-    "commit": "d641d6a13908d30a984830225382e35d11306910",
-    "direct_push": "BLOCKED_AUTH",
-    "host_autopush_job": "CREATED_PENDING_HOST_RUNNER",
-    "remote_current": "82b32719688083c7bfe6d9d1891a3b588c4aaf62",
-    "sha_verification": "PENDING",
-    "actions": "PENDING",
-    "pages_markers": "PENDING"
-  }
+    "host_autopush": "PASS",
+    "remote_current": "a4dacc249f209714e944a3c70bb14718f1ed8ff7",
+    "actions_run_id": 26989221645,
+    "actions_conclusion": "success",
+    "pages_route": "https://pltnv123.github.io/webstudio-ops-dashboard/offer-detail/",
+    "pages_marker": "offer-detail-v58"
+  },
+  "hfinalize": "BLOCKED_COMMAND_UNAVAILABLE"
 }

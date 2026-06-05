@@ -1,6 +1,11 @@
-{"ts": "2026-06-05T00:53:57Z", "event": "phase.start", "phase": "V5.8"}
-{"ts": "2026-06-05T00:53:57Z", "event": "implement.done", "route": "/offer-detail/"}
-{"ts": "2026-06-05T00:53:57Z", "event": "validation.pass", "gates": ["npm build", "npm smoke", "route marker smoke", "credential scan"]}
-{"ts": "2026-06-05T00:53:57Z", "event": "supabase.blocked", "reason": "tool unavailable"}
-{"ts": "2026-06-05T00:58:00Z", "event": "github.direct_push.blocked", "exit_code": 128}
-{"ts": "2026-06-05T00:59:10Z", "event": "github.host_autopush_job.created", "path": "/workspace/.hermes-host-jobs/github/webstudio-v58-offer-detail-autopush.sh", "status": "PENDING"}
+{"ts":"2026-06-05T00:53:57Z","event":"phase.start","phase":"V5.8"}
+{"ts":"2026-06-05T00:53:57Z","event":"implement.done","route":"/offer-detail/"}
+{"ts":"2026-06-05T00:53:57Z","event":"validation.pass","gates":["npm build","npm smoke","route marker smoke","credential scan"]}
+{"ts":"2026-06-05T00:53:57Z","event":"supabase.blocked","reason":"tool unavailable"}
+{"ts":"2026-06-05T02:04:28Z","event":"phase.recovery.start","phase":"V5.8","goal":"verify host autopush, GitHub Actions, public Pages marker"}
+{"ts":"2026-06-05T02:04:28Z","event":"github.remote_sha.pass","commit":"a4dacc249f209714e944a3c70bb14718f1ed8ff7"}
+{"ts":"2026-06-05T02:04:28Z","event":"github.actions.pass","run_id":26989221645,"conclusion":"success"}
+{"ts":"2026-06-05T02:04:28Z","event":"pages.marker.pass","route":"/offer-detail/","marker":"offer-detail-v58"}
+{"ts":"2026-06-05T02:04:28Z","event":"validation.pass","gates":["npm build","npm smoke","concrete credential scan"]}
+{"ts":"2026-06-05T02:04:28Z","event":"hfinalize.blocked","reason":"command unavailable"}
+{"ts":"2026-06-05T02:04:28Z","event":"phase.done","phase":"V5.8","status":"PASS_DEPLOYED_VERIFIED"}
