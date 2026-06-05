@@ -1,0 +1,21 @@
+{
+  "schema_version": "webstudio.phase.v60.owner-executive-report.v1",
+  "phase": "v60-owner-executive-report",
+  "status": "PASS",
+  "timestamp": "2026-06-05T05:51:20Z",
+  "repo": "/workspace/projects/webstudio-ops-dashboard.gitcheck",
+  "branch": "webstudio/product-build-v31",
+  "commit": "8bb435c71f058948b92897e9ac4b9679ed79fefd",
+  "remote_sha": "8bb435c71f058948b92897e9ac4b9679ed79fefd",
+  "actions_run_id": "26998023499",
+  "public_route": "https://pltnv123.github.io/webstudio-ops-dashboard/owner-executive-report/",
+  "public_marker": "owner-executive-report-v60",
+  "validation": {
+    "build": "PASS",
+    "smoke": "PASS",
+    "credential_scan_findings": 0,
+    "pages_marker": true
+  },
+  "supabase": "BLOCKED_FOR_PHASE_ONLY",
+  "hfinalize": "PENDING"
+}
