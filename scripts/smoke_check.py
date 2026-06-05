@@ -32,7 +32,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'generated-demo-site-v35', 'lead-capture-demo', 'lead-to-order-handoff', 'order-package-generator', 'website-page-builder', 'one-click-demo-assembly', 'client-handoff-pack', 'handoff-review-matrix', 'revision-request-demo', 'webstudio-showcase', 'pricing-packages', 'route-health', 'asset-intake-pack', 'client-safe-preview', 'client-approval-room', 'revision-workflow', 'real-client-readiness', 'sales-funnel', 'offer-detail', 'ops-memory-consistency', 'owner-executive-report', 'delivery-lifecycle', 'morning-summary', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'generated-demo-site-v35', 'lead-capture-demo', 'lead-to-order-handoff', 'order-package-generator', 'website-page-builder', 'one-click-demo-assembly', 'client-handoff-pack', 'handoff-review-matrix', 'revision-request-demo', 'webstudio-showcase', 'pricing-packages', 'route-health', 'asset-intake-pack', 'client-safe-preview', 'client-approval-room', 'revision-workflow', 'real-client-readiness', 'sales-funnel', 'offer-detail', 'ops-memory-consistency', 'owner-executive-report', 'phase-proof-matrix', 'delivery-lifecycle', 'morning-summary', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -152,7 +152,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'generated_demo_site_v35', 'lead_capture_demo_v36', 'lead_to_order_handoff_v37', 'order_package_generator_v38', 'website_page_builder_v39', 'one_click_demo_assembly_v40', 'client_handoff_pack_v41', 'handoff_review_matrix_v42', 'revision_request_demo_v43', 'webstudio_showcase_v44', 'pricing_package_catalog_v45', 'route_health_dashboard_v46', 'morning_summary_v47', 'real_asset_intake_pack_v50', 'client_safe_preview_v51', 'client_approval_room_v52', 'revision_workflow_board_v53', 'real_client_readiness_pack_v54', 'productized_sales_funnel_v55', 'offer_detail_layer_v58', 'ops_memory_consistency_v59', 'owner_executive_report_v60', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder', 'delivery_handoff_composer_v33']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'premium_visual_motion_v31', 'premium_website_generator_v32', 'premium_factory_v34', 'generated_demo_site_v35', 'lead_capture_demo_v36', 'lead_to_order_handoff_v37', 'order_package_generator_v38', 'website_page_builder_v39', 'one_click_demo_assembly_v40', 'client_handoff_pack_v41', 'handoff_review_matrix_v42', 'revision_request_demo_v43', 'webstudio_showcase_v44', 'pricing_package_catalog_v45', 'route_health_dashboard_v46', 'morning_summary_v47', 'real_asset_intake_pack_v50', 'client_safe_preview_v51', 'client_approval_room_v52', 'revision_workflow_board_v53', 'real_client_readiness_pack_v54', 'productized_sales_funnel_v55', 'offer_detail_layer_v58', 'ops_memory_consistency_v59', 'owner_executive_report_v60', 'phase_proof_matrix_v61', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening', 'supabase_memory', 'bot_activity', 'work_factory_control', 'owner_command_center', 'order_builder', 'delivery_handoff_composer_v33']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
@@ -231,6 +231,12 @@ assert state['owner_executive_report_v60']['safety']['live_submission'] is False
 assert state['owner_executive_report_v60']['safety']['browser_side_secrets'] is False
 for marker in ['owner-executive-report-v60', 'owner executive report', 'shipped routes', 'proof gates', 'owner next actions', 'no live writes']:
     assert marker in js, f'missing V6.0 marker {marker}'
+
+assert state['phase_proof_matrix_v61']['safety']['static_snapshot'] is True
+assert state['phase_proof_matrix_v61']['safety']['live_submission'] is False
+assert state['phase_proof_matrix_v61']['safety']['browser_side_secrets'] is False
+for marker in ['phase-proof-matrix-v61', 'phase acceptance', 'proof matrix', 'build smoke scan', 'actions pages markers', 'no live writes']:
+    assert marker in js, f'missing V6.1 marker {marker}'
 
 assert len(state['bot_activity']['activity']) >= 3
 assert 'PASS' in state['bot_activity']['status_chips']

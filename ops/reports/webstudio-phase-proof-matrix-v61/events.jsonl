@@ -1,0 +1,7 @@
+{"ts":"2026-06-05T07:16:35Z","phase":"V6.1 Phase Proof Matrix","event":"phase.start","status":"RUNNING","scope":"safe static sanitized route /phase-proof-matrix/"}
+{"ts":"2026-06-05T07:16:35Z","phase":"V6.1 Phase Proof Matrix","event":"build","status":"PASS","command":"npm run build","snapshot_sha256":"b78e2168b09b2f4d39b6cb9040d0aba1435eb5529578173dd9e8518a47b0c1ed","dist_files":342}
+{"ts":"2026-06-05T07:16:35Z","phase":"V6.1 Phase Proof Matrix","event":"smoke","status":"PASS","command":"npm run smoke","marker":"phase-proof-matrix-v61"}
+{"ts":"2026-06-05T07:16:35Z","phase":"V6.1 Phase Proof Matrix","event":"credential_scan","status":"PASS","changed_files":4,"findings":0}
+{"ts":"2026-06-05T07:16:35Z","phase":"V6.1 Phase Proof Matrix","event":"supabase","status":"BLOCKED_FOR_PHASE_ONLY","reason":"safe Supabase write tool unavailable in cron sandbox"}
+{"ts":"2026-06-05T07:17:03Z","phase":"V6.1 Phase Proof Matrix","event":"commit","status":"PASS","sha":"dc6c40a0f7a3c83cb732309ee083b469842532cf"}
+{"ts":"2026-06-05T07:17:21Z","phase":"V6.1 Phase Proof Matrix","event":"commit_amend","status":"PASS","sha":"f72fb3bf67c774599b61a72db6853a0974b08ef0"}
