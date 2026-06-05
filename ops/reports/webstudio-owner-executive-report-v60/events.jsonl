@@ -1,0 +1,3 @@
+{"ts":"2026-06-05T05:41:54Z","phase":"v60-owner-executive-report","event":"phase.start","status":"RUNNING"}
+{"ts":"2026-06-05T05:41:54Z","phase":"v60-owner-executive-report","event":"v59.remote_recovery_verified","status":"PASS","remote_sha":"026ab3b8e27339b243d65efffd7ab92f590d36b2","actions_run":"26995751019","public_marker":true}
+{"ts":"2026-06-05T05:41:54Z","phase":"v60-owner-executive-report","event":"build_smoke_scan","status":"PASS","snapshot_sha256":"dba4a5722f9b2a7e9a591a8854ccb6ff415da2e88fa533cf6c9f8c3d3f2016fc","dist_files":335,"scan_findings":0}

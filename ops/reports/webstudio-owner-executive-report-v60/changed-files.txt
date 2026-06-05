@@ -1,0 +1,4 @@
+scripts/build_snapshot.py
+scripts/smoke_check.py
+src/app.js
+src/index.html
