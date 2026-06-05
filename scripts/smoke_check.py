@@ -32,7 +32,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'generated-demo-site-v35', 'lead-capture-demo', 'lead-to-order-handoff', 'order-package-generator', 'website-page-builder', 'one-click-demo-assembly', 'client-handoff-pack', 'handoff-review-matrix', 'revision-request-demo', 'webstudio-showcase', 'pricing-packages', 'route-health', 'asset-intake-pack', 'client-safe-preview', 'client-approval-room', 'revision-workflow', 'real-client-readiness', 'sales-funnel', 'offer-detail', 'ops-memory-consistency', 'owner-executive-report', 'phase-proof-matrix', 'delivery-lifecycle', 'morning-summary', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'owner-command-center', 'order-builder', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'premium-factory', 'premium-generator', 'premium-factory-v34', 'generated-demo-site-v35', 'lead-capture-demo', 'lead-to-order-handoff', 'order-package-generator', 'website-page-builder', 'one-click-demo-assembly', 'client-handoff-pack', 'handoff-review-matrix', 'revision-request-demo', 'webstudio-showcase', 'pricing-packages', 'route-health', 'asset-intake-pack', 'client-safe-preview', 'client-approval-room', 'revision-workflow', 'real-client-readiness', 'sales-funnel', 'offer-detail', 'ops-memory-consistency', 'owner-executive-report', 'phase-proof-matrix', 'client-portal-preview', 'delivery-lifecycle', 'morning-summary', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'supabase-memory', 'bot-activity', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -406,3 +406,10 @@ if not ci_mode:
     v34 = state['premium_factory_v34']
     assert v34['status'] == 'PASS'
     assert v34.get('qa_score', 0) >= 95
+
+
+for marker in ['client-portal-preview-v62', 'PROJECT_READY', 'NEEDS_ASSETS', 'NEEDS_REVIEW', 'APPROVED_FOR_DEMO', 'BLOCKED_FOR_LIVE', 'NEXT_MILESTONE']:
+    assert marker in js or marker in json.dumps(state)
+assert state['client_portal_preview_v62']['safety']['read_only'] is True
+assert state['client_portal_preview_v62']['safety']['browser_side_secrets'] is False
+assert state['client_portal_preview_v62']['safety']['live_submission'] is False
