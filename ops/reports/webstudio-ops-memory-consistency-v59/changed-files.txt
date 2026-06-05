@@ -1,0 +1,6 @@
+scripts/build_snapshot.py
+scripts/smoke_check.py
+src/app.js
+src/index.html
+src/styles.css
+public/data/webstudio-control-plane-state.json
