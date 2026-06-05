@@ -17,5 +17,7 @@
     "pages_marker": true
   },
   "supabase": "BLOCKED_FOR_PHASE_ONLY",
-  "hfinalize": "PENDING"
+  "hfinalize": "PASS",
+  "hfinalize_report": "/output/finalizer/hfinalize-20260605-055952.md",
+  "report_push_status": "PASS"
 }
