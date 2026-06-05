@@ -1,6 +1,6 @@
 {
   "schema_version": "webstudio.delivery-lifecycle-tracker.v57",
-  "status": "IN_PROGRESS",
+  "status": "PASS_DEPLOYED",
   "component": "webstudio-delivery-lifecycle-tracker",
   "version": "v5.7",
   "route": "/delivery-lifecycle/",
@@ -11,5 +11,10 @@
     "private_data": false,
     "live_writes": false,
     "browser_side_secrets": false
-  }
+  },
+  "commit_hash": "0f28cebede35cc188c3bbd23fa042e26db3c525f",
+  "route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/delivery-lifecycle/",
+  "deploy_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26986895581",
+  "supabase_row_id": "0542da1e-dba0-41c7-b964-35f50863f024",
+  "updated_at": "2026-06-05T00:01:49.836629+00:00"
 }
