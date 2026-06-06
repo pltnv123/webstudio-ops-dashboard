@@ -1,8 +1,12 @@
 {
   "phase": "v6.2",
   "component": "webstudio-client-portal-preview",
-  "status": "LOCAL_PASS_PENDING_PUSH",
+  "status": "DEPLOYED_PASS",
   "route": "/client-portal-preview/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-portal-preview/",
   "marker": "client-portal-preview-v62",
-  "updated_at": "2026-06-05T23:57:16Z"
+  "commit": "ecacacf68ce55defffac47b103f111578a34cc89",
+  "actions_run_id": 27047282363,
+  "supabase_row_id": "dd07c735-7ec6-4c02-bc28-7b10947f0538",
+  "updated_at": "2026-06-06T00:32:15Z"
 }
