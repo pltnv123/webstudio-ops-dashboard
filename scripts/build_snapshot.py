@@ -946,6 +946,15 @@ def build_product_progress() -> dict[str, Any]:
     if not isinstance(data, dict):
         data = {}
     items = data.get("items") if isinstance(data.get("items"), list) else []
+    if not items:
+        # CI builds run from a clean GitHub workspace and do not have the
+        # host-local product progress JSON. Keep the public snapshot valid with
+        # sanitized line placeholders instead of failing the static Pages build.
+        items = [
+            {"product_line": "D1", "artifact_type": "static_demo", "path": "demo-only/sanitized", "status": "watch"},
+            {"product_line": "D2", "artifact_type": "static_demo", "path": "demo-only/sanitized", "status": "watch"},
+            {"product_line": "D3", "artifact_type": "static_demo", "path": "demo-only/sanitized", "status": "watch"},
+        ]
     return {
         "source_of_truth": str(PRODUCT_PROGRESS_PATH),
         "source": stat_info(PRODUCT_PROGRESS_PATH),
