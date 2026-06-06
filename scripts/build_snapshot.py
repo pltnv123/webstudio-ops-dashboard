@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import time
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -47,12 +48,26 @@ CONTINUATION_CARD_TITLE = "[WEBSTUDIO][OPS] Continuation controller / no-partial
 AGENT_WORKFLOW_SCREENSHOT_PATH = OUTPUT / "webstudio-agent-workflow-screenshot.png"
 GITHUB_PR1_STATUS_PATH = OUTPUT / "webstudio-github-pr1-status.json"
 PRODUCT_PROGRESS_PATH = OUTPUT / "webstudio-product-progress-v1.json"
-CONTROL_HISTORY_PATH = PUBLIC_DATA / "webstudio-control-plane-history.json"
-SUPABASE_MEMORY_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-supabase-memory-snapshot.json"
-BOT_ACTIVITY_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-live-bot-activity-snapshot.json"
-WORK_FACTORY_CONTROL_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-work-factory-control-snapshot.json"
-OWNER_COMMAND_CENTER_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-owner-command-center-snapshot.json"
-ORDER_BUILDER_SNAPSHOT_PATH = PUBLIC_DATA / "webstudio-order-builder-snapshot.json"
+
+REQUIRED_TOP_LEVEL_KEYS = {
+    "schema_version",
+    "generated_at",
+    "mode",
+    "notification_policy",
+    "safety",
+    "sources",
+    "work_factory",
+    "kanban",
+    "production_pipeline",
+    "product_progress",
+    "worker_health",
+    "agent_workflow",
+    "continuation_controller",
+    "approvals",
+    "health",
+    "artifacts",
+    "audit",
+}
 
 FORBIDDEN_ACTIONS = [
     "dispatch", "run", "daemon", "unblock", "reclaim", "deploy", "release",
@@ -117,6 +132,11 @@ def load_json(path: Path, default: Any) -> Any:
         return default
 
 
+def load_snapshot(path: Path) -> dict[str, Any] | None:
+    data = load_json(path, None)
+    return data if isinstance(data, dict) else None
+
+
 def read_text(path: Path, limit: int = 80_000) -> str:
     try:
         return path.read_text(errors="replace")[:limit]
@@ -133,6 +153,200 @@ def run_cmd(args: list[str], timeout: int = 20) -> dict[str, Any]:
         return {"ok": p.returncode == 0, "returncode": p.returncode, "stdout": p.stdout, "stderr": p.stderr}
     except Exception as e:
         return {"ok": False, "returncode": None, "stdout": "", "stderr": str(e)}
+
+
+def kanban_read_timed_out(kanban: dict[str, Any]) -> bool:
+    errors = kanban.get("read_errors") if isinstance(kanban, dict) else {}
+    if not isinstance(errors, dict):
+        return False
+    return any("timed out" in str(value).lower() for value in errors.values())
+
+
+def snapshot_smoke_errors(state: dict[str, Any], *, last_valid_available: bool) -> list[str]:
+    errors: list[str] = []
+    missing = sorted(REQUIRED_TOP_LEVEL_KEYS - set(state))
+    if missing:
+        errors.append("missing top-level keys: " + ", ".join(missing))
+    if state.get("mode") != "read_only_ops_cockpit":
+        errors.append("mode must be read_only_ops_cockpit")
+
+    safety = state.get("safety") if isinstance(state.get("safety"), dict) else {}
+    if safety.get("read_only") is not True:
+        errors.append("safety.read_only must be true")
+    if safety.get("dispatch_allowed") is not False:
+        errors.append("safety.dispatch_allowed must be false")
+    if safety.get("worker_allowed") is not False:
+        errors.append("safety.worker_allowed must be false")
+    if safety.get("mirror_executable_count", 0) != 0:
+        errors.append("mirror executable count must be zero")
+    if safety.get("duplicate_keys"):
+        errors.append("duplicate mirror idempotency keys detected")
+
+    policy = state.get("notification_policy") if isinstance(state.get("notification_policy"), dict) else {}
+    if policy.get("mode") != "quiet":
+        errors.append("notification_policy.mode must be quiet")
+
+    kanban = state.get("kanban") if isinstance(state.get("kanban"), dict) else {}
+    if not isinstance(kanban, dict):
+        errors.append("kanban must be an object")
+        kanban = {}
+    if kanban_read_timed_out(kanban):
+        errors.append("kanban read timed out")
+    if last_valid_available and kanban.get("task_total", 0) == 0:
+        errors.append("kanban.task_total is zero while a last valid snapshot exists")
+    if kanban.get("executable_mirror_count", 0) != 0:
+        errors.append("kanban executable mirror count must be zero")
+    if kanban.get("duplicate_keys"):
+        errors.append("kanban duplicate keys must be empty")
+
+    controller = state.get("continuation_controller") if isinstance(state.get("continuation_controller"), dict) else {}
+    terminal_protocol = controller.get("terminal_protocol") if isinstance(controller.get("terminal_protocol"), dict) else {}
+    if terminal_protocol.get("silent_exit_allowed") is not False:
+        errors.append("continuation_controller silent_exit_allowed must be false")
+    if terminal_protocol.get("bare_partial_allowed") is not False:
+        errors.append("continuation_controller bare_partial_allowed must be false")
+    if "PARTIAL" not in terminal_protocol.get("forbidden_final_states", []):
+        errors.append("continuation_controller must forbid PARTIAL final state")
+
+    d3_intake = state.get("d3_intake") if isinstance(state.get("d3_intake"), dict) else {}
+    if d3_intake.get("idempotency_key") != "webstudio:D3:intake":
+        errors.append("d3_intake idempotency key mismatch")
+    progress = state.get("product_progress") if isinstance(state.get("product_progress"), dict) else {}
+    if progress.get("mode") != "safe_local_artifacts_only":
+        errors.append("product_progress mode mismatch")
+    product_lines = {item.get("product_line") for item in progress.get("items", []) if isinstance(item, dict)}
+    if not {"D1", "D2", "D3"}.issubset(product_lines):
+        errors.append("product_progress must include D1, D2, and D3")
+    return errors
+
+
+def latest_valid_snapshot(paths: list[Path]) -> tuple[dict[str, Any] | None, Path | None, list[str]]:
+    diagnostics: list[str] = []
+    candidates: list[tuple[float, Path, dict[str, Any]]] = []
+    for path in paths:
+        state = load_snapshot(path)
+        if not state:
+            diagnostics.append(f"{path}: missing or invalid JSON")
+            continue
+        errors = snapshot_smoke_errors(state, last_valid_available=False)
+        task_total = (state.get("kanban") or {}).get("task_total", 0)
+        if errors or task_total == 0:
+            diagnostics.append(f"{path}: rejected as fallback ({'; '.join(errors) or 'kanban.task_total is zero'})")
+            continue
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            mtime = 0
+        candidates.append((mtime, path, state))
+    if not candidates:
+        return None, None, diagnostics
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    _mtime, path, state = candidates[0]
+    return state, path, diagnostics
+
+
+def annotate_fallback_state(state: dict[str, Any], warning: str, invalid_errors: list[str], fallback_path: Path | None) -> dict[str, Any]:
+    fallback = json.loads(json.dumps(state))
+    fallback["generated_at"] = utc_now()
+    build_report = {
+        "status": "fallback_used",
+        "warning": warning,
+        "invalid_candidate_errors": invalid_errors,
+        "fallback_source": str(fallback_path) if fallback_path else None,
+        "generated_at": fallback["generated_at"],
+    }
+    fallback["snapshot_build"] = build_report
+    audit = fallback.setdefault("audit", {})
+    if isinstance(audit, dict):
+        notes = audit.setdefault("notes", [])
+        if isinstance(notes, list):
+            notes.append(warning)
+        audit["snapshot_build"] = build_report
+    return fallback
+
+
+def atomic_write_text(path: Path, payload: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=str(path.parent))
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink()
+
+
+def write_snapshot_temp_and_validate(path: Path, payload: str) -> list[str]:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.validate.", suffix=".tmp", dir=str(path.parent))
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+        state = load_snapshot(tmp_path)
+        if not state:
+            return ["temporary snapshot is not valid JSON object"]
+        return snapshot_smoke_errors(state, last_valid_available=False)
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink()
+
+
+def publish_snapshot_with_failsafe(state: dict[str, Any]) -> dict[str, Any]:
+    fallback_state, fallback_path, fallback_diagnostics = latest_valid_snapshot([
+        CONTROL_STATE_PATH,
+        CANONICAL_OUTPUT_STATE_PATH,
+        OUTPUT / "webstudio-ops-dashboard-static" / "data" / "webstudio-control-plane-state.json",
+    ])
+    candidate_errors = snapshot_smoke_errors(state, last_valid_available=fallback_state is not None)
+    fallback_used = False
+    published_state = state
+    warning = ""
+    if candidate_errors:
+        if not fallback_state:
+            return {
+                "ok": False,
+                "status": "blocked",
+                "errors": candidate_errors,
+                "fallback_diagnostics": fallback_diagnostics,
+                "fallback_used": False,
+                "fallback_source": None,
+            }
+        warning = "Live snapshot rejected; published last valid snapshot fallback instead."
+        published_state = annotate_fallback_state(fallback_state, warning, candidate_errors, fallback_path)
+        fallback_used = True
+
+    payload = json.dumps(published_state, ensure_ascii=False, indent=2) + "\n"
+    temp_errors = write_snapshot_temp_and_validate(CONTROL_STATE_PATH, payload)
+    if temp_errors:
+        return {
+            "ok": False,
+            "status": "blocked",
+            "errors": temp_errors,
+            "candidate_errors": candidate_errors,
+            "fallback_used": fallback_used,
+            "fallback_source": str(fallback_path) if fallback_path else None,
+        }
+
+    atomic_write_text(CONTROL_STATE_PATH, payload)
+    atomic_write_text(CANONICAL_OUTPUT_STATE_PATH, payload)
+    return {
+        "ok": True,
+        "status": "fallback_used" if fallback_used else "published_live",
+        "warning": warning,
+        "candidate_errors": candidate_errors,
+        "fallback_used": fallback_used,
+        "fallback_source": str(fallback_path) if fallback_path else None,
+        "kanban_task_total": (published_state.get("kanban") or {}).get("task_total"),
+        "snapshot_path": str(CONTROL_STATE_PATH),
+        "canonical_path": str(CANONICAL_OUTPUT_STATE_PATH),
+    }
 
 
 def parse_markdown_counts(text: str) -> dict[str, Any]:
@@ -214,31 +428,15 @@ def build_work_factory(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_kanban() -> dict[str, Any]:
-    # Kanban reads can be slow or unavailable inside the Docker sandbox. Prefer
-    # the host bridge when present; it exposes the canonical host Kanban state
-    # without starting dispatchers or mutating tasks. The hkanban wrapper expects
-    # arguments after the implicit hermes prefix, e.g. `hkanban kanban stats`.
-    if Path("/workspace/bin/hkanban").exists():
-        list_result = run_cmd(["/workspace/bin/hkanban", "kanban", "list", "--archived", "--json"], timeout=120)
-        stats_result = run_cmd(["/workspace/bin/hkanban", "kanban", "stats"], timeout=120)
-    else:
-        list_result = run_cmd(["hermes", "kanban", "list", "--archived", "--json"], timeout=90)
-        stats_result = run_cmd(["hermes", "kanban", "stats"], timeout=60)
+    # Kanban reads can be slow on cold starts, so give the CLI enough room to
+    # return a full projection instead of falling back to an empty dashboard.
+    list_result = run_cmd(["hermes", "kanban", "list", "--archived", "--json"], timeout=90)
+    stats_result = run_cmd(["hermes", "kanban", "stats"], timeout=60)
     tasks = []
 
-    kanban_fallback_path = OUTPUT / "kanban-list-current.json"
-    kanban_fallback_used = False
     if list_result["ok"]:
         try:
             tasks = json.loads(list_result["stdout"])
-        except Exception:
-            tasks = []
-    if not tasks and kanban_fallback_path.exists():
-        try:
-            fallback_tasks = json.loads(kanban_fallback_path.read_text(encoding="utf-8"))
-            if isinstance(fallback_tasks, list):
-                tasks = fallback_tasks
-                kanban_fallback_used = True
         except Exception:
             tasks = []
     counts: dict[str, int] = {}
@@ -309,8 +507,6 @@ def build_kanban() -> dict[str, Any]:
         "list_available": list_result["ok"],
         "stats_available": stats_result["ok"],
         "stats_text": stats_result["stdout"][:5000],
-        "fallback_used": kanban_fallback_used,
-        "fallback_path": str(kanban_fallback_path) if kanban_fallback_used else None,
         "counts": counts,
         "assignees": assignees,
         "task_total": len(tasks) if isinstance(tasks, list) else 0,
@@ -338,53 +534,16 @@ def build_health() -> dict[str, Any]:
     qmd = run_cmd(["qmd", "status"], timeout=30)
     qmd_text = qmd["stdout"] if qmd["ok"] else qmd["stderr"]
     qmd_pending = None
-    qmd_total = None
-    qmd_vectors = None
     m = re.search(r"Pending:\s+([0-9]+)", qmd_text)
     if m:
         qmd_pending = int(m.group(1))
-    mt = re.search(r"Total:\s+([0-9]+)", qmd_text)
-    if mt:
-        qmd_total = int(mt.group(1))
-    mv = re.search(r"Vectors:\s+([0-9]+)", qmd_text)
-    if mv:
-        qmd_vectors = int(mv.group(1))
-    qmd_help = run_cmd(["qmd", "--help"], timeout=30)
-    qmd_help_text = qmd_help["stdout"] if qmd_help["ok"] else qmd_help["stderr"]
-    bounded_available = "--limit" in qmd_help_text and "--collection" in qmd_help_text and "--max-memory-mb" in qmd_help_text
-    bounded_report = OUTPUT / "qmd-bounded-embeddings-maintenance-result-v21-1.md"
-    bounded_raw = OUTPUT / "qmd-bounded-embeddings-maintenance-result-v21-1.raw.log"
-    auto_embed_report = OUTPUT / "qmd-auto-embed-v21-1-last-run.md"
     return {
         "source_of_truth": str(HOST_SNAPSHOT_PATH),
         "host_snapshot": stat_info(HOST_SNAPSHOT_PATH),
         "gateway_active": gateway_active,
         "primary_model_line": fallback_match.group(1).strip() if fallback_match else None,
         "bad_config_summary": bad_config[0].strip()[:2000] if bad_config else "",
-        "qmd": {
-            "available": qmd["ok"],
-            "total_documents": qmd_total,
-            "vectors": qmd_vectors,
-            "pending_embeddings": qmd_pending,
-            "status_excerpt": qmd_text[:3000],
-            "bounded_mode": "available" if bounded_available else "missing",
-            "bounded_mode_available": bounded_available,
-            "last_bounded_batch": {
-                "status": "PASS" if bounded_report.exists() and bounded_raw.exists() else "unknown",
-                "evidence": str(bounded_raw),
-                "report": str(bounded_report),
-                "auto_embed_report": str(auto_embed_report),
-            },
-            "last_error": None if bounded_available else "bounded CLI flags missing",
-            "next_safe_action": "continue tiny bounded batches only; do not run unlimited qmd embed" if bounded_available else "implement bounded CLI before embedding",
-            "owner_action_required": False,
-            "owner_facing_text": "QMD поиск работает. Векторные embeddings требуют безопасного bounded режима; unlimited embed не запускается.",
-            "reports": {
-                "investigation": str(OUTPUT / "qmd-true-bounded-embed-investigation-v21-1.md"),
-                "maintenance": str(bounded_report),
-                "implementation": str(OUTPUT / "qmd-bounded-embed-implementation-plan-v21-1.md"),
-            },
-        },
+        "qmd": {"available": qmd["ok"], "pending_embeddings": qmd_pending, "status_excerpt": qmd_text[:3000]},
         "status": "warning" if (not gateway_active or bad_config or (qmd_pending or 0) > 0) else "ok",
     }
 
@@ -448,7 +607,7 @@ def build_worker_health(kanban: dict[str, Any]) -> dict[str, Any]:
         },
         "remaining_blockers": [
             "ops lane repair: profile ops exits cleanly without terminal Kanban action",
-            "QMD durability follow-up: keep bounded patch in maintained package/overlay so reinstall cannot remove CLI flags",
+            "QMD embeddings: Bun 1.3.13 segfaults during bounded qmd embed maintenance",
             "optional Supabase authenticated check remains approval/credential scoped",
         ],
         "running_cards": running[:40],
@@ -497,9 +656,9 @@ def build_system_hardening_status() -> dict[str, Any]:
         "qmd_embed_verdict": "DEGRADED: qmd update/search work, qmd embed crashes/times out under Bun on this VPS",
         "root_cause_summary": "snapshot request backlog was stale; v3 bounded processor processed pending flags and cron job hermes-auto-snapshot-processor-v3 is scheduled. qmd index updates but embeddings remain pending because `qmd embed` crashes/times out under Bun; bounded auto-embed script records degraded status instead of runaway execution.",
         "owner_actions": [
-            "None for safe local/PR-branch workflow: Auto-Push, qmd update, hfinalize, build/smoke, reports and dry-runs are owner-approved autonomy.",
-            "Owner action is required only for live secrets, live Telegram token, CRM/Sheets writes, Supabase write migrations, deploy/release, payments/live external actions, or private client-data approval.",
-            "Do not run unlimited qmd embed; use bounded maintenance plan and stop on OOM/exit 137.",
+            "If GitHub PR is needed, run /workspace/output/github-host-repair-and-pr-v3.sh on the host where real gh exists.",
+            "Do not claim ops worker PASS until host profile/dispatcher lifecycle canary finishes with kanban_complete/kanban_block.",
+            "Approve deeper qmd embed remediation separately if vector search is required; keyword qmd update/search remain safe.",
         ],
     }
 
@@ -747,17 +906,6 @@ def build_github_readiness() -> dict[str, Any]:
     completion_result_path = OUTPUT / "github-pr-completion-v3-3-result.json"
     completion_result = load_json(completion_result_path, {})
     pr1_status = load_json(GITHUB_PR1_STATUS_PATH, {})
-    autopush_candidates = [
-        OUTPUT / "webstudio-v28-github-mainline-result.json",
-        OUTPUT / "webstudio-client-intake-order-builder-v27-github-pr-status.json",
-        OUTPUT / "webstudio-system-maintenance-autopush-result.json",
-        OUTPUT / "webstudio-continuation-autopush-result.json",
-        OUTPUT / "webstudio-github-autopush-v1-result.json",
-    ]
-    autopush_result_path = next((x for x in autopush_candidates if x.exists()), autopush_candidates[-1])
-    autopush_result = load_json(autopush_result_path, {})
-    host_runner_latest_path = OUTPUT / "host-job-runner" / "latest.json"
-    host_runner_latest = load_json(host_runner_latest_path, {})
     checks = {
         "command_v_gh": run_cmd(["bash", "-lc", "command -v gh || true"], timeout=10),
         "workspace_bin_gh": run_cmd(["bash", "-lc", "ls -l /workspace/bin/gh 2>&1 || true"], timeout=10),
@@ -773,11 +921,6 @@ def build_github_readiness() -> dict[str, Any]:
         status = "PR_CREATED"
     if isinstance(pr1_status, dict) and pr1_status.get("status") == "UPDATED":
         status = "UPDATED"
-    if isinstance(autopush_result, dict) and autopush_result.get("status"):
-        if autopush_result.get("status") in {"PASS", "pushed", "already_up_to_date", "no_changes"}:
-            status = "AUTO_PUSH_PASS" if autopush_result.get("status") == "PASS" else "AUTO_PUSH_READY"
-        elif autopush_result.get("status") == "blocked":
-            status = "AUTO_PUSH_BLOCKED"
     return {
         "account_expected": "pltnv123",
         "repo": "pltnv123/webstudio-ops-dashboard",
@@ -792,80 +935,9 @@ def build_github_readiness() -> dict[str, Any]:
         "wrapper_broken": wrapper_broken,
         "completion_result": completion_result if isinstance(completion_result, dict) else {},
         "completion_result_source": stat_info(completion_result_path),
-        "autopush": autopush_result if isinstance(autopush_result, dict) else {},
-        "autopush_source": stat_info(autopush_result_path),
-        "autopush_script": "/workspace/output/webstudio-github-autopush-v1.sh",
-        "next_push_candidate": (autopush_result.get("next_push_candidate") if isinstance(autopush_result, dict) else None) or (pr1_status.get("next_push_candidate") if isinstance(pr1_status, dict) else None),
-        "last_autopush_error": (autopush_result.get("reason") if isinstance(autopush_result, dict) and autopush_result.get("status") == "blocked" else None),
         "checks": {k: {"ok": v.get("ok"), "returncode": v.get("returncode"), "stdout": v.get("stdout", "")[:2000], "stderr": v.get("stderr", "")[:1000]} for k, v in checks.items()},
         "repair_packet": "/workspace/output/github-clone-copy-pr-v3-3.sh" if wrapper_broken else None,
-        "host_runner": host_runner_latest if isinstance(host_runner_latest, dict) else {},
-        "host_runner_latest_source": stat_info(host_runner_latest_path),
         "hardening_report": "/workspace/output/github-and-ops-worker-v3-status.md",
-    }
-
-
-def build_host_autonomy(health: dict[str, Any], github: dict[str, Any]) -> dict[str, Any]:
-    ap = github.get("autopush") if isinstance(github.get("autopush"), dict) else {}
-    pr = github.get("pr_status") if isinstance(github.get("pr_status"), dict) else {}
-    qmd = health.get("qmd") if isinstance(health.get("qmd"), dict) else {}
-    latest_finalizer = latest_file_info("finalizer/hfinalize-*.md")
-    latest_commit = pr.get("latest_commit_sha") or pr.get("headRefOid") or ap.get("latest_remote_commit") or github.get("latest_commit_sha")
-    checks_status = pr.get("checks_status") or ap.get("checks_status") or "unknown"
-    continuation_latest = load_json(OUTPUT / "webstudio-continuation-supervisor" / "latest.json", {})
-    pending_jobs = sorted((WORKSPACE / ".hermes-workqueue" / "webstudio" / "pending").glob("*.json"))
-    first_pending_job = load_json(pending_jobs[0], {}) if pending_jobs else {}
-    queue_root = WORKSPACE / ".hermes-workqueue" / "webstudio"
-    queue_counts = {name: len(list((queue_root / name).glob("*.json*"))) if (queue_root / name).exists() else 0 for name in ["pending", "running", "done", "failed"]}
-    continuation_engine = {
-        "schema_version": "webstudio.continuation-engine.v1",
-        "updated_at": utc_now(),
-        "status": "PASS" if continuation_latest.get("status") in {"PASS", "NOOP"} and pending_jobs else "WATCH",
-        "iteration_budget_protocol_created": (OUTPUT / "webstudio-budget-exhaustion-protocol-v1.md").exists(),
-        "queue_root": str(queue_root),
-        "queue_counts": queue_counts,
-        "supervisor_path": str(WORKSPACE / ".hermes" / "scripts" / "webstudio-continuation-supervisor.sh"),
-        "work_factory_integration": "webstudio-continuation-supervisor.sh" in read_text(WORKSPACE / ".hermes" / "scripts" / "work-factory-supervisor-tick.sh", 4000),
-        "chat_cron_used": False,
-        "first_next_pass_job_id": first_pending_job.get("id"),
-        "pending_jobs": len(pending_jobs),
-        "checkpoint_path": str(CONTINUATION_CHECKPOINT_PATH),
-        "latest_result": str(OUTPUT / "webstudio-continuation-supervisor" / "latest.json"),
-        "latest_status": continuation_latest.get("status"),
-        "owner_needs_to_type_continue": False,
-    }
-    qmd_status = "PASS_BOUNDED" if qmd.get("bounded_mode_available") else ("OK" if qmd.get("available") and not (qmd.get("pending_embeddings") or 0) else "DEGRADED_SAFE")
-    snapshot_processor = {
-        "status": "PASS" if (RUNTIME / "last-auto-snapshot.txt").exists() else "WATCH",
-        "last_auto_snapshot": read_text(RUNTIME / "last-auto-snapshot.txt", 500),
-        "processed_requests_visible": (RUNTIME / "snapshot-requests" / "processed").exists(),
-    }
-    return {
-        "schema_version": "webstudio.host-autonomy.v1",
-        "updated_at": utc_now(),
-        "status": "ON" if health.get("gateway_active") and not github.get("wrapper_broken") else "WATCH",
-        "approvals_mode": "OFF / owner-approved autonomy",
-        "owner_approved_autonomy": True,
-        "auto_push_available": True,
-        "auto_push": ap,
-        "latest_pr_commit": latest_commit,
-        "checks_status": checks_status,
-        "owner_action_required": False,
-        "continuation_engine": continuation_engine,
-        "snapshot_processor": snapshot_processor,
-        "qmd": {**qmd, "status": qmd_status},
-        "hfinalize": {"status": "available", "latest_report": latest_finalizer},
-        "owner_action_required_only_for": [
-            "live production secrets",
-            "live Telegram token",
-            "live CRM/Sheets writes",
-            "Supabase migrations with writes",
-            "deploy/release",
-            "payment/live external actions",
-            "private client data approval",
-        ],
-        "owner_not_required_for": ["git commit", "git push to PR branch", "qmd update", "hfinalize", "build/smoke", "browser QA", "docs/reports/artifacts", "safe local dry-run"],
-        "reports": {"verification": "/workspace/output/webstudio-host-autonomy-verification-v1.md", "qmd_plan": "/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md"},
     }
 
 
@@ -879,204 +951,9 @@ def build_product_progress() -> dict[str, Any]:
         "source": stat_info(PRODUCT_PROGRESS_PATH),
         "updated_at": data.get("updated_at"),
         "mode": data.get("mode", "safe_local_artifacts_only"),
-        "phase": data.get("phase"),
-        "status": data.get("status"),
-        "v10_status": data.get("v10_status"),
-        "v11_status": data.get("v11_status"),
-        "pr_verification_verdict": data.get("pr_verification_verdict"),
-        "pr_url": data.get("pr_url"),
         "items": items,
-        "client_simulation": data.get("client_simulation", {}),
-        "system_layer": data.get("system_layer", {}),
-        "analytics": data.get("analytics", {}),
-        "github_sync": data.get("github_sync", {}),
-        "qmd_maintenance": data.get("qmd_maintenance", {}),
-        "repo_sync": data.get("repo_sync", {}),
-        "v18_status": data.get("v18_status"),
-        "v19_status": data.get("v19_status"),
-        "v20_status": data.get("v20_status"),
-        "v21_status": data.get("v21_status"),
-        "premium_motion_factory_v25": data.get("premium_motion_factory_v25"),
-        "premium_motion_factory_v26": data.get("premium_motion_factory_v26"),
-        "premium_website_generator_v32": data.get("premium_website_generator_v32", {}),
-        "premium_factory_v34": data.get("premium_factory_v34", {}),
-        "production_generator": data.get("production_generator"),
-        "batch_render_workflow": data.get("batch_render_workflow"),
-        "poster_auto_pick": data.get("poster_auto_pick"),
-        "reduced_motion_fallback": data.get("reduced_motion_fallback"),
-        "client_handoff_pack": data.get("client_handoff_pack"),
-        "video_metadata_path": data.get("video_metadata_path"),
-        "latest_pr_commit": data.get("latest_pr_commit"),
-        "report": data.get("report"),
         "by_line": {line: [x for x in items if x.get("product_line") == line] for line in ["D1", "D2", "D3"]},
         "latest_summary": [f"{x.get('product_line')}: {x.get('artifact_type')} → {x.get('path')}" for x in items[:10]],
-    }
-
-
-def build_motion_factory(product_progress: dict[str, Any]) -> dict[str, Any]:
-    """Owner-facing HyperFrames / Premium Motion Factory production status."""
-    metadata = load_json(OUTPUT / "webstudio-motion-v26-video-metadata.json", {})
-    videos = metadata.get("videos") if isinstance(metadata.get("videos"), list) else []
-    v28_reports = [
-        "/workspace/output/webstudio-hyperframes-reusable-templates-v28.md",
-        "/workspace/output/webstudio-client-example-003-motion-plan.md",
-        "/workspace/output/webstudio-client-example-003-motion-composition.html",
-    ]
-    has_v28 = any(Path(p).exists() for p in v28_reports)
-    return {
-        "status": "V28_TEMPLATES_READY" if has_v28 else (product_progress.get("premium_motion_factory_v26") or product_progress.get("premium_motion_factory_v25") or "unknown"),
-        "runtime": {
-            "hyperframes_runtime": "PASS" if (OUTPUT / "webstudio-hyperframes-smoke-v24.mp4").exists() else "unknown",
-            "motion_engine": "OPERATIONAL" if (OUTPUT / "webstudio-premium-site-example-001-motion-preview-v2.mp4").exists() else "HTML_COMPOSITION_READY" if has_v28 else "unknown",
-            "owner_action_required": "no",
-        },
-        "production_generator_status": "READY" if has_v28 else (product_progress.get("production_generator") or "unknown"),
-        "template_pack_status": "V28_READY" if has_v28 else (product_progress.get("hyperframes_template_pack") or "PASS"),
-        "batch_render_status": "HTML_COMPOSITION_READY" if has_v28 else (product_progress.get("batch_render_workflow") or "unknown"),
-        "poster_status": "WORKFLOW_READY" if has_v28 else (product_progress.get("poster_auto_pick") or "unknown"),
-        "reduced_motion_status": "SNIPPETS_READY" if has_v28 else (product_progress.get("reduced_motion_fallback") or "unknown"),
-        "handoff_pack_status": "READY" if has_v28 else (product_progress.get("client_handoff_pack") or "unknown"),
-        "repo_sync": product_progress.get("repo_sync", {}),
-        "latest_videos": videos,
-        "reports": [
-            "/workspace/output/webstudio-premium-motion-factory-v26-report.md",
-            "/workspace/output/webstudio-motion-data-driven-generator-v26.md",
-            "/workspace/output/webstudio-motion-batch-render-workflow-v26.md",
-            "/workspace/output/webstudio-motion-poster-auto-pick-v26.md",
-            "/workspace/output/webstudio-reduced-motion-fallback-snippets-v26.md",
-            "/workspace/output/webstudio-motion-client-handoff-pack-v26.md",
-            *[p for p in v28_reports if Path(p).exists()],
-        ],
-        "next_action": "Render Example #003 MP4 when HyperFrames/ffmpeg runtime is available." if has_v28 else "Host Runner Auto-Push should push dashboard/docs changes and verify PR head SHA.",
-    }
-
-
-
-def build_client_intake_v27() -> dict[str, Any]:
-    """Owner-facing WebStudio Client Intake / Order Builder v27 status."""
-    wizard = load_json(OUTPUT / "webstudio-client-intake-wizard-v27.json", {})
-    orders = load_json(OUTPUT / "webstudio-order-builder-v27.json", {})
-    blueprint = load_json(OUTPUT / "webstudio-premium-site-production-blueprint-v27.json", {})
-    packages = orders.get("packages") if isinstance(orders.get("packages"), list) else []
-    steps = wizard.get("steps") if isinstance(wizard.get("steps"), list) else []
-    pipeline = blueprint.get("pipeline") if isinstance(blueprint.get("pipeline"), list) else []
-    example_files = [
-        OUTPUT / "webstudio-client-example-002-brief.md",
-        OUTPUT / "webstudio-client-example-002-strategy.md",
-        OUTPUT / "webstudio-client-example-002-design-directions.md",
-        OUTPUT / "webstudio-client-example-002-motion-plan.md",
-        OUTPUT / "webstudio-client-example-002-production-plan.md",
-        OUTPUT / "webstudio-client-example-002-concept-a.html",
-        OUTPUT / "webstudio-client-example-002-concept-b.html",
-        OUTPUT / "webstudio-client-example-002-concept-c.html",
-    ]
-    example_003_files = [
-        OUTPUT / "webstudio-client-example-003-brief.md",
-        OUTPUT / "webstudio-client-example-003-strategy.md",
-        OUTPUT / "webstudio-client-example-003-design-directions.md",
-        OUTPUT / "webstudio-client-example-003-concept-a.html",
-        OUTPUT / "webstudio-client-example-003-concept-b.html",
-        OUTPUT / "webstudio-client-example-003-concept-c.html",
-        OUTPUT / "webstudio-client-example-003-motion-plan.md",
-        OUTPUT / "webstudio-client-example-003-delivery-pack.md",
-    ]
-    return {
-        "schema": "webstudio.client_intake_order_builder.v27",
-        "status": "PASS" if steps and packages and pipeline and all(p.exists() for p in example_files[:5]) else "IN_PROGRESS",
-        "owner_action_required": "no",
-        "wizard": {
-            "status": "READY" if steps else "missing",
-            "questions": len(steps),
-            "mode": wizard.get("mode") or "adaptive_one_step_at_a_time",
-            "md": str(OUTPUT / "webstudio-client-intake-wizard-v27.md"),
-            "json": str(OUTPUT / "webstudio-client-intake-wizard-v27.json"),
-            "html": str(OUTPUT / "webstudio-client-intake-wizard-v27.html"),
-        },
-        "order_builder": {
-            "status": "READY" if packages else "missing",
-            "packages": len(packages),
-            "md": str(OUTPUT / "webstudio-order-builder-v27.md"),
-            "json": str(OUTPUT / "webstudio-order-builder-v27.json"),
-            "html": str(OUTPUT / "webstudio-order-builder-v27.html"),
-            "available_packages": [p.get("name") for p in packages[:15]],
-            "package_details": packages[:15],
-        },
-        "premium_site_factory": {
-            "status": "READY" if pipeline else "missing",
-            "steps": len(pipeline),
-            "blueprint_md": str(OUTPUT / "webstudio-premium-site-production-blueprint-v27.md"),
-            "blueprint_json": str(OUTPUT / "webstudio-premium-site-production-blueprint-v27.json"),
-        },
-        "examples": [
-            {"id": "001", "name": "Premium renovation", "status": "PASS", "artifacts": ["/workspace/output/webstudio-premium-site-example-001-motion-preview-v2.mp4", "/workspace/output/webstudio-premium-motion-factory-v26-report.md"]},
-            {"id": "002", "name": "Premium dental clinic Moscow", "status": "READY", "artifacts": [str(p) for p in example_files if p.exists()]},
-            {"id": "003", "name": "Премиальный барбершоп / мужской салон Москва", "status": "READY" if all(p.exists() for p in example_003_files) else "IN_PROGRESS", "artifacts": [str(p) for p in example_003_files if p.exists()]},
-        ],
-        "links": [
-            str(OUTPUT / "webstudio-client-intake-order-builder-v27-report.md"),
-            str(OUTPUT / "webstudio-client-intake-wizard-v27.html"),
-            str(OUTPUT / "webstudio-order-builder-v27.html"),
-            str(OUTPUT / "webstudio-client-example-002-concept-a.html"),
-            str(OUTPUT / "webstudio-client-example-002-concept-b.html"),
-            str(OUTPUT / "webstudio-client-example-002-concept-c.html"),
-            str(OUTPUT / "webstudio-client-example-003-concept-a.html"),
-            str(OUTPUT / "webstudio-client-example-003-concept-b.html"),
-            str(OUTPUT / "webstudio-client-example-003-concept-c.html"),
-        ],
-        "next_action": "Use adaptive wizard to qualify first real client, then route to package and production blueprint. V28: continue Example #003 selected direction and host-verified mainline visibility.",
-        "approvals": ["live Telegram", "CRM/payment/analytics integrations", "medical/legal claims", "deploy/preview"],
-        "readiness": "READY_FOR_CLIENT_SIMULATION",
-    }
-
-
-def build_delivery_system_v29(product_progress: dict[str, Any]) -> dict[str, Any]:
-    """Owner-facing Premium Client-Facing Website Delivery System v29 status."""
-    pipeline = load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {})
-    qa = load_json(OUTPUT / "webstudio-premium-website-qa-checklist-v29.json", {})
-    artifacts = [
-        OUTPUT / "webstudio-premium-website-delivery-system-v29.md",
-        OUTPUT / "webstudio-client-delivery-pipeline-v29.json",
-        OUTPUT / "webstudio-client-delivery-pack-template-v29.md",
-        OUTPUT / "webstudio-client-delivery-pack-template-v29.html",
-        OUTPUT / "webstudio-client-example-003-delivery-pack-v1.md",
-        OUTPUT / "webstudio-client-example-003-delivery-pack-v1.html",
-        OUTPUT / "webstudio-client-example-003-launch-readiness-v1.md",
-        OUTPUT / "webstudio-client-example-003-owner-approval-packet-v1.md",
-        OUTPUT / "webstudio-premium-website-qa-system-v29.md",
-        OUTPUT / "webstudio-premium-website-qa-checklist-v29.json",
-    ]
-    existing = [str(x) for x in artifacts if x.exists()]
-    stages = pipeline.get("stages") if isinstance(pipeline.get("stages"), list) else []
-    qa_blocks = qa.get("blocks") if isinstance(qa.get("blocks"), list) else []
-    return {
-        "schema": "webstudio.premium_client_delivery_system.v29",
-        "status": "PASS" if len(existing) == len(artifacts) and stages and qa_blocks else "IN_PROGRESS",
-        "owner_action_required": "no_for_local_artifacts_yes_for_live_deploy_integrations",
-        "pipeline_status": pipeline.get("status") or "unknown",
-        "pipeline_stages": len(stages),
-        "qa_status": qa.get("status") or "unknown",
-        "qa_blocks": len(qa_blocks),
-        "client_003_status": "PASS" if (OUTPUT / "webstudio-client-example-003-delivery-pack-v1.html").exists() else "missing",
-        "delivery_pack_template_status": "PASS" if (OUTPUT / "webstudio-client-delivery-pack-template-v29.html").exists() else "missing",
-        "github_mainline": {
-            "status": product_progress.get("mainline_status") or product_progress.get("github_sync", {}).get("status") or "MAINLINE_MERGED",
-            "pr_1": "MERGED",
-            "default_branch": "main",
-            "default_sha": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-            "contribution_visibility_note": "GitHub graph can lag 1-24h; only recheck private contributions/email if still empty later.",
-        },
-        "readiness": {
-            "d1": "PASS",
-            "d2_telegram_intake": "DRY_RUN_READY",
-            "d3_automation": "DRY_RUN_READY",
-            "motion_video": "READY_WITH_REDUCED_MOTION_FALLBACK",
-            "handoff": "PASS",
-            "artifact_registry": "PASS",
-        },
-        "approval_packets": [str(OUTPUT / "webstudio-client-example-003-owner-approval-packet-v1.md")],
-        "launch_readiness": str(OUTPUT / "webstudio-client-example-003-launch-readiness-v1.md"),
-        "artifacts": existing,
-        "next_action": "Use v29 delivery pack with first real client; live integrations/deploy remain approval-gated.",
     }
 
 
@@ -1357,1135 +1234,6 @@ def build_agent_workflow(production_pipeline: dict[str, Any], worker_health: dic
         ],
     }
 
-
-def build_real_client_execution_v30(product_progress: dict[str, Any]) -> dict[str, Any]:
-    v30 = product_progress.get("real_client_execution_v30", {}) if isinstance(product_progress, dict) else {}
-    flow = load_json(OUTPUT / "webstudio-real-client-execution-flow-v30.json", {})
-    registry = load_json(OUTPUT / "webstudio-client-004-artifact-registry-v30.json", {})
-    preview_registry = load_json(OUTPUT / "webstudio-preview-export-registry-v30.json", {})
-    pr2 = load_json(OUTPUT / "github-pr2-status-v30.json", {})
-    return {
-        "status": v30.get("status", "PASS_LOCAL_READY"),
-        "client": "Client #004",
-        "client_name": "Премиальная стоматология Москва",
-        "package_selected": "Premium Clinic Growth Pack",
-        "execution_flow_status": flow.get("status", "PASS_LOCAL_READY"),
-        "flow_stages": len(flow.get("stages", [])) or 15,
-        "d1_status": v30.get("d1", "PASS"),
-        "d2_status": v30.get("d2", "PASS"),
-        "d3_status": v30.get("d3", "PASS_DRY_RUN_ONLY"),
-        "motion_status": v30.get("motion", "PASS_HTML_COMPOSITION"),
-        "qa_status": "PASS_LOCAL",
-        "preview_package_status": v30.get("preview_package", "PASS"),
-        "owner_action_required": v30.get("owner_action_required", "no_for_local_artifacts_yes_for_live_actions"),
-        "pr2_status": pr2,
-        "branch_strategy": "new PR #3 based on webstudio/product-build-v29; keep PR #2 independently reviewable",
-        "paths": {
-            "flow": "/workspace/output/webstudio-real-client-execution-flow-v30.md",
-            "flow_json": "/workspace/output/webstudio-real-client-execution-flow-v30.json",
-            "client_report": "/workspace/output/webstudio-client-004-report-v30.md",
-            "d1_preview": "/workspace/output/webstudio-client-004-d1-preview-v30.html",
-            "d2_flow": "/workspace/output/webstudio-client-004-d2-telegram-intake-flow-v30.md",
-            "d3_map": "/workspace/output/webstudio-client-004-d3-automation-map-v30.md",
-            "motion_composition": "/workspace/output/webstudio-client-004-motion-composition-v30.html",
-            "preview_package": "/workspace/output/webstudio-client-004-preview-package-v30.md",
-            "artifact_registry": "/workspace/output/webstudio-client-004-artifact-registry-v30.json",
-            "export_registry": "/workspace/output/webstudio-preview-export-registry-v30.json",
-            "pr2_strategy": "/workspace/output/github-pr2-merge-strategy-v30.md",
-        },
-        "flow": flow.get("stages", []),
-        "artifact_registry_count": len(registry.get("artifacts", [])),
-        "preview_registry": preview_registry,
-        "next_action": "Review PR #2 separately; use v30 PR for real-client execution flow; approve live deploy/integrations only after client-safe QA."
-    }
-
-
-def build_premium_visual_motion_v31(product_progress: dict[str, Any]) -> dict[str, Any]:
-    v31 = product_progress.get("premium_visual_motion_v31", {}) if isinstance(product_progress, dict) else {}
-    external = load_json(OUTPUT / "webstudio-premium-factory-v31.json", {})
-    if isinstance(external, dict) and external:
-        merged = {**external, **v31}
-        merged["paths"] = {**external.get("paths", {}), **v31.get("paths", {})}
-        merged["concepts"] = v31.get("concepts") or external.get("concepts", [])
-        merged["visual_assets"] = v31.get("visual_assets") or external.get("visual_assets", [])
-        return merged
-    return v31
-
-
-def build_premium_website_generator_v32(product_progress: dict[str, Any]) -> dict[str, Any]:
-    v32 = product_progress.get("premium_website_generator_v32", {}) if isinstance(product_progress, dict) else {}
-    external = load_json(OUTPUT / "webstudio-premium-website-generator-v32.json", {})
-    if not external:
-        external = load_json(OUTPUT / "webstudio-premium-site-generator-v32.json", {})
-    if isinstance(external, dict) and external:
-        merged = {**external, **v32}
-        merged["paths"] = {**external.get("paths", {}), **v32.get("paths", {})}
-        merged["inputs"] = v32.get("inputs") or external.get("inputs", [])
-        merged["outputs"] = v32.get("outputs") or external.get("outputs", [])
-        merged["pipeline"] = v32.get("pipeline") or external.get("pipeline", [])
-        return merged
-    return v32
-
-def build_premium_factory_v34(product_progress: dict[str, Any]) -> dict[str, Any]:
-    v34 = product_progress.get("premium_factory_v34", {}) if isinstance(product_progress, dict) else {}
-    external = load_json(OUTPUT / "webstudio-premium-factory-v34.json", {})
-    fallback_pilot = {
-        "schema_version": "webstudio-premium-factory-v34.client-to-premium-pilot.v1",
-        "status": "PASS",
-        "qa_score": 96,
-        "client": "Northstar Executive Wellness Studio (demo)",
-        "research": "PASS",
-        "design_system": "PASS",
-        "skills": "PASS",
-        "visual_sourcing": "PLANNED_REAL_ASSETS_REQUIRED",
-        "interview": "ORDER_BUILDER_DEMO_ORDER_READY",
-        "order_builder": "STRUCTURED_CLIENT_BRIEF_READY",
-        "client_004_site": "NOT_IN_SCOPE_FOR_V34_PILOT",
-        "motion_hyperframes": "ROADMAP_ONLY",
-        "image_assets": "DEMO_PLACEHOLDERS_ONLY",
-        "mp4_status": "NOT_STARTED",
-        "client_order_pilot": {
-            "version": "v3.4",
-            "status": "READY_FOR_DASHBOARD",
-            "demo_only": True,
-            "business_name": "Northstar Executive Wellness Studio",
-            "niche": "Premium executive wellness / physiotherapy / recovery studio",
-            "offer": "Premium website package for consult bookings, service education, and lead qualification",
-            "target_audience": "Founders, executives, busy professionals, premium local service buyers",
-            "brand_tone": "Calm, clinical but human, editorial, precise, premium without hype",
-            "required_pages": ["Home", "Services", "Executive Recovery Program", "About", "Proof & Process", "FAQ", "Contact / Booking"],
-            "visual_direction": "Warm Clinical Editorial: warm ivory, ink navy, sage, muted brass, hairline borders, high whitespace",
-            "conversion_goal": "Book qualified consultation calls through service fit and proof artifacts",
-            "technical_requirements": ["Static GitHub Pages", "No browser-side secrets", "Responsive", "Accessible", "SEO outline", "Future Supabase artifact status integration"],
-        },
-        "production_package": {"status": "PACKAGE_READY", "sitemap": "READY", "copy_outline": "READY", "design_system": "READY", "component_plan": "READY", "seo_plan": "READY", "conversion_plan": "READY", "qa_checklist": "READY", "delivery_report_template": "READY", "artifact_model": "READY"},
-        "dashboard_visibility": {"status": "READY", "route": "/premium-factory-v34/", "data_source": "sanitized static snapshot", "browser_side_secrets": False},
-        "supabase_artifacts": [
-            {"artifact_key": "webstudio-v34-demo-client-order", "status": "ready", "path": "/workspace/output/webstudio-client-to-premium-factory-pilot-v34/phase-1-demo-client-order/client-order.json"},
-            {"artifact_key": "webstudio-v34-premium-factory-package", "status": "ready", "path": "/workspace/output/webstudio-client-to-premium-factory-pilot-v34/phase-2-premium-factory-package/"},
-        ],
-        "qa_gates": [
-            {"gate": "demo_only_safety", "status": "PASS"},
-            {"gate": "no_browser_side_secrets", "status": "PASS"},
-            {"gate": "no_fake_testimonials_or_medical_claims", "status": "PASS"},
-            {"gate": "static_dashboard_snapshot", "status": "READY"},
-        ],
-        "owner_action_required": ["Real client assets before public launch", "Compliance/legal review before regulated health claims", "Booking integration approval before live form writes"],
-        "approval_gates": ["real assets", "medical/legal copy", "live booking integration", "public launch"],
-        "next_action": "Use V3.4 package as the first reusable premium website factory input; next sprint can implement the generated demo site from this package.",
-    }
-    source = external if isinstance(external, dict) and external else fallback_pilot
-    merged = {**source, **v34}
-    merged["paths"] = {**source.get("paths", {}), **v34.get("paths", {})}
-    merged["owner_action_required"] = v34.get("owner_action_required") or source.get("owner_action_required", [])
-    return merged
-
-
-
-def build_supabase_memory() -> dict[str, Any]:
-    snapshot = load_json(SUPABASE_MEMORY_SNAPSHOT_PATH, {})
-    if not isinstance(snapshot, dict):
-        snapshot = {}
-    ops = snapshot.get("latest_ops_status") if isinstance(snapshot.get("latest_ops_status"), list) else []
-    jobs = snapshot.get("latest_jobs") if isinstance(snapshot.get("latest_jobs"), list) else []
-    artifacts = snapshot.get("latest_artifacts") if isinstance(snapshot.get("latest_artifacts"), list) else []
-    memory_index = snapshot.get("latest_memory_index") if isinstance(snapshot.get("latest_memory_index"), list) else []
-    latest_heartbeat = ops[0] if ops else {}
-    delivery_loop = snapshot.get("current_delivery_loop") if isinstance(snapshot.get("current_delivery_loop"), dict) else {}
-    latest_deploy = snapshot.get("latest_deploy") if isinstance(snapshot.get("latest_deploy"), dict) else {}
-    bot_activity = snapshot.get("bot_activity_summary") if isinstance(snapshot.get("bot_activity_summary"), dict) else {}
-    bot_activity = {
-        **bot_activity,
-        "visible_ops_rows": len(ops),
-        "visible_jobs": len(jobs),
-        "visible_artifacts": len(artifacts),
-        "visible_memory_index": len(memory_index),
-    }
-    return {
-        "source_of_truth": str(SUPABASE_MEMORY_SNAPSHOT_PATH),
-        "source": stat_info(SUPABASE_MEMORY_SNAPSHOT_PATH),
-        "schema_version": snapshot.get("schema_version", "webstudio-supabase-memory.v2.6.empty"),
-        "generated_at": snapshot.get("generated_at"),
-        "source_mode": snapshot.get("source_mode", "static_snapshot"),
-        "safety": snapshot.get("safety", {"browser_side_supabase": False}),
-        "project_ref": snapshot.get("project_ref", "ebqupwyyafvnmhakfwet"),
-        "tables": snapshot.get("tables", []),
-        "latest_ops_status": ops,
-        "latest_jobs": jobs,
-        "latest_artifacts": artifacts,
-        "latest_memory_index": memory_index,
-        "current_delivery_loop": delivery_loop,
-        "latest_deploy": latest_deploy,
-        "latest_heartbeat": latest_heartbeat,
-        "bot_activity_summary": bot_activity,
-    }
-
-
-def build_bot_activity() -> dict[str, Any]:
-    snapshot = load_json(BOT_ACTIVITY_SNAPSHOT_PATH, {})
-    if not isinstance(snapshot, dict):
-        snapshot = {}
-    activity = snapshot.get("activity") if isinstance(snapshot.get("activity"), list) else []
-    ops = snapshot.get("latest_ops_status") if isinstance(snapshot.get("latest_ops_status"), list) else []
-    jobs = snapshot.get("latest_jobs") if isinstance(snapshot.get("latest_jobs"), list) else []
-    blockers = snapshot.get("blockers") if isinstance(snapshot.get("blockers"), list) else []
-    github = snapshot.get("github") if isinstance(snapshot.get("github"), dict) else {}
-    links = snapshot.get("links") if isinstance(snapshot.get("links"), dict) else {}
-    summary = snapshot.get("summary") if isinstance(snapshot.get("summary"), dict) else {}
-    return {
-        "source_of_truth": str(BOT_ACTIVITY_SNAPSHOT_PATH),
-        "source": stat_info(BOT_ACTIVITY_SNAPSHOT_PATH),
-        "schema_version": snapshot.get("schema_version", "webstudio-live-bot-activity-feed.v2.7.empty"),
-        "generated_at": snapshot.get("generated_at"),
-        "source_mode": snapshot.get("source_mode", "static_snapshot"),
-        "safety": snapshot.get("safety", {"browser_side_supabase": False, "browser_side_github_token": False}),
-        "links": links,
-        "status_chips": snapshot.get("status_chips", ["PASS", "PARTIAL", "BLOCKED", "DEPLOYED", "RUNNING", "QUEUED"]),
-        "activity": activity,
-        "latest_ops_status": ops,
-        "latest_jobs": jobs,
-        "latest_artifacts": snapshot.get("latest_artifacts", []),
-        "latest_memory_index": snapshot.get("latest_memory_index", []),
-        "github": github,
-        "blockers": blockers,
-        "next_safe_action": snapshot.get("next_safe_action", "Review next safe production task."),
-        "summary": {**summary, "activity_items": len(activity), "heartbeat_rows": len(ops), "job_rows": len(jobs), "blockers": len(blockers)},
-    }
-
-
-def build_work_factory_control() -> dict[str, Any]:
-    snapshot = load_json(WORK_FACTORY_CONTROL_SNAPSHOT_PATH, {})
-    if not isinstance(snapshot, dict):
-        snapshot = {}
-    queued = snapshot.get("queued_jobs") if isinstance(snapshot.get("queued_jobs"), list) else []
-    running = snapshot.get("running_jobs") if isinstance(snapshot.get("running_jobs"), list) else []
-    blocked = snapshot.get("blocked_jobs") if isinstance(snapshot.get("blocked_jobs"), list) else []
-    approvals = snapshot.get("owner_approval_needed") if isinstance(snapshot.get("owner_approval_needed"), list) else []
-    completed = snapshot.get("completed_jobs") if isinstance(snapshot.get("completed_jobs"), list) else []
-    ops = snapshot.get("latest_supabase_status") if isinstance(snapshot.get("latest_supabase_status"), list) else []
-    jobs = snapshot.get("latest_supabase_jobs") if isinstance(snapshot.get("latest_supabase_jobs"), list) else []
-    github = snapshot.get("github") if isinstance(snapshot.get("github"), dict) else {}
-    summary = snapshot.get("summary") if isinstance(snapshot.get("summary"), dict) else {}
-    counts = {
-        "queued": len(queued),
-        "running": len(running),
-        "blocked": len(blocked),
-        "completed": len(completed),
-        "owner_approval_needed": len(approvals),
-        "supabase_status_rows": len(ops),
-        "supabase_job_rows": len(jobs),
-    }
-    counts.update(snapshot.get("counts", {}) if isinstance(snapshot.get("counts"), dict) else {})
-    return {
-        "source_of_truth": str(WORK_FACTORY_CONTROL_SNAPSHOT_PATH),
-        "source": stat_info(WORK_FACTORY_CONTROL_SNAPSHOT_PATH),
-        "schema_version": snapshot.get("schema_version", "webstudio-work-factory-control.v2.8.empty"),
-        "generated_at": snapshot.get("generated_at"),
-        "source_mode": snapshot.get("source_mode", "static_snapshot"),
-        "safety": snapshot.get("safety", {"browser_side_supabase": False, "browser_side_github_token": False, "control_mode": "read_only_copy_only"}),
-        "links": snapshot.get("links", {}),
-        "status_chips": snapshot.get("status_chips", ["PASS", "DEPLOYED", "RUNNING", "QUEUED", "PARTIAL", "BLOCKED", "NEEDS_OWNER"]),
-        "filters": snapshot.get("filters", ["status", "component", "time"]),
-        "counts": counts,
-        "queued_jobs": queued,
-        "running_jobs": running,
-        "blocked_jobs": blocked,
-        "owner_approval_needed": approvals,
-        "completed_jobs": completed,
-        "latest_supabase_status": ops,
-        "latest_supabase_jobs": jobs,
-        "latest_artifacts": snapshot.get("latest_artifacts", []),
-        "latest_memory_index": snapshot.get("latest_memory_index", []),
-        "github": github,
-        "reports": snapshot.get("reports", []),
-        "next_safe_action": snapshot.get("next_safe_action", "Review owner approvals and blockers first."),
-        "summary": {**summary, **counts},
-    }
-
-
-def build_owner_command_center() -> dict[str, Any]:
-    snapshot = load_json(OWNER_COMMAND_CENTER_SNAPSHOT_PATH, {})
-    if not isinstance(snapshot, dict):
-        snapshot = {}
-    return {
-        "source_of_truth": str(OWNER_COMMAND_CENTER_SNAPSHOT_PATH),
-        "source": stat_info(OWNER_COMMAND_CENTER_SNAPSHOT_PATH),
-        "schema_version": snapshot.get("schema_version", "webstudio-owner-command-center.v2.9.empty"),
-        "generated_at": snapshot.get("generated_at"),
-        "source_mode": snapshot.get("source_mode", "static_snapshot"),
-        "safety": snapshot.get("safety", {"browser_side_supabase": False, "browser_side_github_token": False}),
-        "current_production_status": snapshot.get("current_production_status", "UNKNOWN"),
-        "next_safe_action": snapshot.get("next_safe_action", "Review Work Factory and blockers."),
-        "latest_deployed_commit": snapshot.get("latest_deployed_commit"),
-        "latest_local_commit": snapshot.get("latest_local_commit"),
-        "latest_github_actions_deploy": snapshot.get("latest_github_actions_deploy", {}),
-        "latest_supabase_rows": snapshot.get("latest_supabase_rows", []),
-        "blocked_items": snapshot.get("blocked_items", []),
-        "owner_approvals_needed": snapshot.get("owner_approvals_needed", []),
-        "active_version_roadmap": snapshot.get("active_version_roadmap", []),
-        "links": snapshot.get("links", {}),
-        "summary": snapshot.get("summary", {}),
-    }
-
-def build_order_builder() -> dict[str, Any]:
-    snapshot = load_json(ORDER_BUILDER_SNAPSHOT_PATH, {})
-    if not isinstance(snapshot, dict):
-        snapshot = {}
-    return {
-        "source_of_truth": str(ORDER_BUILDER_SNAPSHOT_PATH),
-        "source": stat_info(ORDER_BUILDER_SNAPSHOT_PATH),
-        "schema_version": snapshot.get("schema_version", "webstudio-order-builder.v3.0.empty"),
-        "generated_at": snapshot.get("generated_at"),
-        "source_mode": snapshot.get("source_mode", "static_demo_snapshot"),
-        "safety": snapshot.get("safety", {"public_demo_only": True, "browser_side_supabase": False}),
-        "sample_order": snapshot.get("sample_order", {}),
-        "next_safe_action": snapshot.get("next_safe_action", "Use sanitized schema only."),
-        "production_task_template": snapshot.get("production_task_template", {}),
-        "schema_policy": snapshot.get("schema_policy", "New tables require owner-approved migration."),
-    }
-
-
-def build_delivery_handoff_composer_v33(order_builder: dict[str, Any], delivery_system: dict[str, Any]) -> dict[str, Any]:
-    acceptance = [
-        {"id": "brief", "label": "Sanitized brief is complete", "required_evidence": "Order Builder production brief", "default_state": "ready"},
-        {"id": "scope", "label": "D1/D2/D3 scope is explicit", "required_evidence": "Selected package, pages, bot flow, automation map", "default_state": "ready"},
-        {"id": "assets", "label": "Assets and missing inputs are visible", "required_evidence": "Assets needed + content status", "default_state": "needs_review"},
-        {"id": "qa", "label": "QA gates passed before client send", "required_evidence": "build, smoke, changed-file secret scan", "default_state": "needs_review"},
-        {"id": "privacy", "label": "No private client data or credentials in packet", "required_evidence": "public demo/sanitized-only policy", "default_state": "ready"},
-        {"id": "approval", "label": "Owner approves any live CRM/DB/client-send action", "required_evidence": "owner approval before live writes", "default_state": "blocked_until_owner"},
-    ]
-    risk_digest = {
-        "schema_version": "webstudio.client-handoff-risk-digest.v36",
-        "generated_at": utc_now(),
-        "mode": "read_only_owner_review",
-        "persistence": "static_state_plus_browser_local_storage_acceptance_overlay",
-        "safety": "no DB/CRM/client-send writes; no private client data; no credentials",
-        "risks": [
-            {"id": "assets", "title": "Assets still need owner/client confirmation", "status": "needs_review", "owner_visible_reason": "Missing images/copy can delay final handoff quality.", "mitigation": "Confirm placeholder policy or collect final assets before send."},
-            {"id": "qa", "title": "QA evidence must be attached before client send", "status": "needs_review", "owner_visible_reason": "Client-facing packet should include build/smoke/secret-scan proof.", "mitigation": "Use local build + smoke + changed-file secret scan artifacts."},
-            {"id": "live-writes", "title": "Live CRM/DB/client-send action remains gated", "status": "blocked_until_owner", "owner_visible_reason": "External writes require explicit owner approval.", "mitigation": "Keep packet copy-only until approval is recorded."},
-        ],
-        "safe_handoff_gates": ["sanitized_brief", "explicit_scope", "assets_status_known", "qa_evidence_attached", "privacy_checked", "owner_approval_before_live_writes"],
-        "owner_review_timeline": [
-            {"id": "review-packet", "label": "Review composed handoff packet", "status": "ready", "owner_action": "Inspect copy-only packet and risk digest."},
-            {"id": "resolve-assets", "label": "Resolve asset/copy gaps", "status": "needs_review", "owner_action": "Approve placeholders or request final client assets."},
-            {"id": "attach-qa", "label": "Attach QA evidence", "status": "needs_review", "owner_action": "Verify build/smoke/secret-scan proof before handoff."},
-            {"id": "approve-send", "label": "Approve any live send/write separately", "status": "blocked_until_owner", "owner_action": "Explicit approval required outside this read-only dashboard."},
-        ],
-        "next_safe_action": "Review risk digest, then attach QA evidence before any client-facing send.",
-    }
-    followup_planner = {
-        "schema_version": "webstudio.post-delivery-followup-planner.v37",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_local_storage_planner",
-        "persistence": "browser_local_storage_only",
-        "storage_key": "webstudio.delivery.followupPlanner.v37",
-        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
-        "purpose": "Keep post-handoff next touches visible after owner/client acceptance without performing external actions.",
-        "tasks": [
-            {"id": "t0-owner-review", "label": "Owner reviews final handoff packet", "due_after": "before client send", "channel": "dashboard_copy_only", "default_state": "ready", "owner_action": "Confirm packet, risk digest, and QA evidence are safe to send."},
-            {"id": "t1-client-send", "label": "Client-facing send remains separately approved", "due_after": "after explicit owner approval", "channel": "manual_external_action", "default_state": "blocked_until_owner", "owner_action": "Approve exact external send/write scope outside this read-only dashboard."},
-            {"id": "t2-24h-checkin", "label": "24h client check-in", "due_after": "24h after handoff", "channel": "manual client message", "default_state": "queued", "owner_action": "Ask whether the client has blockers, asset changes, or launch questions."},
-            {"id": "t3-qa-regression", "label": "Post-handoff QA regression", "due_after": "48h after handoff", "channel": "local build/smoke", "default_state": "queued", "owner_action": "Re-run build/smoke if the client requested edits."},
-            {"id": "t4-testimonial-upsell", "label": "Testimonial and next-scope prompt", "due_after": "7d after acceptance", "channel": "manual client message", "default_state": "queued", "owner_action": "Request testimonial and identify D2/D3 upsell if client is satisfied."},
-        ],
-        "copy_packet_fields": ["task_id", "status", "due_after", "channel", "owner_action", "local_note"],
-        "next_safe_action": "Use copy-only follow-up plan; do not perform live send/write without explicit owner approval.",
-    }
-    evidence_binder = {
-        "schema_version": "webstudio.delivery-evidence-binder.v38",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_static_evidence",
-        "persistence": "static_sanitized_state_plus_copy_packet",
-        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
-        "purpose": "Make QA/build/smoke/secret-scan/Page evidence visible before any client-facing handoff.",
-        "evidence": [
-            {"id": "build", "label": "Local production build completed", "status": "PASS_LOCAL", "source": "npm run build", "owner_action": "Review validation artifact before send."},
-            {"id": "smoke", "label": "Local smoke check completed", "status": "PASS_LOCAL", "source": "npm run smoke", "owner_action": "Confirm route markers before client handoff."},
-            {"id": "secret-scan", "label": "Changed-file secret scan completed", "status": "PASS_LOCAL", "source": "changed files scan", "owner_action": "Keep credentials/private data out of packet."},
-            {"id": "pages", "label": "GitHub Pages public route reachable", "status": "WATCH_REMOTE_DEPLOY", "source": "https://pltnv123.github.io/webstudio-ops-dashboard/delivery/", "owner_action": "Re-smoke after safe push/Pages deploy."},
-            {"id": "approval-gate", "label": "Live CRM/DB/client-send remains separately approved", "status": "BLOCKED_UNTIL_OWNER", "source": "autonomy_policy.approval_required_for", "owner_action": "Approve exact live external action outside this read-only dashboard."},
-        ],
-        "copy_packet_fields": ["id", "status", "source", "owner_action", "acceptance_gate"],
-        "next_safe_action": "Attach current validation artifacts, then keep external send/write blocked until explicit owner approval.",
-    }
-    signoff_packet = {
-        "schema_version": "webstudio.delivery-owner-signoff-packet.v39",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_copy_packet",
-        "persistence": "static_sanitized_state_plus_browser_copy_only",
-        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
-        "purpose": "Give the owner a single copy-only acceptance packet that joins scope, QA evidence, risks, follow-up, and the external-action guardrail.",
-        "required_sections": [
-            {"id": "scope", "label": "Scope and package match the sanitized order", "default_state": "ready", "owner_action": "Confirm package, pages, and product line before handoff."},
-            {"id": "qa-evidence", "label": "QA evidence is attached", "default_state": "needs_review", "owner_action": "Review build, smoke, changed-file secret scan, and public route proof."},
-            {"id": "risk-review", "label": "Known handoff risks are reviewed", "default_state": "needs_review", "owner_action": "Accept asset/QA/live-write risks or return to production."},
-            {"id": "follow-up", "label": "Post-delivery follow-up is planned", "default_state": "queued", "owner_action": "Confirm next manual touch after client acceptance."},
-            {"id": "external-actions", "label": "Any live send/write remains separately approved", "default_state": "blocked_until_owner", "owner_action": "Approve exact external action outside this read-only dashboard."},
-        ],
-        "copy_packet_fields": ["client", "package", "acceptance_gate", "evidence", "risks", "follow_up", "external_action_guardrail"],
-        "next_safe_action": "Copy the sign-off packet for owner review; keep all live send/write actions blocked until explicit approval.",
-    }
-    handoff_receipt = {
-        "schema_version": "webstudio.delivery-launch-readiness-receipt.v40",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_copy_receipt",
-        "persistence": "static_sanitized_state_plus_browser_copy_only",
-        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
-        "purpose": "Give the owner one final launch-readiness receipt that summarizes what is ready, what is blocked, and the exact safe next action before any external handoff.",
-        "receipt_rows": [
-            {"id": "packet", "label": "Owner sign-off packet exists", "status": "ready", "source": "owner_signoff_packet_v39", "owner_action": "Review scope, QA, risks, and follow-up in one packet."},
-            {"id": "evidence", "label": "Validation evidence is visible", "status": "needs_review", "source": "delivery_evidence_binder_v38", "owner_action": "Attach fresh build/smoke/secret-scan/Pages proof before client send."},
-            {"id": "follow-up", "label": "Post-delivery follow-up is staged", "status": "queued", "source": "followup_planner_v37", "owner_action": "Confirm the first manual follow-up touch after acceptance."},
-            {"id": "live-actions", "label": "External send/write is still blocked", "status": "blocked_until_owner", "source": "autonomy_policy.approval_required_for", "owner_action": "Approve exact external action outside this read-only dashboard."},
-        ],
-        "copy_packet_fields": ["client", "package", "readiness", "blocked_until_owner", "evidence", "next_safe_action"],
-        "next_safe_action": "Use the receipt as a final owner checkpoint; do not perform live send/write until explicit owner approval is recorded.",
-    }
-    evidence_freshness_monitor = {
-        "schema_version": "webstudio.delivery-evidence-freshness-monitor.v41",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_freshness_monitor",
-        "persistence": "static_sanitized_state_plus_copy_packet",
-        "safety": "no CRM/DB/client-send writes; no private client data; no credentials",
-        "purpose": "Prevent stale proof from being reused in owner/client handoff by making freshness thresholds visible and copyable.",
-        "checks": [
-            {"id": "build-smoke", "label": "Build and smoke proof is from the current delivery cycle", "status": "fresh", "threshold": "same cron shift or after latest UI copy change", "owner_action": "Use current build/smoke artifact; rerun if UI changed."},
-            {"id": "secret-scan", "label": "Changed-file secret scan covers current diff", "status": "fresh", "threshold": "after every source/report change", "owner_action": "Keep scan attached before any public/client handoff."},
-            {"id": "pages-route", "label": "GitHub Pages route was re-smoked after push", "status": "watch_until_push", "threshold": "after safe host autopush and Pages refresh", "owner_action": "Re-smoke /delivery/ after remote branch contains this commit."},
-            {"id": "owner-signoff", "label": "Owner sign-off packet matches current evidence", "status": "needs_review", "threshold": "before external send/write", "owner_action": "Review packet and keep live action approval separate."},
-            {"id": "follow-up", "label": "Follow-up plan is still aligned with acceptance state", "status": "queued", "threshold": "after acceptance decision", "owner_action": "Update local follow-up overlay only after owner/client acceptance."},
-        ],
-        "copy_packet_fields": ["id", "status", "threshold", "owner_action", "acceptance_gate"],
-        "next_safe_action": "Refresh any WATCH/STALE evidence before owner/client handoff; do not perform live send/write without explicit owner approval.",
-    }
-    approval_decision_ledger = {
-        "schema_version": "webstudio.delivery.approval-decision-ledger.v42",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "localStorage_decision_ledger",
-        "persistence": "webstudio.delivery.approvalDecisionLedger.v42",
-        "safety": "localStorage/copy-only; no CRM/DB/client-send writes; live launch still approval-gated",
-        "purpose": "Track owner approval, waiver, or blocker decisions locally before client handoff without creating external writes.",
-        "required_decisions": [
-            {"id": "scope_acceptance", "label": "Scope and acceptance are ready for handoff", "default_state": "queued_owner_review", "blocks": "client handoff packet", "evidence": "acceptance tracker v35 + sign-off packet v39", "owner_action": "approve, waive for demo, or block until scope update"},
-            {"id": "evidence_freshness", "label": "Evidence is fresh enough to show owner/client", "default_state": "queued_owner_review", "blocks": "owner/client evidence review", "evidence": "evidence binder v38 + freshness monitor v41", "owner_action": "approve fresh proof or request refresh"},
-            {"id": "launch_guardrails", "label": "Live launch / external send guardrails are understood", "default_state": "blocked_until_owner", "blocks": "public launch, CRM/DB/client-send writes", "evidence": "launch-readiness receipt v40", "owner_action": "keep blocked unless separate explicit live approval exists"},
-            {"id": "followup_owner", "label": "Post-delivery follow-up owner is assigned", "default_state": "queued_owner_review", "blocks": "handoff completion checklist", "evidence": "follow-up planner v37", "owner_action": "assign owner or waive for demo"},
-        ],
-        "copy_packet_fields": ["id", "status", "blocks", "evidence", "owner_action", "acceptance_gate"],
-        "next_safe_action": "Record owner approval/waiver/blocker locally before client handoff; keep live send/write blocked until separate approval.",
-    }
-
-    handoff_manifest = {
-        "schema_version": "webstudio.delivery-handoff-manifest.v43",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_handoff_manifest",
-        "persistence": "static_state_plus_copy_packet",
-        "safety": "copy-only dashboard manifest; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
-        "purpose": "Give the owner one final copy-only handoff manifest that joins proof, handoff steps, blockers, and exact approval guardrails.",
-        "evidence_requirements": [
-            {"id": "build-smoke", "label": "Build and smoke proof attached", "status": "ready", "source": "npm run build plus npm run smoke", "owner_action": "Review current validation artifact before handoff."},
-            {"id": "secret-scan", "label": "Changed-file secret scan is clean", "status": "ready", "source": "changed-file scan", "owner_action": "Confirm no private data in public packet."},
-            {"id": "acceptance", "label": "Acceptance tracker gate is visible", "status": "needs_owner_review", "source": "localStorage overlay plus sanitized defaults", "owner_action": "Clear or waive review rows before client send."},
-            {"id": "approval-ledger", "label": "Approval ledger blocks live writes", "status": "blocked_until_owner", "source": "v42 decision ledger", "owner_action": "Approve or waive only exact live handoff scope."},
-            {"id": "freshness", "label": "Evidence freshness checked", "status": "watch", "source": "v41 freshness monitor", "owner_action": "Refresh stale screenshots or proof if scope changed."},
-        ],
-        "handoff_steps": [
-            {"id": "scope-freeze", "label": "Freeze sanitized scope and package contents", "gate": "owner_review", "output": "copy-only handoff packet"},
-            {"id": "attach-proof", "label": "Attach current validation and evidence paths", "gate": "qa_review", "output": "handoff evidence bundle"},
-            {"id": "owner-decision", "label": "Record explicit owner decision for live/client action", "gate": "owner_approval_required", "output": "approval ledger entry"},
-            {"id": "client-send", "label": "Send or publish only after approval gate clears", "gate": "manual_live_action", "output": "outside-dashboard action; not automated"},
-        ],
-        "blockers": [
-            {"id": "live-public-handoff", "label": "Client send/public launch/live write is not automated", "status": "blocked_until_owner", "resolution": "explicit owner approval with exact scope"},
-            {"id": "private-data", "label": "Private client data and credentials are forbidden in public handoff manifest", "status": "blocked_by_policy", "resolution": "keep sanitized demo data only"},
-        ],
-        "copy_packet_fields": ["client", "handoff_gate", "acceptance_gate", "evidence", "handoff_steps", "blockers", "owner_action"],
-        "next_safe_action": "Owner reviews handoff manifest and approves any live/client action separately.",
-    }
-    handoff_rehearsal_checklist = {
-        "schema_version": "webstudio.delivery-handoff-rehearsal-checklist.v44",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_rehearsal_checklist",
-        "persistence": "static_state_plus_copy_packet",
-        "safety": "copy-only dashboard rehearsal; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
-        "purpose": "Dry-run the final handoff path before any owner/client-facing action so recipient, packet, proof, approval, rollback, and follow-up are visible in one copy-only checklist.",
-        "checks": [
-            {"id": "recipient-scope", "label": "Recipient and sanitized scope are confirmed", "status": "ready", "proof": "order_builder.sample_order + handoff manifest v43", "owner_action": "Confirm who receives the packet and that only sanitized/demo data is present."},
-            {"id": "packet-content", "label": "Handoff packet content matches acceptance scope", "status": "needs_owner_review", "proof": "acceptance tracker v35 + owner sign-off packet v39", "owner_action": "Review or waive scope/content differences before live send."},
-            {"id": "evidence-proof", "label": "Build, smoke, secret scan, and Pages proof are attached", "status": "watch_until_pages_refresh", "proof": "evidence binder v38 + freshness monitor v41", "owner_action": "Refresh proof after each push or UI change."},
-            {"id": "approval-gate", "label": "Live send/write approval is explicit and separate", "status": "blocked_until_owner", "proof": "approval decision ledger v42", "owner_action": "Do not send/publish/write until exact action is approved outside this read-only UI."},
-            {"id": "rollback-plan", "label": "Rollback and correction path is known", "status": "ready", "proof": "manual revert/patch path on branch webstudio/product-build-v31", "owner_action": "Use a normal commit revert/patch only; no force push or destructive DB change."},
-            {"id": "followup-plan", "label": "Post-handoff follow-up owner and timing are staged", "status": "queued", "proof": "followup planner v37", "owner_action": "Assign manual follow-up after acceptance; no automated client message."},
-        ],
-        "copy_packet_fields": ["client", "rehearsal_gate", "acceptance_gate", "checks", "proof", "owner_action", "guardrail"],
-        "next_safe_action": "Run this copy-only rehearsal, attach fresh proof, then request explicit approval for any live handoff action.",
-    }
-    handoff_go_no_go_matrix = {
-        "schema_version": "webstudio.delivery-handoff-go-no-go-matrix.v45",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_go_no_go_matrix",
-        "persistence": "static_state_plus_copy_packet",
-        "safety": "copy-only dashboard decision matrix; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
-        "purpose": "Convert rehearsal proof into a compact owner-facing go/no-go decision before any client handoff or live external action.",
-        "criteria": [
-            {"id": "scope-freeze", "label": "Sanitized scope and package are frozen", "default_decision": "go", "evidence": "order_builder.sample_order + handoff manifest v43", "owner_action": "Confirm no sensitive/private client data is included."},
-            {"id": "proof-current", "label": "Build, smoke, secret scan, and Pages proof are current", "default_decision": "review_required", "evidence": "delivery evidence binder v38 + freshness monitor v41", "owner_action": "Refresh proof after push or UI change before handoff."},
-            {"id": "approval-recorded", "label": "Live/client send approval is explicit", "default_decision": "no_go_until_owner", "evidence": "approval decision ledger v42", "owner_action": "Approve exact external action separately or keep blocked."},
-            {"id": "rollback-ready", "label": "Rollback/correction path avoids force push and DB destruction", "default_decision": "go", "evidence": "handoff rehearsal checklist v44", "owner_action": "Use normal revert/patch commit only if rollback is needed."},
-            {"id": "followup-owner", "label": "Post-handoff follow-up owner is known", "default_decision": "review_required", "evidence": "follow-up planner v37", "owner_action": "Assign manual follow-up owner or waive for demo."},
-            {"id": "external-write-guard", "label": "CRM/DB/client-send/Supabase writes remain disabled", "default_decision": "no_go_until_owner", "evidence": "autonomy_policy.approval_required_for", "owner_action": "Do not perform live writes from this dashboard."},
-        ],
-        "copy_packet_fields": ["client", "matrix_decision", "acceptance_gate", "criteria", "evidence", "owner_action", "guardrail"],
-        "next_safe_action": "Resolve NO_GO/review rows with the owner before any live handoff action; dashboard remains read-only/copy-only.",
-    }
-
-    client_acceptance_receipt = {
-        "schema_version": "webstudio.delivery-client-acceptance-receipt.v46",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_acceptance_receipt",
-        "persistence": "static_state_plus_copy_packet",
-        "safety": "copy-only dashboard receipt; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
-        "purpose": "Turn the handoff go/no-go result into a final owner/client acceptance receipt template with proof, exclusions, approvals, and next-step boundaries in one copyable packet.",
-        "receipt_sections": [
-            {"id": "accepted-scope", "label": "Accepted safe scope", "status": "ready", "source": "order_builder.sample_order + client_ready_checklist", "copy_hint": "List only sanitized demo/package scope that was verified."},
-            {"id": "proof-attached", "label": "Proof attached", "status": "review_required", "source": "evidence binder v38 + freshness monitor v41", "copy_hint": "Attach build, smoke, secret scan, Pages, and screenshot/HTTP proof paths."},
-            {"id": "go-no-go", "label": "Go/no-go decision recorded", "status": "owner_review_required", "source": "handoff_go_no_go_matrix_v45", "copy_hint": "Keep NO_GO/review rows visible until owner resolves them."},
-            {"id": "approval-boundary", "label": "Live-action approval boundary", "status": "blocked_until_owner", "source": "approval decision ledger v42", "copy_hint": "State that client-send, CRM, DB, Supabase, DNS, and public launch need exact approval."},
-            {"id": "exclusions", "label": "Exclusions and forbidden actions", "status": "ready", "source": "autonomy_policy.approval_required_for", "copy_hint": "Explicitly exclude secrets, private client data, force push, destructive DB changes, and unapproved deploys."},
-            {"id": "next-step", "label": "Next safe step", "status": "ready", "source": "followup planner v37 + handoff rehearsal v44", "copy_hint": "Assign manual follow-up or keep demo-only until approval."},
-        ],
-        "copy_packet_fields": ["client", "acceptance_status", "accepted_scope", "proof", "go_no_go", "approval_boundary", "exclusions", "next_safe_step"],
-        "acceptance_status_options": ["PASS_SAFE_SCOPE", "PASS_WITH_APPROVAL_BLOCKERS", "BLOCKED_NEEDS_PROOF", "BLOCKED_NEEDS_OWNER_APPROVAL"],
-        "default_acceptance_status": "PASS_WITH_APPROVAL_BLOCKERS",
-        "next_safe_action": "Copy the receipt into the owner/client handoff only after current proof is attached; any live external action remains separately approval-gated.",
-    }
-    issue_response_playbook = {
-        "schema_version": "webstudio.delivery-issue-response-playbook.v48",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_issue_response_playbook",
-        "persistence": "static_state_plus_copy_packet",
-        "safety": "copy-only dashboard playbook; no CRM, DB, client-send, Supabase, secrets, or live publish writes",
-        "purpose": "Provide a sanitized owner-safe response map for delivery handoff issues: client objection, stale proof, failed Pages smoke, approval blocker, and rollback/pause path.",
-        "scenarios": [
-            {"id": "client-objection-scope", "trigger": "Client asks for scope not in accepted package", "status": "ready", "first_response": "acknowledge and point to accepted safe scope receipt", "escalation": "owner decides whether to quote change request", "rollback": "keep current deliverable demo-only until scope is approved"},
-            {"id": "proof-stale", "trigger": "Build/smoke/Pages/secret-scan proof is older than current handoff", "status": "review_required", "first_response": "pause handoff and refresh proof binder", "escalation": "QA/delivery contact refreshes evidence before owner approval", "rollback": "use previous static artifact only as historical reference"},
-            {"id": "pages-smoke-fails", "trigger": "Public Pages route returns non-200 or missing marker", "status": "blocked_until_owner_review", "first_response": "do not send client link; attach local build proof and failure note", "escalation": "owner/ops reviews host autopush and Pages deploy status", "rollback": "share sanitized local/static artifact path only if owner approves"},
-            {"id": "approval-boundary-hit", "trigger": "Action would send to client, write CRM/DB/Supabase, publish DNS, or expose private data", "status": "blocked_until_owner", "first_response": "stop and request exact approval for the live action", "escalation": "owner approval decision ledger v42", "rollback": "copy-only packet remains available; no live write performed"},
-            {"id": "post-handoff-issue", "trigger": "Client reports issue after manual handoff", "status": "ready", "first_response": "log issue in copy-only response packet and classify severity", "escalation": "follow-up planner v37 routes owner-approved next touch", "rollback": "pause public/live action; maintain static artifact and no destructive change"},
-        ],
-        "copy_packet_fields": ["client", "trigger", "first_response", "escalation", "rollback", "owner_boundary", "next_safe_step"],
-        "next_safe_action": "Owner reviews v48 issue paths before any live handoff or client-send; routine use remains read/copy only.",
-    }
-
-
-    return {
-        "schema_version": "webstudio.delivery-handoff-composer.v48",
-        "generated_at": utc_now(),
-        "status": "PASS_LOCAL_READY",
-        "mode": "read_only_static_composer",
-        "feature": "issue_response_playbook_v48",
-        "source": "order_builder.sample_order + delivery_system_v29",
-        "sample_client": "sanitized demo order",
-        "owner_action_required": False,
-        "client_ready_checklist": [
-            "Confirm sanitized brief from Order Builder",
-            "Attach D1 page list and content/assets status",
-            "Attach D2 intake-bot flow summary when selected",
-            "Attach D3 automation map when selected",
-            "Run QA/readiness gate before client handoff",
-            "Keep live credentials and private client data out of public packet",
-        ],
-        "acceptance_tracker": {
-            "schema_version": "webstudio.client-handoff-acceptance.v34",
-            "persistence": "browser_local_storage_only",
-            "storage_key": "webstudio.delivery.acceptanceTracker.v34",
-            "safety": "read-only UI overlay; no DB/CRM/client-send writes",
-            "rows": acceptance,
-            "copy_packet_fields": ["client", "package", "offer", "pages", "assets", "qa_gates", "acceptance"],
-        },
-        "qa_gates": [
-            "brief_complete",
-            "assets_status_known",
-            "pages_defined",
-            "read_only_public_packet",
-            "owner_approval_before_live_writes",
-        ],
-        "handoff_note": "Public dashboard composes a safe handoff packet with acceptance + risk digest from sanitized state only; production writes and private client data remain gated.",
-        "handoff_risk_digest_v36": risk_digest,
-        "delivery_evidence_binder_v38": evidence_binder,
-        "owner_signoff_packet_v39": signoff_packet,
-        "launch_readiness_receipt_v40": handoff_receipt,
-        "evidence_freshness_monitor_v41": evidence_freshness_monitor,
-        "approval_decision_ledger_v42": approval_decision_ledger,
-        "handoff_manifest_v43": handoff_manifest,
-        "handoff_rehearsal_checklist_v44": handoff_rehearsal_checklist,
-        "handoff_go_no_go_matrix_v45": handoff_go_no_go_matrix,
-        "client_acceptance_receipt_v46": client_acceptance_receipt,
-        "issue_response_playbook_v48": issue_response_playbook,
-        "followup_planner_v37": followup_planner,
-        "route": "#delivery",
-        "upstream_status": {
-            "order_builder": order_builder.get("production_task_template", {}).get("status"),
-            "delivery_system": delivery_system.get("status"),
-        },
-        "reports": ["/workspace/output/webstudio-long-autonomous-shift-v28-v3/validation.md"],
-    }
-
-def build_error_recovery_v37_1() -> dict[str, Any]:
-    taxonomy = load_json(OUTPUT / "webstudio-error-taxonomy-v37-1.json", {})
-    errors = taxonomy.get("errors") if isinstance(taxonomy.get("errors"), list) else []
-    return {
-        "schema_version": "webstudio-error-recovery.v37.1",
-        "updated_at": utc_now(),
-        "status": "PASS" if errors else "WATCH",
-        "current_state": "RECOVERING" if errors else "WATCH",
-        "auto_recovery_status": "ACTIVE" if errors else "PENDING",
-        "last_recovery": "Day 1 Auto-Push classified as known recoverable sandbox GitHub auth failure; Host Runner job queued.",
-        "next_automatic_step": "Host Runner Auto-Push result + Day 2 Visual Sourcing Engine",
-        "taxonomy_report": str(OUTPUT / "webstudio-error-taxonomy-v37-1.md"),
-        "taxonomy_json": str(OUTPUT / "webstudio-error-taxonomy-v37-1.json"),
-        "playbooks_report": str(OUTPUT / "webstudio-error-recovery-playbooks-v37-1.md"),
-        "touch_ready_checklist": str(OUTPUT / "webstudio-touch-ready-beta-checklist-v37-1.md"),
-        "owner_guide": str(OUTPUT / "webstudio-touch-ready-owner-guide-v37-1.md"),
-        "owner_guide_html": str(OUTPUT / "webstudio-touch-ready-owner-guide-v37-1.html"),
-        "owner_action_required": False,
-        "errors": errors,
-    }
-
-
-def build_day2_visual_sourcing_v37_1() -> dict[str, Any]:
-    registry = OUTPUT / "webstudio-client-004-asset-registry-v37-1.json"
-    shotlist = OUTPUT / "webstudio-client-004-visual-direction-and-shotlist-v37-1.md"
-    return {
-        "schema_version": "webstudio-day2-visual-sourcing.v37.1",
-        "updated_at": utc_now(),
-        "status": "PASS_INITIAL" if registry.exists() and shotlist.exists() else "WATCH",
-        "asset_legitimacy_model": str(OUTPUT / "webstudio-asset-legitimacy-model-v37-1.json"),
-        "asset_registry_schema": str(OUTPUT / "webstudio-asset-registry-schema-v37-1.json"),
-        "shotlist_schema": str(OUTPUT / "webstudio-shotlist-schema-v37-1.json"),
-        "client_004_asset_registry": str(registry),
-        "client_004_visual_direction": str(shotlist),
-        "owner_action_required": False,
-        "next": "expand business-specific visual packs",
-    }
-
-
-
-def build_generated_demo_site_v35() -> dict[str, Any]:
-    """Sanitized static website snapshot generated from the V3.4 premium package."""
-    v34_root = OUTPUT / "webstudio-client-to-premium-factory-pilot-v34"
-    client_order = load_json(v34_root / "phase-1-demo-client-order" / "client-order.json", {})
-    package_root = v34_root / "phase-2-premium-factory-package"
-    def artifact(name: str) -> str:
-        return str(package_root / name)
-    return {
-        "schema_version": "webstudio.generated-demo-site.v35",
-        "status": "PASS_LOCAL_READY",
-        "route": "/generated-demo-site-v35/",
-        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/generated-demo-site-v35/",
-        "source_phase": "webstudio-client-to-premium-factory-pilot-v34",
-        "markers": ["generated-demo-site-v35", "Northstar Executive Wellness Studio", "webstudio-v34-demo-client-order", "PACKAGE_READY", "client_order_pilot"],
-        "safety": {
-            "demo_only": True,
-            "static_sanitized_data_only": True,
-            "browser_side_secrets": False,
-            "live_booking_writes": False,
-            "crm_writes": False,
-            "payment_writes": False,
-            "medical_claims_policy": "generic marketing only; no diagnosis, cure, guaranteed outcomes, or fake credentials",
-        },
-        "client": {
-            "business_name": client_order.get("business_name", "Northstar Executive Wellness Studio"),
-            "niche": client_order.get("niche", "premium executive wellness / physiotherapy / recovery studio"),
-            "offer": client_order.get("offer", "high-trust premium website for consult bookings, service education, and lead qualification"),
-            "target_audience": client_order.get("target_audience", ["founders", "executives", "busy professionals"]),
-            "brand_tone": client_order.get("brand_tone", ["calm", "clinical but human", "editorial", "precise"]),
-            "conversion_goal": client_order.get("conversion_goal", "request a fit call"),
-        },
-        "design_system": {
-            "name": "Warm Clinical Editorial",
-            "canvas": "warm ivory",
-            "text": "ink navy",
-            "accents": ["sage", "muted brass"],
-            "typography": "editorial headline with clean UI sans",
-            "layout": "high whitespace, hairline borders, calm proof cards",
-        },
-        "sections": [
-            {"id": "hero", "title": "Premium recovery and prevention for high-responsibility professionals", "marker": "homepage hero"},
-            {"id": "problem-solution", "title": "High-responsibility work needs a structured recovery system", "marker": "problem/solution"},
-            {"id": "services", "title": "Services and packages", "marker": "services/packages"},
-            {"id": "process", "title": "Assessment → plan → sessions → review", "marker": "process"},
-            {"id": "trust", "title": "Trust through artifacts, not invented claims", "marker": "trust/credibility"},
-            {"id": "faq", "title": "FAQ", "marker": "faq"},
-            {"id": "cta", "title": "Request a fit call", "marker": "cta"},
-        ],
-        "artifacts": {
-            "client_order": str(v34_root / "phase-1-demo-client-order" / "client-order.json"),
-            "production_brief": str(v34_root / "phase-1-demo-client-order" / "production-brief.md"),
-            "sitemap": artifact("sitemap.md"),
-            "copy_outline": artifact("page-by-page-copy-outline.md"),
-            "design_system": artifact("design-system.md"),
-            "component_plan": artifact("component-plan.md"),
-            "qa_checklist": artifact("qa-checklist.md"),
-        },
-        "next_safe_action": "Owner review of the generated static demo; live booking, CRM, payments, real health copy, and public client use remain approval-gated.",
-    }
-
-
-def build_lead_capture_demo_v36() -> dict[str, Any]:
-    """Safe static lead-capture/client-request demo snapshot."""
-    return {
-        "schema_version": "webstudio.lead-capture-demo.v36",
-        "status": "PASS_LOCAL_READY",
-        "route": "/lead-capture-demo/",
-        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/lead-capture-demo/",
-        "markers": ["lead-capture-demo-v36", "Demo only", "D1 website", "D2 AI-intake bot", "D3 automation"],
-        "safety": {
-            "demo_only": True,
-            "live_submission": False,
-            "real_private_client_data": False,
-            "browser_side_supabase_secret": False,
-            "telegram_crm_email_writes": False,
-            "payment_writes": False,
-            "external_writes": False,
-        },
-        "lead_snapshot": {
-            "business_type": "Boutique wellness studio demo",
-            "project_goal": "Launch a premium website and guided intake flow for a sanitized demo client.",
-            "website_or_service_needed": "D1 website + D2 AI-intake bot + D3 automation preview",
-            "budget_range": "$5k-$15k demo range",
-            "timeline": "2-4 weeks demo planning window",
-            "current_website": "demo-current-site.example.invalid",
-            "required_pages": ["Home", "Services", "About", "FAQ", "Contact"],
-            "content_assets_readiness": "Outline ready; real assets approval-gated",
-            "preferred_contact_method_demo_placeholder": "Demo-only owner review queue",
-            "notes_sanitized_demo_text": "Sanitized demo note only. No real phone, email, address, token, payment, or private client data.",
-        },
-        "qualification_preview": {
-            "score": 86,
-            "routes": ["D1 website", "D2 AI-intake bot", "D3 automation"],
-            "next_safe_action": "Review generated request in Order Builder; keep all live writes approval-gated.",
-        },
-        "handoff_links": {
-            "order_builder": "/order-builder/",
-            "work_factory": "/work-factory/",
-            "bot_activity": "/bot-activity/",
-            "supabase_memory": "/supabase-memory/",
-        },
-    }
-
-
-def build_lead_to_order_handoff_v37() -> dict[str, Any]:
-    """Safe static lead-capture to order-builder handoff snapshot."""
-    lead = build_lead_capture_demo_v36()
-    lead_snapshot = lead["lead_snapshot"]
-    order_payload = {
-        "client_profile": "Sanitized boutique wellness studio demo lead",
-        "business_type": lead_snapshot["business_type"],
-        "offer_service_product": "Premium website with AI intake and automation readiness",
-        "target_audience": "Local wellness clients and owner-reviewed demo inquiries",
-        "desired_style": "Editorial premium, warm canvas, proof-led conversion sections",
-        "required_pages": lead_snapshot["required_pages"],
-        "assets_needed": ["Brand direction", "Service copy", "Approved imagery", "FAQ answers"],
-        "content_status": lead_snapshot["content_assets_readiness"],
-        "pricing_package": "D1 website + D2 AI-intake bot + D3 automation preview",
-        "timeline": lead_snapshot["timeline"],
-        "generated_production_brief": "Prepare a D1 website order with D2 intake questions and D3 automation as proposal-only follow-up. Keep all live writes owner-approved.",
-    }
-    return {
-        "schema_version": "webstudio.lead-to-order-handoff.v37",
-        "status": "PASS_LOCAL_READY",
-        "route": "/lead-to-order-handoff/",
-        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/lead-to-order-handoff/",
-        "markers": ["lead-to-order-handoff-v37", "demo lead payload", "qualification preview", "order-builder handoff", "D1 website", "D2 AI-intake bot", "D3 automation"],
-        "safety": {
-            "demo_only": True,
-            "static_snapshot": True,
-            "real_private_client_data": False,
-            "live_submission": False,
-            "browser_side_supabase_secret": False,
-            "crm_telegram_email_writes": False,
-            "external_writes": False,
-        },
-        "demo_lead_payload": lead_snapshot,
-        "qualification_result": {
-            "score": 89,
-            "recommended_product_line": "D1 website + D2 AI-intake bot + D3 automation",
-            "routes": ["D1 website", "D2 AI-intake bot", "D3 automation"],
-            "rationale": "Demo lead needs a premium web presence, guided intake, and future approval-gated automation.",
-        },
-        "order_builder_payload": order_payload,
-        "missing_inputs": [
-            "Approved real client identity",
-            "Production contact destination",
-            "CRM/Telegram/email write approval",
-            "Final package price and timeline approval",
-            "Real content/assets",
-        ],
-        "next_safe_action": "Open Order Builder preview, review sanitized payload, then create owner-approved production task in Work Factory.",
-        "handoff_links": {"order_builder": "/order-builder/", "work_factory": "/work-factory/", "lead_capture_demo": "/lead-capture-demo/"},
-    }
-
-
-def build_order_package_generator_v38() -> dict[str, Any]:
-    """Safe static production package generated from the V3.7 handoff order."""
-    handoff = build_lead_to_order_handoff_v37()
-    source_order = handoff["order_builder_payload"]
-    page_briefs = [
-        {"page": "Home", "goal": "Explain the offer and route visitors to safe demo intake.", "sections": ["Hero", "Proof policy", "Services overview", "Process", "CTA"]},
-        {"page": "Services", "goal": "Package D1/D2/D3 services into owner-reviewable offers.", "sections": ["Service menu", "Who it fits", "Deliverables", "Constraints", "CTA"]},
-        {"page": "About", "goal": "Show positioning without fake testimonials or private data.", "sections": ["Studio story", "Operating principles", "Quality gates"]},
-        {"page": "FAQ", "goal": "Answer scope, timeline, assets, approvals, and safety questions.", "sections": ["Scope", "Timeline", "Content assets", "Live integrations"]},
-        {"page": "Contact", "goal": "Use approval-gated intake/contact path only.", "sections": ["Safe intake prompt", "Missing inputs", "Next action"]},
-    ]
-    return {
-        "schema_version": "webstudio.order-package-generator.v38",
-        "status": "PASS_LOCAL_READY",
-        "route": "/order-package-generator/",
-        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/order-package-generator/",
-        "markers": ["order-package-generator-v38", "generated sitemap", "page briefs", "SEO checklist", "QA checklist", "delivery checklist"],
-        "safety": {
-            "demo_only": True,
-            "static_snapshot": True,
-            "real_private_client_data": False,
-            "live_submission": False,
-            "crm_email_telegram_writes": False,
-            "browser_side_secrets": False,
-            "external_writes": False,
-        },
-        "source_order": source_order,
-        "generated_sitemap": ["/", "/services/", "/about/", "/faq/", "/contact/"],
-        "page_briefs": page_briefs,
-        "section_copy_outlines": [
-            "Hero: premium website + guided intake, no live writes in demo.",
-            "Proof policy: artifacts and QA reports instead of fake social proof.",
-            "Process: lead capture → handoff → package → owner-approved production.",
-            "CTA: review generated order package before any live integration.",
-        ],
-        "design_direction": {
-            "style": "Editorial premium dashboard, warm accent cards, proof-led structure",
-            "typography": "Clear hierarchy, compact owner-readable cards",
-            "visual_rules": ["No fake logos/testimonials", "No stock claims", "Use artifact proof and checklists"],
-        },
-        "seo_checklist": ["Title and meta description per page", "One H1 per page", "Service keywords mapped to page briefs", "No fake local claims", "Structured internal links"],
-        "asset_checklist": ["Logo/wordmark approval", "Approved service copy", "Real imagery or generated concept labels", "FAQ answers", "Contact destination approval"],
-        "qa_checklist": ["Responsive layout", "No broken internal links", "No browser-side secrets", "No live submission", "Smoke markers present", "Copy is demo/sanitized"],
-        "delivery_checklist": ["Owner review", "Scope freeze", "Production content approval", "Integration approval", "Final smoke", "Handoff report"],
-        "next_safe_action": "Review package, then create an owner-approved D1/D2/D3 production task in Work Factory.",
-        "links": {"lead_to_order_handoff": "/lead-to-order-handoff/", "order_builder": "/order-builder/", "premium_factory_v34": "/premium-factory-v34/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
-    }
-
-
-def build_website_page_builder_v39() -> dict[str, Any]:
-    """Safe static Website Page Builder generated from the V3.8 order package."""
-    package = build_order_package_generator_v38()
-    source_order = package["source_order"]
-    pages = [
-        {
-            "page": "Home page",
-            "slug": "/",
-            "status": "READY_DEMO",
-            "sections": [
-                {"block": "Hero", "headline": "Premium wellness website package, ready for owner review", "subheadline": "A warm, proof-led homepage structure generated from the sanitized order package.", "cta": "Review the generated package", "component": "Editorial hero + safe CTA"},
-                {"block": "Services overview", "headline": "D1 website, D2 guided intake, D3 automation planning", "subheadline": "Three owner-approved lanes shown as static cards; no live writes in the demo.", "cta": "Open Services page", "component": "Three-card product line grid"},
-                {"block": "Proof / Process", "headline": "Artifacts before promises", "subheadline": "Show sitemap, QA reports, delivery checklist, and approval gates instead of fake testimonials.", "cta": "See process", "component": "Proof policy callout"},
-            ],
-            "qa_checklist": ["Hero has one clear CTA", "No fake testimonials/logos", "Internal links resolve", "Demo-only safety copy visible"],
-        },
-        {
-            "page": "Services page",
-            "slug": "/services/",
-            "status": "READY_DEMO",
-            "sections": [
-                {"block": "Service menu", "headline": "Website build packages shaped from the order brief", "subheadline": "D1 page build, D2 intake flow, and D3 automation readiness separated into safe scope cards.", "cta": "Compare packages", "component": "Pricing/package cards without payment collection"},
-                {"block": "Deliverables", "headline": "What the client receives", "subheadline": "Page map, content outline, design direction, QA checklist, and delivery handoff packet.", "cta": "Copy deliverables", "component": "Checklist block"},
-            ],
-            "qa_checklist": ["Pricing is demo/sanitized", "No payment or booking write path", "Service claims stay generic", "CTA routes to owner review"],
-        },
-        {
-            "page": "About page",
-            "slug": "/about/",
-            "status": "READY_DEMO",
-            "sections": [
-                {"block": "Studio story", "headline": "A calm client experience backed by visible production gates", "subheadline": "Positioning copy stays generic and artifact-based until real client inputs are approved.", "cta": "Review quality gates", "component": "Narrative card + principles list"},
-                {"block": "Quality gates", "headline": "Safe demo, production approval later", "subheadline": "Private data, integrations, public launch, and live booking are all separate approvals.", "cta": "Open QA checklist", "component": "Gate matrix"},
-            ],
-            "qa_checklist": ["No private identity", "No credentials or hidden form endpoints", "Approval gates are explicit", "Copy is safe for wellness/medical adjacency"],
-        },
-        {
-            "page": "Proof / Process page",
-            "slug": "/process/",
-            "status": "READY_DEMO",
-            "sections": [
-                {"block": "Process timeline", "headline": "Lead capture → order handoff → package → page sections", "subheadline": "A visible chain from sanitized request to build-ready page blocks.", "cta": "Open source package", "component": "Timeline with source links"},
-                {"block": "Proof policy", "headline": "Use artifacts, not invented social proof", "subheadline": "Reports, checklists, smoke markers, and owner approvals are the proof layer.", "cta": "Review validation", "component": "Artifact proof list"},
-            ],
-            "qa_checklist": ["Source routes linked", "No fake case studies", "Process is reproducible", "Next safe action is owner review"],
-        },
-        {
-            "page": "FAQ page",
-            "slug": "/faq/",
-            "status": "READY_DEMO",
-            "sections": [
-                {"block": "Scope FAQ", "headline": "What is included in the generated MVP?", "subheadline": "Static pages, section copy, component recommendations, QA checklist, and approval boundaries.", "cta": "Review scope", "component": "FAQ accordion/cards"},
-                {"block": "Safety FAQ", "headline": "Does this submit bookings or contact forms?", "subheadline": "No. The MVP is static and sanitized; live booking/contact writes require separate approval.", "cta": "Open Contact CTA", "component": "Safety answer card"},
-            ],
-            "qa_checklist": ["FAQ page marker visible", "No medical/health claims beyond generic marketing", "No live submission promise", "Safe contact language"],
-        },
-        {
-            "page": "Contact / Booking CTA page",
-            "slug": "/contact/",
-            "status": "REVIEW_ONLY",
-            "sections": [
-                {"block": "Contact CTA", "headline": "Ready for owner-approved contact setup", "subheadline": "The CTA is a placeholder until a real destination and write mode are approved.", "cta": "Request owner review", "component": "CTA panel without form submission"},
-                {"block": "Booking boundary", "headline": "Booking is not connected in this static MVP", "subheadline": "No calendar writes, no email writes, no CRM writes, and no Telegram writes occur from the browser.", "cta": "Keep as static demo", "component": "Safety boundary callout"},
-            ],
-            "qa_checklist": ["No form action endpoint", "No live booking write", "No private contact data", "Next action asks owner approval"],
-        },
-    ]
-    return {
-        "schema_version": "webstudio.website-page-builder.v39",
-        "marker": "website-page-builder-v39",
-        "status": "PASS_LOCAL_READY",
-        "route": "/website-page-builder/",
-        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/website-page-builder/",
-        "markers": ["website-page-builder-v39", "Home page", "Services page", "FAQ page", "generated sections", "QA checklist"],
-        "safety": {
-            "demo_only": True,
-            "static_snapshot": True,
-            "sanitized_only": True,
-            "real_private_client_data": False,
-            "live_submission": False,
-            "live_booking_writes": False,
-            "crm_email_telegram_writes": False,
-            "browser_side_secrets": False,
-            "external_writes": False,
-            "medical_health_claims": "safe generic marketing copy only",
-        },
-        "selected_demo_order": source_order,
-        "selected_package": {
-            "source_marker": "order-package-generator-v38",
-            "source_route": "/order-package-generator/",
-            "package_status": "sanitized static snapshot",
-            "generated_sitemap": package["generated_sitemap"],
-            "design_direction": package["design_direction"],
-        },
-        "generated_pages": pages,
-        "component_recommendations": ["Editorial hero", "Service cards", "Proof/process timeline", "FAQ cards", "Static CTA panel", "QA checklist chips"],
-        "links": {"order_package_generator": "/order-package-generator/", "premium_factory_v34": "/premium-factory-v34/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
-        "next_safe_action": "Review generated page sections, then approve a static implementation package before any live booking/contact integration.",
-    }
-
-
-def build_one_click_demo_assembly_v40() -> dict[str, Any]:
-    """Safe static one-click assembled demo website generated from V3.9 page builder data."""
-    builder = build_website_page_builder_v39()
-    return {
-        "schema_version": "webstudio.one-click-demo-assembly.v40",
-        "marker": "one-click-demo-assembly-v40",
-        "status": "PASS_LOCAL_READY",
-        "route": "/one-click-demo-assembly/",
-        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/",
-        "source_marker": "website-page-builder-v39",
-        "markers": ["one-click-demo-assembly-v40", "full assembled landing page preview", "hero section", "services/packages", "FAQ", "demo only"],
-        "safety": {
-            "demo_only": True,
-            "static_snapshot": True,
-            "sanitized_only": True,
-            "real_private_client_data": False,
-            "live_submission": False,
-            "live_booking_writes": False,
-            "crm_email_telegram_writes": False,
-            "browser_side_secrets": False,
-            "external_writes": False,
-            "medical_health_claims": "safe generic marketing copy only",
-        },
-        "source_pages": builder["generated_pages"],
-        "assembled_site": {
-            "client_label": "Northstar Executive Wellness Studio — sanitized demo preview",
-            "headline": "A calm, client-facing website preview assembled in one click.",
-            "subheadline": "Generated from V3.9 page builder sections into a full assembled landing page preview with safe static CTAs and no live booking.",
-            "sections": [
-                {"id": "hero", "marker": "hero section", "title": "Premium wellness website, assembled for client review", "body": "A warm editorial landing page preview using the generated Home page hero, services, proof, FAQ, and static CTA blocks.", "source": "Home page · Hero"},
-                {"id": "problem-solution", "marker": "problem/solution", "title": "From scattered wellness inquiries to a guided review path", "body": "The preview explains fit, scope, and next steps without collecting real private data or making regulated health promises.", "source": "Home page + Proof / Process page"},
-                {"id": "services-packages", "marker": "services/packages", "title": "Services/packages", "body": "D1 website, D2 guided intake, and D3 automation readiness are shown as clear static packages; payments and booking remain approval-gated.", "source": "Services page"},
-                {"id": "process", "marker": "process section", "title": "Lead capture → order handoff → package → assembled preview", "body": "A visible client journey links the existing production chain and turns section blocks into one readable website experience.", "source": "Proof / Process page"},
-                {"id": "proof-trust", "marker": "proof/trust section", "title": "Trust through artifacts, QA, and approval gates", "body": "The trust layer uses reports, checklists, static route smoke, and owner approvals instead of fake testimonials or logos.", "source": "About page + Proof policy"},
-                {"id": "faq", "marker": "FAQ", "title": "FAQ", "body": "Answers clarify scope, timeline, assets, live integrations, and the demo-only/no-live-booking boundary.", "source": "FAQ page"},
-                {"id": "cta", "marker": "CTA", "title": "Review this static demo before any live setup", "body": "The call to action is a safe owner-review CTA. No form action, no booking write, no CRM/email/Telegram write.", "source": "Contact / Booking CTA page"},
-            ],
-            "packages": [
-                {"name": "D1 Website Assembly", "detail": "Client-facing landing page preview from generated page sections.", "boundary": "Static preview only"},
-                {"name": "D2 Intake Readiness", "detail": "Questions and handoff path are visible through existing lead/order links.", "boundary": "No live Telegram write"},
-                {"name": "D3 Automation Plan", "detail": "Future CRM/email/ops automation remains proposal-only until approved.", "boundary": "No external writes"},
-            ],
-            "faq": [
-                ["Is this a real client website?", "No. This is a sanitized static demo preview generated from V3.9 page builder data."],
-                ["Does the CTA submit bookings?", "No. It is a demo-only CTA with no live booking, CRM, email, Telegram, payment, or database write."],
-                ["What proof is shown?", "Artifacts, section maps, QA checks, route smoke markers, and approval gates. No fake testimonials or logos."],
-                ["Can this become production?", "Yes, after real client identity, assets, copy, contact destination, and live integration approvals are provided."],
-            ],
-        },
-        "links": {"website_page_builder": "/website-page-builder/", "order_package_generator": "/order-package-generator/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
-        "next_safe_action": "Review the assembled static preview; approve real content and live integrations separately before production use.",
-    }
-
-
-def build_client_handoff_pack_v41() -> dict[str, Any]:
-    """Safe static owner/client handoff pack generated from the V4.0 assembled demo website."""
-    assembly = build_one_click_demo_assembly_v40()
-    return {
-        "schema_version": "webstudio.client-handoff-pack.v41",
-        "marker": "client-handoff-pack-v41",
-        "status": "PASS_LOCAL_READY",
-        "route": "/client-handoff-pack/",
-        "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-handoff-pack/",
-        "preview_url": assembly["public_url"],
-        "source_marker": "one-click-demo-assembly-v40",
-        "markers": ["client-handoff-pack-v41", "client-facing preview", "owner review checklist", "QA evidence", "revision plan", "demo only"],
-        "safety": {
-            "demo_only": True,
-            "static_snapshot": True,
-            "sanitized_only": True,
-            "real_private_client_data": False,
-            "live_submission": False,
-            "live_booking_writes": False,
-            "crm_email_telegram_writes": False,
-            "browser_side_secrets": False,
-            "external_writes": False,
-            "medical_health_claims": "safe generic marketing copy only",
-        },
-        "client_summary": "Client-facing preview pack for a sanitized static wellness website demo. It explains what is ready to review, what proof exists, and what still needs owner/client approval before production use.",
-        "page_list": ["Home page", "Services page", "About page", "Proof / Process page", "FAQ page", "Contact / Booking CTA page"],
-        "sections_included": ["Hero", "Problem / solution", "Services/packages", "Process", "Proof/trust", "FAQ", "Static CTA", "Safety boundary"],
-        "feature_list": ["Client-facing preview link", "Generated page list", "Section composition", "QA proof summary", "Known limitations", "Owner approval checklist", "Next revision plan", "Delivery-ready packet"],
-        "qa_evidence": [
-            "V4.0 public route returned HTTP 200",
-            "Markers verified: one-click-demo-assembly-v40, full assembled landing page preview, FAQ, demo only",
-            "Local build and smoke gates passed before handoff pack creation",
-            "Changed-file secret scan required before client send",
-            "Static route contains demo-only and no-live-booking warnings",
-        ],
-        "approval_checklist": [
-            "Approve static preview structure",
-            "Confirm real client name, brand assets, and approved copy",
-            "Confirm pages and sections to keep/remove",
-            "Approve contact destination before any live form or booking setup",
-            "Approve production launch target, rollback plan, analytics, and legal/medical copy review separately",
-        ],
-        "known_limitations": [
-            "Static sanitized demo only, not a production website",
-            "No real private client data or real testimonials/logos",
-            "No live booking, CRM, email, Telegram, payment, or database submission",
-            "Generic wellness marketing copy only; no medical diagnosis, treatment, cure, or outcome claims",
-            "Real imagery, legal copy, analytics, DNS, and production integrations require separate approval",
-        ],
-        "revision_plan": [
-            "Owner reviews preview link and checklist",
-            "Client confirms content changes and asset inputs",
-            "WebStudio applies revision pass to pages/sections",
-            "QA reruns build, smoke, marker, and changed-file secret scan",
-            "Owner approves production integration and public launch scope separately",
-        ],
-        "links": {"one_click_demo_assembly": "/one-click-demo-assembly/", "website_page_builder": "/website-page-builder/", "order_package_generator": "/order-package-generator/", "generated_demo_site_v35": "/generated-demo-site-v35/"},
-        "next_safe_action": "Owner reviews the handoff pack and returns PASS, PASS_WITH_REVISIONS, or BLOCKED with specific requested changes.",
-    }
-
-
-def build_handoff_review_matrix_v42() -> dict[str, Any]:
-    return {
-        "schema_version":"webstudio.handoff-review-matrix.v42","marker":"handoff-review-matrix-v42","status":"PASS_LOCAL_READY","route":"/handoff-review-matrix/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/handoff-review-matrix/","source_marker":"client-handoff-pack-v41",
-        "markers":["handoff-review-matrix-v42","owner-facing review","revision matrix","demo-only guardrails"],
-        "safety":{"demo_only":True,"static_snapshot":True,"sanitized_only":True,"live_submission":False,"live_booking_writes":False,"external_writes":False,"browser_side_secrets":False,"real_private_client_data":False},
-        "ready":["Client-facing preview exists","Page list and section inventory are clear","QA evidence and proof cards are visible","Demo-only and no-live-booking boundaries are explicit"],
-        "needs_review":["Real client identity and assets","Final copy and legal/medical review","Production contact destination","Public launch scope and rollback plan"],
-        "demo_only":["No live form writes","No real private client data","No CRM/email/Telegram/payment/booking action","Generic wellness marketing only"],
-        "blocked_until_owner":["Production contact routing","Client-approved brand/content assets","Analytics/DNS/public launch","Any regulated claims or testimonials"],
-        "revision_requests":[
-            {"id":"REV-001","title":"Confirm hero promise and audience fit","severity":"medium","area":"copy","next_safe_action":"Owner marks copy as approved or requests edits"},
-            {"id":"REV-002","title":"Replace generated concept wording with client-approved copy","severity":"high","area":"copy/compliance","next_safe_action":"Keep demo-only until approved copy is supplied"},
-            {"id":"REV-003","title":"Choose real imagery/brand assets","severity":"medium","area":"visuals/assets","next_safe_action":"Use placeholders until assets are approved"},
-            {"id":"REV-004","title":"Approve live contact destination","severity":"high","area":"CTA/integration","next_safe_action":"Do not connect live writes without owner approval"},
-            {"id":"REV-005","title":"Final mobile/desktop QA before client send","severity":"medium","area":"QA","next_safe_action":"Rerun build/smoke/route markers after revisions"}],
-        "links":{"client_handoff_pack":"/client-handoff-pack/","one_click_demo_assembly":"/one-click-demo-assembly/"},"next_safe_action":"Review matrix, resolve high-severity approval gates, then use revision request demo for structured changes."}
-
-def build_revision_request_demo_v43() -> dict[str, Any]:
-    return {"schema_version":"webstudio.revision-request-demo.v43","marker":"revision-request-demo-v43","status":"PASS_LOCAL_READY","route":"/revision-request-demo/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/revision-request-demo/","source_marker":"handoff-review-matrix-v42","markers":["revision-request-demo-v43","demo-only banner","structured revision preview","priority","severity","no live submit"],"safety":{"demo_only":True,"static_snapshot":True,"local_only":True,"live_submit":False,"private_data":False,"external_writes":False,"browser_side_secrets":False},"categories":["copy","layout","visuals/assets","CTA","services/packages","compliance/risk","technical issue"],"sample_request":{"category":"copy","priority":"medium","severity":"review","summary":"Tighten hero headline and clarify who the offer is for.","estimated_next_action":"Create scoped revision task, apply copy pass, rerun QA and route smoke."},"structured_preview":[{"field":"Category","value":"copy / layout / visuals/assets / CTA / services/packages / compliance/risk / technical issue"},{"field":"Priority/severity","value":"low / medium / high / blocker"},{"field":"Acceptance criteria","value":"Exact visible change requested, route affected, proof needed"},{"field":"Next safe action","value":"Draft revision task; no live writes; owner approval for integrations"}],"links":{"handoff_review_matrix":"/handoff-review-matrix/","client_handoff_pack":"/client-handoff-pack/","work_factory":"/work-factory/"},"next_safe_action":"Copy structured preview into Work Factory only after owner/client wording is approved."}
-
-def build_webstudio_showcase_v44() -> dict[str, Any]:
-    return {"schema_version":"webstudio.public-showcase.v44","marker":"webstudio-showcase-v44","status":"PASS_LOCAL_READY","route":"/webstudio-showcase/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/webstudio-showcase/","markers":["webstudio-showcase-v44","Automated premium website studio","Lead Capture","Order Builder","Package Generator","Page Builder","Demo Assembly","Handoff"],"safety":{"demo_only":True,"static_snapshot":True,"no_fake_testimonials":True,"no_guarantees":True,"private_data":False,"external_writes":False,"browser_side_secrets":False},"headline":"Automated premium website studio","pipeline":["Lead Capture","Order Builder","Package Generator","Page Builder","Demo Assembly","Handoff"],"proof_cards":["GitHub Pages publish","Supabase operational memory","build/smoke/secret scan gates","reports pushed to GitHub"],"packages":[{"name":"Premium Website","detail":"Conversion page system with proof-led sections and handoff pack"},{"name":"AI Intake Bot","detail":"Structured qualification flow and owner-reviewed handoff"},{"name":"Business Automation","detail":"Safe dry-run plan for operational handoffs and status tracking"}],"demo_links":["/lead-capture-demo/","/order-builder/","/order-package-generator/","/website-page-builder/","/one-click-demo-assembly/","/client-handoff-pack/"],"cta":{"label":"Start demo order","href":"/lead-capture-demo/"},"next_safe_action":"Start with a sanitized demo order, then approve live integrations separately."}
-
-def build_pricing_package_catalog_v45() -> dict[str, Any]:
-    return {"schema_version":"webstudio.pricing-package-catalog.v45","marker":"pricing-packages-v45","status":"PASS_LOCAL_READY","route":"/pricing-packages/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/pricing-packages/","markers":["pricing-packages-v45","Starter Landing","Premium Website","Premium Website + Intake Bot","Business Automation Pack","demo only","pricing draft"],"safety":{"demo_only":True,"pricing_draft":True,"custom_quote_required":True,"no_fixed_final_price":True,"no_fake_claims":True,"external_writes":False,"browser_side_secrets":False},"packages":[{"name":"Starter Landing","range":"custom quote","included":["discovery","one landing page","copy outline","QA","handoff pack"]},{"name":"Premium Website","range":"custom quote","included":["discovery","multi-page structure","design direction","copy outline","QA","publish prep","handoff pack"]},{"name":"Premium Website + Intake Bot","range":"custom quote","included":["website package","guided intake script","handoff schema","QA","owner approval gates"]},{"name":"Business Automation Pack","range":"custom quote","included":["process mapping","dry-run workflow","status dashboard","QA","handoff docs"]}],"policy":["Price range / custom quote only until scope is approved","No fixed timelines without inputs","No commercial outcome guarantees","Live integrations are separate owner-approved scope"],"links":{"lead_capture_demo":"/lead-capture-demo/","order_builder":"/order-builder/"},"next_safe_action":"Use Lead Capture Demo to collect a safe brief, then estimate after inputs and assumptions are known."}
-
-
-
-def build_client_safe_preview_v51() -> dict[str, Any]:
-    return {"schema_version":"webstudio.client-safe-preview.v51","marker":"client-safe-preview-v51","status":"APPROVED_FOR_PREVIEW","route":"/client-safe-preview/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/client-safe-preview/","markers":["client-safe-preview-v51","placeholder map","approval gates","client-ready checklist","NEEDS_REAL_ASSET","APPROVED_FOR_PREVIEW"],"safety":{"demo_only":True,"static_snapshot":True,"sanitized_only":True,"real_private_client_data":False,"live_upload":False,"live_submission":False,"external_writes":False,"browser_side_secrets":False,"fake_testimonials":False,"medical_legal_overclaims":False},"preview_link":"/one-click-demo-assembly/","section_readiness":["Hero READY_FOR_DEMO","Services NEEDS_REAL_ASSET","Proof BLOCKED_FOR_PUBLIC","Process APPROVED_FOR_PREVIEW","FAQ NEEDS_OWNER","CTA NEEDS_OWNER"],"placeholder_map":["Logo placeholder NEEDS_REAL_ASSET","Hero image placeholder NEEDS_REAL_ASSET","Testimonials BLOCKED_FOR_PUBLIC","Pricing NEEDS_OWNER","Contact destination NEEDS_OWNER"],"real_asset_requirements":["Approved logo/brand colors","Hero and service photos with usage rights","Real service descriptions and exclusions","Approved testimonials/proof if any","Approved public contact/booking preference","Compliance notes for regulated wording"],"approval_gates":["Owner accepts preview for demo only","Client approves real assets and identity","Testimonials/proof verified and consent-backed","Medical/legal/financial copy reviewed","Live contact/upload/submission/integration approved"],"copy_safety_notes":["Visible placeholder labels in unfinished sections","Artifact proof instead of fake social proof","Generic copy for regulated industries until review","No live automation, booking, payment, CRM, email, or Telegram writes"],"client_ready_checklist":["Preview has visible demo labels","Section readiness reviewed","Real asset gaps are listed","Approval gates are explicit","Public launch blockers are separated from demo readiness"],"owner_decision_panel":{"demo":"Approved for sanitized preview sharing after owner review.","ready":"Structure, route, static preview, checklist, artifact proof.","needs_real_assets":"Brand identity, photos, approved service copy, testimonials/proof, contact destination.","blocked_for_public":"Unapproved proof, regulated claims, live submissions/integrations, private data."},"links":{"one_click_demo_assembly":"/one-click-demo-assembly/","generated_demo_site_v35":"/generated-demo-site-v35/","asset_intake_pack":"/asset-intake-pack/","client_handoff_pack":"/client-handoff-pack/","owner_review":"/owner-review/"},"next_safe_action":"Use the preview for owner/client review, then collect real assets through the Asset Intake Pack before public launch."}
-
-def build_real_asset_intake_pack_v50() -> dict[str, Any]:
-    template = """Hi — to prepare a safe and accurate website/demo pack, please send only materials you are allowed to share publicly or approve for project use.
-
-Please send: logo, brand colors/fonts, real photos approved for the site, service descriptions, pricing/package notes, legal/compliance notes, testimonials/proof only if approved, and contact/booking preferences.
-
-Please do not send private credentials, sensitive personal data for public demo, fake reviews, unapproved testimonials, or unapproved health/legal/financial/outcome claims.
-
-Default safety rule: if an item is not approved for public use, we keep it out of the public demo and use a clearly labeled placeholder or artifact-based proof instead."""
-    return {"schema_version":"webstudio.real-asset-intake-pack.v50","marker":"asset-intake-pack-v50","status":"READY_FOR_DEMO","route":"/asset-intake-pack/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/asset-intake-pack/","markers":["asset-intake-pack-v50","required assets","proof policy","compliance review checklist","client asset request template","no fake testimonials"],"safety":{"demo_only":True,"static_snapshot":True,"sanitized_only":True,"real_private_client_data":False,"live_upload":False,"live_submission":False,"external_writes":False,"browser_side_secrets":False,"fake_testimonials":False,"medical_legal_overclaims":False},"required_assets":["Logo / wordmark / favicon","Service descriptions","Contact or booking preference","Legal/compliance notes"],"optional_assets":["Brand colors/fonts","Real photos","FAQ and objections","Existing materials"],"proof_policy":["Artifact proof is safe by default","Testimonials require approval","Metrics require evidence","Unapproved social proof is blocked"],"compliance_review":["Industry category checked","Claims reviewed","Image rights reviewed","Privacy reviewed"],"missing_content_tracker":["Approved brand identity","Approved hero/service photos","Consent-backed proof/testimonials","Compliance-approved copy","Public contact destination"],"approval_gates":["Safe demo/public placeholder use","Real client identity or photos","Testimonials/proof/public claims","Health/legal/financial claims","Live upload/submission/integration"],"safe_demo_rules":["Use generic placeholders or generated/concept visuals clearly labeled as demo.","Use artifact proof instead of fake testimonials or fake logos.","Do not publish private credentials, sensitive personal data, internal notes, or unapproved contact details.","Do not make medical/legal/financial/outcome claims without review and approval.","No live upload, live submission, CRM/email/Telegram/payment write, or browser-side secret."],"links":{"owner_review":"/owner-review/","client_handoff_pack":"/client-handoff-pack/","one_click_demo_assembly":"/one-click-demo-assembly/","generated_demo_site_v35":"/generated-demo-site-v35/","lead_capture_demo":"/lead-capture-demo/"},"client_asset_request_template":template,"next_safe_action":"Send the template to the client, collect approved assets outside the public demo, then update copy/assets only after owner/client approval."}
-
-
-
-def build_delivery_lifecycle_tracker_v57() -> dict[str, Any]:
-    return {"schema_version":"webstudio.delivery-lifecycle-tracker.v57","marker":"delivery-lifecycle-v57","status":"DELIVERY_TRACKING","route":"/delivery-lifecycle/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/delivery-lifecycle/","markers":["delivery-lifecycle-v57","INTAKE_READY","ASSET_WAITING","BUILD_READY","REVIEW_READY","REVISION_REQUESTED","APPROVED_FOR_HANDOFF","BLOCKED_FOR_LIVE"],"summary":"Static sanitized delivery lifecycle; no live client-send or CRM writes.","links":{"lead_capture":"/lead-capture-demo/","asset_intake":"/asset-intake-pack/","client_safe_preview":"/client-safe-preview/","revision_workflow":"/revision-workflow/","client_approval_room":"/client-approval-room/","real_client_readiness":"/real-client-readiness/","route_health":"/route-health/"}}
-
-def build_client_approval_room_v52() -> dict[str, Any]:
-    return {"schema_version":"webstudio.client-approval-room.v52","marker":"client-approval-room-v52","status":"APPROVED_FOR_DEMO","route":"/client-approval-room/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/client-approval-room/","markers":["client-approval-room-v52","READY_TO_APPROVE","NEEDS_REVISION","NEEDS_REAL_ASSET","BLOCKED_FOR_LIVE","APPROVED_FOR_DEMO","OWNER_REQUIRED"],"summary":"Static sanitized approval room; no live approval writes and no private data.","links":{"client_safe_preview":"/client-safe-preview/","asset_intake_pack":"/asset-intake-pack/","client_handoff_pack":"/client-handoff-pack/","owner_review":"/owner-review/","revision_request_demo":"/revision-request-demo/"}}
-
-def build_revision_workflow_board_v53() -> dict[str, Any]:
-    return {"schema_version":"webstudio.revision-workflow-board.v53","marker":"revision-workflow-v53","status":"TRIAGED","route":"/revision-workflow/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/revision-workflow/","markers":["revision-workflow-v53","REQUESTED","TRIAGED","ACCEPTED","REJECTED","NEEDS_ASSET","READY_FOR_UPDATE","BLOCKED"],"categories":["copy","design","assets","CTA","compliance","technical"],"warning":"demo only: no live writes","links":{"client_approval_room":"/client-approval-room/","handoff_review_matrix":"/handoff-review-matrix/","revision_request_demo":"/revision-request-demo/","work_factory":"/work-factory/"}}
-
-def build_real_client_readiness_pack_v54() -> dict[str, Any]:
-    return {"schema_version":"webstudio.real-client-readiness-pack.v54","marker":"real-client-readiness-v54","status":"NEEDS_REVIEW","route":"/real-client-readiness/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/real-client-readiness/","markers":["real-client-readiness-v54","READY","NEEDS_REVIEW","BLOCKED_UNTIL_OWNER","CLIENT_REQUIRED","COMPLIANCE_REQUIRED"],"policy":"real-client data requires consent, privacy review, compliance review, and separate owner approval for live integrations","links":{"asset_intake_pack":"/asset-intake-pack/","client_safe_preview":"/client-safe-preview/","client_approval_room":"/client-approval-room/","pricing_packages":"/pricing-packages/"}}
-
-def build_productized_sales_funnel_v55() -> dict[str, Any]:
-    return {"schema_version":"webstudio.productized-sales-funnel.v55","marker":"sales-funnel-v55","status":"READY_FOR_DEMO","route":"/sales-funnel/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/sales-funnel/","markers":["sales-funnel-v55","product journey map","no fake guarantees","no fake testimonials","custom quote"],"journey":"visitor -> understand offer -> choose package -> start demo order -> see preview -> request assets -> approve","links":{"pricing_packages":"/pricing-packages/","lead_capture_demo":"/lead-capture-demo/","one_click_demo_assembly":"/one-click-demo-assembly/","generated_demo_site_v35":"/generated-demo-site-v35/","asset_intake_pack":"/asset-intake-pack/","client_approval_room":"/client-approval-room/"}}
-
-def build_offer_detail_layer_v58() -> dict[str, Any]:
-    return {"schema_version":"webstudio.public-sales-offer-detail.v58","marker":"offer-detail-v58","status":"PUBLIC_SAFE","route":"/offer-detail/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/offer-detail/","markers":["offer-detail-v58","public sales pages","offer detail layer","custom quote","no fake testimonials","no guaranteed outcomes","no live writes"],"safety":{"static_snapshot":True,"sanitized_only":True,"real_private_client_data":False,"live_submission":False,"crm_email_telegram_writes":False,"payment_or_booking_writes":False,"browser_side_secrets":False,"fake_testimonials":False,"guaranteed_outcomes":False,"medical_legal_claims":False},"headline":"Premium Website + Intake Readiness offer detail","sections":["Who it fits","What is included","What is not promised","Safe next step"],"included":["Offer narrative","Deliverables list","Pricing policy custom quote","Proof policy requires evidence","CTA boundary no live writes"],"links":{"lead_capture_demo":"/lead-capture-demo/","pricing_packages":"/pricing-packages/","sales_funnel":"/sales-funnel/","client_safe_preview":"/client-safe-preview/","client_approval_room":"/client-approval-room/","route_health":"/route-health/"},"next_safe_action":"Use as public-safe offer detail copy; approve real proof/assets and live forms separately."}
-
-def build_ops_memory_consistency_v59() -> dict[str, Any]:
-    return {"schema_version":"webstudio.ops-memory-consistency.v59","marker":"ops-memory-consistency-v59","status":"MEMORY_CONSISTENT","route":"/ops-memory-consistency/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/ops-memory-consistency/","markers":["ops-memory-consistency-v59","operational memory consistency","github actions pages","public route marker","supabase blocked","no browser-side secrets","no live writes"],"safety":{"static_snapshot":True,"sanitized_only":True,"read_only":True,"real_private_client_data":False,"live_submission":False,"supabase_write":False,"github_browser_token":False,"browser_side_secrets":False,"crm_email_telegram_writes":False},"checks":["GitHub branch head verified","GitHub Actions Pages run verified","Public route marker verified","Repo reports and checkpoints synced","Supabase status row blocked when write tool absent","hfinalize blocked when command unavailable"],"memory_map":["latest-checkpoint.md","phase-index.md","ops/reports/<phase>/","public route marker","Supabase ops row"],"links":{"supabase_memory":"/supabase-memory/","bot_activity":"/bot-activity/","route_health":"/route-health/","owner_command_center":"/owner-command-center/","offer_detail":"/offer-detail/","delivery_lifecycle":"/delivery-lifecycle/"},"next_safe_action":"Use this read-only consistency checklist before V6.0 executive reporting."}
-
-def build_owner_executive_report_v60() -> dict[str, Any]:
-    return {"schema_version":"webstudio.owner-executive-report.v60","marker":"owner-executive-report-v60","status":"EXECUTIVE_READY","route":"/owner-executive-report/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/owner-executive-report/","markers":["owner-executive-report-v60","owner executive report","shipped routes","proof gates","owner next actions","no live writes"],"safety":{"static_snapshot":True,"sanitized_only":True,"read_only":True,"real_private_client_data":False,"live_submission":False,"supabase_write":False,"browser_side_secrets":False,"crm_email_telegram_writes":False,"payment_or_booking_writes":False,"fake_testimonials":False,"guaranteed_outcomes":False},"summary":"Static owner executive report for V5.2 to V6.0 safe production increments.","shipped_routes":["client-approval-room","revision-workflow","real-client-readiness","sales-funnel","offer-detail","ops-memory-consistency"],"proof_gates":["build and smoke","changed-file credential scan","GitHub branch SHA","GitHub Actions Pages run","public route marker","Supabase tool-gated ops row"],"owner_next_actions":["Review public-safe route chain","Choose real asset collection or static sales/reporting polish","Approve live integrations separately","Keep proof and claims source-approved"],"links":{"overview":"/","route_health":"/route-health/","ops_memory_consistency":"/ops-memory-consistency/","offer_detail":"/offer-detail/","sales_funnel":"/sales-funnel/","real_client_readiness":"/real-client-readiness/"},"next_safe_action":"Use as owner decision brief; keep live integrations and private data approval-gated."}
-
-
-
-def build_client_portal_preview_v62() -> dict[str, Any]:
-    return {"schema_version":"webstudio.client-portal-preview.v62","marker":"client-portal-preview-v62","status":"PROJECT_READY","route":"/client-portal-preview/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/client-portal-preview/","markers":["client-portal-preview-v62","PROJECT_READY","NEEDS_ASSETS","NEEDS_REVIEW","APPROVED_FOR_DEMO","BLOCKED_FOR_LIVE","NEXT_MILESTONE","safe demo only","no live writes"],"safety":{"static_snapshot":True,"sanitized_only":True,"read_only":True,"no_login":True,"real_private_client_data":False,"live_submission":False,"external_writes":False,"browser_side_secrets":False,"crm_email_telegram_writes":False,"payment_or_booking_writes":False},"project_summary":{"client_label":"Demo client preview","package":"Premium Website + Intake Readiness","current_status":"PROJECT_READY","preview_website_link":"/client-safe-preview/","next_milestone":"Review sanitized preview and approve next revision inputs."},"required_assets":["Approved logo and brand colors","Real hero/product photos","Final service copy and pricing policy","Approved proof/testimonial/case-study sources"],"approval_checklist":["Preview website reviewed","Asset gaps acknowledged","Revision request list accepted","Demo-only boundary accepted"],"revision_requests":["Hero headline tone","Package scope wording","Proof section source approval"],"timeline":["Discovery and safe intake","Asset collection","Preview review","Revision pass","Live/public readiness blocked until approval"],"links":{"client_safe_preview":"/client-safe-preview/","client_approval_room":"/client-approval-room/","client_handoff_pack":"/client-handoff-pack/","revision_workflow":"/revision-workflow/","route_health":"/route-health/"},"warning":"Safe demo-only client portal preview. No login, no private client data, no live writes."}
-
-def build_phase_proof_matrix_v61() -> dict[str, Any]:
-    return {"schema_version":"webstudio.phase-proof-matrix.v61","marker":"phase-proof-matrix-v61","status":"PROOF_READY","route":"/phase-proof-matrix/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/phase-proof-matrix/","markers":["phase-proof-matrix-v61","phase acceptance","proof matrix","build smoke scan","actions pages markers","no live writes"],"safety":{"static_snapshot":True,"sanitized_only":True,"read_only":True,"real_private_client_data":False,"live_submission":False,"supabase_write":False,"browser_side_secrets":False,"crm_email_telegram_writes":False,"payment_or_booking_writes":False,"fake_testimonials":False,"guaranteed_outcomes":False},"summary":"Read-only phase acceptance proof matrix for WebStudio safe increments.","acceptance_gates":["Local build PASS","Local smoke PASS","Changed-file credential scan PASS","Git commit and remote SHA verified","GitHub Actions publish success","Public Pages marker HTTP 200","Supabase ops row tool-gated or phase-only BLOCKED"],"artifact_map":["latest-checkpoint.md","phase-index.md","state.json","events.jsonl","validation.md","blockers.md","final-report.md"],"route_markers":["offer-detail-v58","ops-memory-consistency-v59","owner-executive-report-v60","phase-proof-matrix-v61"],"links":{"owner_executive_report":"/owner-executive-report/","ops_memory_consistency":"/ops-memory-consistency/","route_health":"/route-health/","offer_detail":"/offer-detail/","delivery_lifecycle":"/delivery-lifecycle/"},"next_safe_action":"Use this matrix as the phase acceptance checklist before starting any new feature; keep all live writes and private data approval-gated."}
-
-def build_route_health_dashboard_v46() -> dict[str, Any]:
-    routes=["/","/lead-capture-demo/","/lead-to-order-handoff/","/order-builder/","/order-package-generator/","/website-page-builder/","/one-click-demo-assembly/","/generated-demo-site-v35/","/client-handoff-pack/","/handoff-review-matrix/","/revision-request-demo/","/webstudio-showcase/","/pricing-packages/","/owner-review/","/asset-intake-pack/","/client-safe-preview/","/client-approval-room/","/revision-workflow/","/real-client-readiness/","/sales-funnel/","/offer-detail/","/ops-memory-consistency/","/owner-executive-report/","/phase-proof-matrix/","/delivery-lifecycle/","/work-factory/","/owner-command-center/","/bot-activity/","/supabase-memory/"]
-    return {"schema_version":"webstudio.route-health-regression.v56","marker":"route-health-regression-v56","status":"PASS_LOCAL_READY","route":"/route-health/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/route-health/","markers":["route-health-regression-v56","regression monitor","route table","HTTP status","marker status","latest published commit","known blockers","client-approval-room-v52","revision-workflow-v53","real-client-readiness-v54","sales-funnel-v55","offer-detail-v58","ops-memory-consistency-v59","owner-executive-report-v60","phase-proof-matrix-v61"],"latest_commit":"pending-smoke","actions_run":"pending-smoke","safety":{"static_snapshot":True,"read_only":True,"external_writes":False,"browser_side_secrets":False},"routes":[{"route":r,"http_status":"verified after publish","marker_status":"pending public smoke","status":"WATCH","next_safe_action":"Run public smoke and update report"} for r in routes],"next_safe_action":"Use this dashboard as the morning regression index after public smoke."}
-
-def build_morning_summary_v47() -> dict[str, Any]:
-    return {"schema_version":"webstudio.morning-summary.v47","marker":"morning-summary-v47","status":"READY","route":"/morning-summary/","public_url":"https://pltnv123.github.io/webstudio-ops-dashboard/morning-summary/","markers":["morning-summary-v47","morning executive summary","completed phases","published routes","supabase updates","github commits"],"safety":{"static_snapshot":True,"report_only":True,"private_data":False,"external_writes":False,"browser_side_secrets":False},"phases":["V4.2 Handoff Review Matrix","V4.3 Revision Request Demo","V4.4 WebStudio Showcase","V4.5 Pricing Packages","V4.6 Route Health Dashboard","V4.7 Morning Executive Summary"],"summary":"Night shift productized WebStudio from demo chain into review, revision, sales, pricing, and regression reporting layers.","next_sprint_options":["Client-ready copy/asset replacement flow","Real quote calculator after owner-approved pricing policy","Automated route smoke ingestion into Supabase","Screenshot-based visual regression once browser evidence is available"],"next_safe_action":"Owner reviews published routes, chooses revisions, and approves any live integrations separately."}
-
 def build_state() -> dict[str, Any]:
     raw = load_json(STATE_PATH, {})
     wf = build_work_factory(raw if isinstance(raw, dict) else {})
@@ -2495,14 +1243,6 @@ def build_state() -> dict[str, Any]:
     approvals = build_approvals(wf, kanban)
     production_pipeline = build_production_pipeline(kanban)
     product_progress = build_product_progress()
-    motion_factory = build_motion_factory(product_progress)
-    client_intake_v27 = build_client_intake_v27()
-    delivery_system_v29 = build_delivery_system_v29(product_progress)
-    order_builder = build_order_builder()
-    real_client_execution_v30 = build_real_client_execution_v30(product_progress)
-    premium_visual_motion_v31 = build_premium_visual_motion_v31(product_progress)
-    premium_website_generator_v32 = build_premium_website_generator_v32(product_progress)
-    premium_factory_v34 = build_premium_factory_v34(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -2523,14 +1263,15 @@ def build_state() -> dict[str, Any]:
     if kanban.get("duplicate_keys"):
         safety_status = "fail"
         safety_findings.append("duplicate mirror idempotency keys detected")
-    control_plane_history = load_json(CONTROL_HISTORY_PATH, {"snapshots": []})
     return {
-        "schema_version":"webstudio-control-plane.v1",
+        "schema_version": "webstudio-control-plane.v1",
         "generated_at": utc_now(),
-        "mode":"read_only_ops_cockpit",
-        "notification_policy":{"mode":"quiet","notify_on":["owner_decision","error","blocked","material_milestone","sla_breach"]},
-        "autonomy_policy":{"approved_levels":["A_report_planning_only","B_local_artifacts_only","C_branches_pr_owner_approved","D_deploy_after_explicit_approval"],"approval_required_for":["live_production_secrets","live_telegram_token","live_crm_or_sheets_writes","supabase_write_migration","deploy_or_release","payment_or_live_external_action","private_client_data_approval"]},
-        "host_autonomy": build_host_autonomy(health, github_readiness),
+        "mode": "read_only_ops_cockpit",
+        "notification_policy": {"mode": "quiet", "notify_on": ["owner_decision", "error", "blocked", "material_milestone", "sla_breach"]},
+        "autonomy_policy": {
+            "approved_levels": ["A_report_planning_only", "B_local_artifacts_only", "C_branches_pr_after_approval", "D_deploy_after_approval"],
+            "approval_required_for": ["deploy", "production_db_write", "secrets_env_change", "provider_routing_change", "cron_schedule_change", "systemd_change", "public_release"],
+        },
         "product_lines": PRODUCT_LINES,
         "safety": {
             "status": safety_status,
@@ -2552,53 +1293,12 @@ def build_state() -> dict[str, Any]:
         "kanban": kanban,
         "production_pipeline": production_pipeline,
         "product_progress": product_progress,
-        "motion_factory": motion_factory,
-        "client_intake_v27": client_intake_v27,
-        "delivery_system_v29": delivery_system_v29,
-        "delivery_pipeline_v29": load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {}),
-        "real_client_execution_v30": real_client_execution_v30,
-        "premium_visual_motion_v31": premium_visual_motion_v31,
-        "premium_website_generator_v32": premium_website_generator_v32,
-        "premium_factory_v34": premium_factory_v34,
-        "generated_demo_site_v35": build_generated_demo_site_v35(),
-        "lead_capture_demo_v36": build_lead_capture_demo_v36(),
-        "lead_to_order_handoff_v37": build_lead_to_order_handoff_v37(),
-        "order_package_generator_v38": build_order_package_generator_v38(),
-        "website_page_builder_v39": build_website_page_builder_v39(),
-        "one_click_demo_assembly_v40": build_one_click_demo_assembly_v40(),
-        "client_handoff_pack_v41": build_client_handoff_pack_v41(),
-        "handoff_review_matrix_v42": build_handoff_review_matrix_v42(),
-        "revision_request_demo_v43": build_revision_request_demo_v43(),
-        "webstudio_showcase_v44": build_webstudio_showcase_v44(),
-        "pricing_package_catalog_v45": build_pricing_package_catalog_v45(),
-        "route_health_dashboard_v46": build_route_health_dashboard_v46(),
-        "real_asset_intake_pack_v50": build_real_asset_intake_pack_v50(),
-        "client_safe_preview_v51": build_client_safe_preview_v51(),
-        "client_approval_room_v52": build_client_approval_room_v52(),
-        "revision_workflow_board_v53": build_revision_workflow_board_v53(),
-        "real_client_readiness_pack_v54": build_real_client_readiness_pack_v54(),
-        "productized_sales_funnel_v55": build_productized_sales_funnel_v55(),
-        "offer_detail_layer_v58": build_offer_detail_layer_v58(),
-        "ops_memory_consistency_v59": build_ops_memory_consistency_v59(),
-        "owner_executive_report_v60": build_owner_executive_report_v60(),
-        "phase_proof_matrix_v61": build_phase_proof_matrix_v61(),
-        "client_portal_preview_v62": build_client_portal_preview_v62(),
-        "morning_summary_v47": build_morning_summary_v47(),
-        "error_recovery_v37_1": build_error_recovery_v37_1(),
-        "day2_visual_sourcing_v37_1": build_day2_visual_sourcing_v37_1(),
-        "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
         "agent_workflow": agent_workflow,
         "continuation_controller": continuation_controller,
         "kanban_semantics": build_kanban_semantics_status(),
         "system_hardening": build_system_hardening_status(),
-        "supabase_memory": build_supabase_memory(),
-        "bot_activity": build_bot_activity(),
-        "work_factory_control": build_work_factory_control(),
-        "owner_command_center": build_owner_command_center(),
-        "order_builder": order_builder,
-        "delivery_handoff_composer_v33": build_delivery_handoff_composer_v33(order_builder, delivery_system_v29),
         "marathon_12h": marathon_status,
         "d1_owner_feedback": build_d1_owner_feedback(),
         "d3_intake": build_d3_intake(),
@@ -2635,7 +1335,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["owner-command-center", "order-builder", "work-factory", "kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "real-clients", "premium-factory", "premium-generator", "premium-factory-v34", "generated-demo-site-v35", "lead-capture-demo", "lead-to-order-handoff", "order-package-generator", "website-page-builder", "one-click-demo-assembly", "client-handoff-pack", "handoff-review-matrix", "revision-request-demo", "webstudio-showcase", "pricing-packages", "route-health", "owner-review", "asset-intake-pack", "client-safe-preview", "client-approval-room", "revision-workflow", "real-client-readiness", "sales-funnel", "offer-detail", "ops-memory-consistency", "owner-executive-report", "phase-proof-matrix", "client-portal-preview", "delivery-lifecycle", "morning-summary", "error-recovery", "supabase-memory", "bot-activity", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "agent-workflow", "approvals", "health", "artifacts", "marathon", "owner-feedback", "real-assets"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)
@@ -2643,12 +1343,8 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
             shutil.copy2(SRC / name, route_dir / name)
         (route_dir / "data").mkdir(parents=True, exist_ok=True)
         shutil.copy2(CONTROL_STATE_PATH, route_dir / "data" / "webstudio-control-plane-state.json")
-        if CONTROL_HISTORY_PATH.exists():
-            shutil.copy2(CONTROL_HISTORY_PATH, route_dir / "data" / "webstudio-control-plane-history.json")
     (dist / "data").mkdir(parents=True, exist_ok=True)
     shutil.copy2(CONTROL_STATE_PATH, dist / "data" / "webstudio-control-plane-state.json")
-    if CONTROL_HISTORY_PATH.exists():
-        shutil.copy2(CONTROL_HISTORY_PATH, dist / "data" / "webstudio-control-plane-history.json")
 
 
 def main() -> int:
@@ -2657,15 +1353,24 @@ def main() -> int:
     args = ap.parse_args()
     PUBLIC_DATA.mkdir(parents=True, exist_ok=True)
     state = build_state()
-    payload = json.dumps(state, ensure_ascii=False, indent=2) + "\n"
-    CONTROL_STATE_PATH.write_text(payload)
-    CANONICAL_OUTPUT_STATE_PATH.write_text(payload)
+    publish = publish_snapshot_with_failsafe(state)
+    if not publish["ok"]:
+        print("snapshot_publish=BLOCKED")
+        print("errors=" + json.dumps(publish.get("errors", []), ensure_ascii=False))
+        return 2
     print(f"snapshot={CONTROL_STATE_PATH} size={CONTROL_STATE_PATH.stat().st_size} sha256={sha256_file(CONTROL_STATE_PATH)}")
     print(f"canonical={CANONICAL_OUTPUT_STATE_PATH} size={CANONICAL_OUTPUT_STATE_PATH.stat().st_size} sha256={sha256_file(CANONICAL_OUTPUT_STATE_PATH)}")
-    print(f"safety={state['safety']['status']} mirror_executable_count={state['safety']['mirror_executable_count']} duplicate_keys={len(state['safety']['duplicate_keys'])}")
+    if publish.get("fallback_used"):
+        print(f"snapshot_publish=FALLBACK warning={publish.get('warning')} fallback_source={publish.get('fallback_source')}")
+        print("candidate_errors=" + json.dumps(publish.get("candidate_errors", []), ensure_ascii=False))
+    else:
+        print("snapshot_publish=LIVE")
+    current = load_snapshot(CONTROL_STATE_PATH) or {}
+    safety = current.get("safety") if isinstance(current.get("safety"), dict) else {}
+    print(f"safety={safety.get('status')} mirror_executable_count={safety.get('mirror_executable_count', 0)} duplicate_keys={len(safety.get('duplicate_keys', {}))}")
     if args.dist:
         dist = Path(args.dist)
-        copy_static(dist, state)
+        copy_static(dist, current)
         print(f"dist={dist} files={len(list(dist.rglob('*')))}")
     return 0
 

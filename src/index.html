@@ -4,16 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex,nofollow" />
-  <title>WebStudio — public product dashboard</title>
-  <link rel="stylesheet" href="./styles.css?v=webstudio-v61" />
+  <title>WebStudio Operator OS</title>
+  <link rel="stylesheet" href="./styles.css?v=webstudio-russian-product-ui-v110" />
+  <link rel="stylesheet" href="./surgery-v102.css?v=webstudio-ui-surgery-v110" />
 </head>
 <body>
   <header class="topbar">
     <div>
-      <p class="eyebrow">Hermes WebStudio · DEMO ONLY · NO LIVE WRITES</p>
-      <h1>WebStudio public product dashboard</h1>
-      <p class="sub">Lead Capture → Order Builder → Package Generator → Page Builder → Demo Assembly → Handoff</p>
-      <p class="sr-only">Админка веб-студии</p>
+      <p class="eyebrow">Hermes WebStudio</p>
+      <h1>Админка веб-студии</h1>
+      <p class="sub">Локальный preview для заказов, брифа, Канбана и handoff.</p>
     </div>
     <div class="top-actions">
       <span id="safetyPill" class="pill">загрузка</span>
@@ -22,66 +22,30 @@
     </div>
   </header>
 
-  <nav class="tabs" aria-label="WebStudio product routes">
-    <a href="#overview">Public Dashboard</a>
+  <nav class="tabs" aria-label="Разделы админки">
+    <span class="tab-group">Главное</span>
+    <a href="#operator">Оператор</a>
+    <a href="#overview">Обзор</a>
+    <a href="#orders">Заказы</a>
     <a href="#work-factory">Фабрика задач</a>
-    <a href="#owner-command-center">Owner Command Center</a>
-    <a href="#lead-capture-demo">Start Demo Order</a>
-    <a href="#generated-demo-site-v35">Generated Demo Site</a>
-    <a href="#pricing-packages">Pricing Packages</a>
-    <a href="#route-health">Route Health</a>
-    <a href="#owner-review">Owner Review</a>
-    <a href="#asset-intake-pack">Asset Intake Pack</a>
-    <a href="#client-safe-preview">Client-Safe Preview</a>
-    <a href="#client-portal-preview">Client Portal Preview</a>
-    <a href="#client-approval-room">Client Approval Room</a>
-    <a href="#revision-workflow">Revision Workflow</a>
-    <a href="#real-client-readiness">Real Client Readiness</a>
-    <a href="#sales-funnel">Sales Funnel</a>
-    <a href="#offer-detail">Offer Detail</a>
-    <a href="#ops-memory-consistency">Ops Memory Consistency</a>
-    <a href="#owner-executive-report">Owner Executive Report</a>
-    <a href="#phase-proof-matrix">Phase Proof Matrix</a>
-    <a href="#delivery-lifecycle">Delivery Lifecycle</a>
-    <a href="#order-builder">Order Builder</a>
-    <a href="#kanban">Канбан</a>
-    <a href="#production">Производство</a>
-    <a href="#demo-products">Демо-продукты</a>
-    <a href="#agent-workflow">Агенты</a>
-    <a href="#capabilities">Навыки</a>
-    <a href="#motion-factory">Motion Factory</a>
-    <a href="#intake-orders">Заказы / Intake</a>
-    <a href="#delivery">Поставка клиенту</a>
-    <a href="#real-clients">Реальные клиенты</a>
     <a href="#premium-factory">Premium Factory</a>
-    <a href="#premium-generator">Premium Generator</a>
-    <a href="#premium-factory-v34">Premium Factory v34</a>
-    <a href="#generated-demo-site-v35">Generated Demo v35</a>
-    <a href="#lead-capture-demo">Lead Capture Demo</a>
-    <a href="#lead-to-order-handoff">Lead → Order Handoff</a>
-    <a href="#order-package-generator">Order Package Generator</a>
-    <a href="#website-page-builder">Website Page Builder</a>
-    <a href="#one-click-demo-assembly">One-Click Assembly</a>
-    <a href="#client-handoff-pack">Client Handoff Pack</a>
-    <a href="#handoff-review-matrix">Handoff Review Matrix</a>
-    <a href="#revision-request-demo">Revision Request Demo</a>
-    <a href="#webstudio-showcase">WebStudio Showcase</a>
-    <a href="#pricing-packages">Pricing Packages</a>
-    <a href="#route-health">Route Health</a>
-    <a href="#owner-review">Owner Review</a>
-    <a href="#asset-intake-pack">Asset Intake Pack</a>
-    <a href="#client-safe-preview">Client-Safe Preview</a>
-    <a href="#morning-summary">Morning Summary</a>
-    <a href="#error-recovery">Ошибки и восстановление</a>
-    <a href="#owner-feedback">Решения владельца</a>
-    <a href="#d3-intake">D3 заявки</a>
-    <a href="#clients">Клиенты / Заказы</a>
+    <span class="tab-group">Операции</span>
+    <a href="#kanban">Канбан выполнения</a>
+    <a href="#hermes-kanban">Канбан Hermes</a>
+    <a href="#production">Производство</a>
+    <a href="#agent-workflow">Агенты</a>
+    <span class="tab-group">Клиенты</span>
+    <a href="#website-intake">Бриф сайта</a>
+    <a href="#real-assets">Реальные материалы</a>
+    <a href="#lead-research">Поиск заказов</a>
+    <a href="#supabase-plan">План Supabase</a>
+    <a href="#owner-feedback">Владелец</a>
+    <a href="#d3-intake">D3</a>
+    <a href="#clients">Клиенты</a>
     <a href="#sales-pack">Продажи</a>
-    <a href="#morning-desk">Утренний обзор</a>
+    <span class="tab-group">Система</span>
     <a href="#approvals">Согласования</a>
-    <a href="#supabase-memory">Supabase Memory</a>
-    <a href="#bot-activity">Bot Activity</a>
-    <a href="#health">Система</a>
+    <a href="#health">Статус</a>
     <a href="#artifacts">Артефакты</a>
     <a href="#marathon">Автономный цикл</a>
     <a href="#audit">Аудит</a>
@@ -109,6 +73,6 @@
     <span id="footerState"></span>
   </footer>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=webstudio-critical-ux-v110"></script>
 </body>
 </html>
