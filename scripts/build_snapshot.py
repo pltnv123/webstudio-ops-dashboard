@@ -921,6 +921,12 @@ def build_github_readiness() -> dict[str, Any]:
         status = "PR_CREATED"
     if isinstance(pr1_status, dict) and pr1_status.get("status") == "UPDATED":
         status = "UPDATED"
+        if pr1_status.get("latest_commit_sha") and not pr1_status.get("pushed_at"):
+            # GitHub Pages CI writes a minimal status row from the current
+            # checkout. Keep the public static snapshot valid without requiring
+            # host-only push metadata during the workflow run.
+            pr1_status["pushed_at"] = utc_now()
+            pr1_status["pushed_at_source"] = "github_actions_pages_build_fallback"
     return {
         "account_expected": "pltnv123",
         "repo": "pltnv123/webstudio-ops-dashboard",
