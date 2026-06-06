@@ -21,7 +21,7 @@ function normalizeRoute(value) {
   if (raw === 'Обзор') return 'overview';
   return raw;
 }
-let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','work-factory','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','work-factory','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -55,7 +55,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
@@ -2167,6 +2167,64 @@ function realAssetsWorkflow() {
     <section class="card span-6 warning-surface"><h3>Acceptance before public launch</h3><ul class="clean-list"><li>Все реальные материалы имеют источник и разрешение.</li><li>DEMO labels сняты только там, где есть подтверждение.</li><li>Скриншоты после замены ассетов сохранены в evidence.</li><li>Фронтенд scan не нашел секретов или live endpoints.</li></ul></section>
   </div>`;
 }
+function proposalQuoteWorkflow() {
+  const active = activeOrder();
+  const health = orderHealth(withOrderDefaults(active));
+  const brief = active.production_brief || generateProductionBrief(active);
+  const proposalMarker = 'proposal-quote-generator-v64';
+  const bands = [
+    {id: 'starter', label: 'Start', range: '$3k–$7k', fit: '1–3 страницы, быстрый запуск, минимум motion', includes: ['brief lock', 'conversion copy', 'responsive static site', 'basic QA checklist']},
+    {id: 'pro', label: 'Pro', range: '$8k–$18k', fit: 'много секций, proof blocks, handoff package', includes: ['strategy', 'premium visual system', 'asset replacement plan', 'SEO basics', 'QA + handoff']},
+    {id: 'premium', label: 'Premium', range: '$20k–$40k', fit: 'сложная ниша, motion/art direction, строгий acceptance', includes: ['3 concepts', 'motion plan', 'content system', 'advanced QA', 'owner/client acceptance gates']}
+  ];
+  const proposal = {
+    schema_version: 'webstudio.proposal_quote.v64',
+    marker: proposalMarker,
+    generated_at: nowIso(),
+    mode: 'static_demo_only_local_export',
+    safety: {
+      public_ui_demo_only: true,
+      no_crm_write: true,
+      no_email_or_telegram_send: true,
+      no_payment_action: true,
+      no_client_delivery_action: true,
+      officebot_used: false,
+      owner_approval_required_before_client_use: true
+    },
+    order: {
+      order_id: active.order_id || 'LOCAL-DEMO',
+      client_name: active.client_name || 'Demo client',
+      industry: active.industry || 'demo niche',
+      budget_range: active.budget_range || 'not confirmed',
+      deadline: active.deadline || 'not confirmed',
+      health_score: health.score,
+      missing_information: health.missing_information
+    },
+    scope_options: bands,
+    recommended_package: health.score >= 80 ? 'pro' : 'starter_until_brief_complete',
+    assumptions: [
+      'Цена является внутренней оценкой, не публичным обещанием.',
+      'Финальный scope фиксируется после подтверждения материалов, proof и legal copy.',
+      'Все live-интеграции, CRM, формы, мессенджеры и платежные сценарии требуют отдельного approval.',
+      'Неподтвержденные отзывы, логотипы, сертификаты и цифры не используются.'
+    ],
+    deliverables: ['proposal summary', 'scope table', 'timeline draft', 'acceptance checklist', 'risk/approval gates'],
+    acceptance_criteria: brief.acceptance_criteria || [],
+    next_safe_step: 'Owner reviews draft, selects package, then client-facing copy is rewritten and approved manually.'
+  };
+  const quoteText = `Proposal / quote draft v64\nOrder: ${proposal.order.order_id}\nClient: ${proposal.order.client_name}\nRecommended: ${proposal.recommended_package}\nSafety: demo-only, no sends, no CRM/payment writes, owner approval before client use.\n\nScope bands:\n${bands.map(b => `- ${b.label}: ${b.range} — ${b.fit}`).join('\n')}\n\nAssumptions:\n${proposal.assumptions.map(a => `- ${a}`).join('\n')}`;
+  return `<div class="grid operator-os" data-view="proposal-quote" data-marker="${proposalMarker}">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">V6.4 · Proposal / quote</p><h2>Генератор scope и цены без live-действий.</h2><p>Статический sanitized модуль: готовит внутренний draft предложения, диапазон цены, acceptance criteria и approval gates. Ничего не отправляет клиенту и не пишет во внешние системы.</p></div>${heroMetric('Quote bands', bands.length, 'demo-only')}</section>
+    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">Safety contract</p><h3>Proposal не равен клиентской отправке</h3><p class="label">Это copy-only черновик для владельца. Client-facing текст, финальная цена и public launch требуют отдельного подтверждения.</p></div>${badge('static draft','ok')}</div>
+      <div class="proof-grid">${proofItem('CRM write', 'нет', 'ok')}${proofItem('Email / Telegram send', 'нет', 'ok')}${proofItem('Payment action', 'нет', 'ok')}${proofItem('Fixed promise', 'нет', 'ok')}${proofItem('Owner approval', 'required', 'warn')}${proofItem('Officebot', 'not used', 'ok')}</div>
+    </section>
+    <section class="card span-7"><h3>Scope bands</h3><div class="chain-list">${bands.map(b => `<div class="chain-step"><span>${fmt(b.label)} · ${fmt(b.range)}</span><strong>${fmt(b.fit)}</strong><small>${fmt(b.includes.join(' · '))}</small></div>`).join('')}</div></section>
+    <section class="card span-5"><h3>Active order quote gate</h3>${kv({order_id: proposal.order.order_id, client: proposal.order.client_name, health_score: proposal.order.health_score, recommended: proposal.recommended_package, owner_approval: 'required before client use'})}${toolbar([copyButton('Скопировать quote draft', quoteText), copyButton('Экспорт proposal JSON', jsonCopy(proposal))])}</section>
+    <section class="card span-6"><h3>Assumptions</h3><ul class="clean-list">${proposal.assumptions.map(item => `<li>${fmt(item)}</li>`).join('')}</ul></section>
+    <section class="card span-6 warning-surface"><h3>Approval gates</h3><ul class="clean-list"><li>Подтвердить scope и диапазон цены.</li><li>Проверить missing information: ${fmt(proposal.order.missing_information.join(', ') || 'нет критичных пробелов')}.</li><li>Переписать client-facing версию вручную.</li><li>Проверить legal/proof claims до public launch.</li></ul></section>
+    ${collapsibleCard('Proposal JSON', `<pre class="code block">${fmt(jsonCopy(proposal))}</pre>`, 'span-12')}
+  </div>`;
+}
 function leadResearchView() {
   const leads = asArray(os().lead_research_queue);
   return `<div class="grid operator-os">
@@ -2248,7 +2306,7 @@ function supabasePlanView() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

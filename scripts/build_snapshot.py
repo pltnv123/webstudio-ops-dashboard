@@ -921,13 +921,6 @@ def build_github_readiness() -> dict[str, Any]:
         status = "PR_CREATED"
     if isinstance(pr1_status, dict) and pr1_status.get("status") == "UPDATED":
         status = "UPDATED"
-    latest_commit_sha = pr1_status.get("latest_commit_sha") if isinstance(pr1_status, dict) else None
-    pushed_at = pr1_status.get("pushed_at") if isinstance(pr1_status, dict) else None
-    # GitHub Pages CI writes a minimal status row before the snapshot build.
-    # Keep the public static dashboard self-contained even when that CI row
-    # has no host-side pushed_at timestamp yet.
-    if status == "UPDATED" and latest_commit_sha and not pushed_at:
-        pushed_at = utc_now()
     return {
         "account_expected": "pltnv123",
         "repo": "pltnv123/webstudio-ops-dashboard",
@@ -936,8 +929,8 @@ def build_github_readiness() -> dict[str, Any]:
         "status": status,
         "pr_status": pr1_status if isinstance(pr1_status, dict) else {},
         "pr_status_source": stat_info(GITHUB_PR1_STATUS_PATH),
-        "latest_commit_sha": latest_commit_sha,
-        "pushed_at": pushed_at,
+        "latest_commit_sha": pr1_status.get("latest_commit_sha") if isinstance(pr1_status, dict) else None,
+        "pushed_at": pr1_status.get("pushed_at") if isinstance(pr1_status, dict) else None,
         "pr_url": pr1_status.get("pr_url") if isinstance(pr1_status, dict) else "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
         "wrapper_broken": wrapper_broken,
         "completion_result": completion_result if isinstance(completion_result, dict) else {},
@@ -1351,7 +1344,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "agent-workflow", "approvals", "health", "artifacts", "marathon", "owner-feedback", "real-assets"]:
+    for route_name in ["kanban", "production", "agent-workflow", "approvals", "health", "artifacts", "marathon", "owner-feedback", "real-assets", "proposal-quote"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)
