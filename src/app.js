@@ -21,7 +21,7 @@ function normalizeRoute(value) {
   if (raw === 'Обзор') return 'overview';
   return raw;
 }
-let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','work-factory','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','delivery-timeline','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','work-factory','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -2225,6 +2225,61 @@ function proposalQuoteWorkflow() {
     ${collapsibleCard('Proposal JSON', `<pre class="code block">${fmt(jsonCopy(proposal))}</pre>`, 'span-12')}
   </div>`;
 }
+function deliveryTimelineMilestones() {
+  const active = activeOrder();
+  const marker = 'delivery-timeline-v65';
+  const milestones = [
+    {id: 'discovery', label: 'discovery', status: 'DONE', owner: 'Scope, niche, audience and current business context locked.', blockers: []},
+    {id: 'asset_collection', label: 'asset collection', status: 'OWNER_REQUIRED', owner: 'Owner/client provides brand files, real photos, proof and legal copy.', blockers: ['missing real assets can keep preview DEMO-only']},
+    {id: 'proposal_quote', label: 'proposal/quote', status: 'DONE', owner: 'Proposal draft and quote bands exist in V6.4.', blockers: []},
+    {id: 'package_generation', label: 'package generation', status: 'IN_PROGRESS', owner: 'Generate sanitized production package after scope confirmation.', blockers: ['client-safe copy must be reviewed before handoff']},
+    {id: 'page_build', label: 'page build', status: 'NEXT', owner: 'Build static pages and route bundle after package lock.', blockers: []},
+    {id: 'preview_review', label: 'preview review', status: 'CLIENT_REQUIRED', owner: 'Client reviews safe preview with DEMO labels visible.', blockers: ['no public launch until preview approval']},
+    {id: 'revision_round', label: 'revision round', status: 'BLOCKED', owner: 'Revision round opens only after client review notes arrive.', blockers: ['waiting for client notes']},
+    {id: 'final_approval', label: 'final approval', status: 'NEXT', owner: 'Owner/client confirms scope, copy, proof and launch checklist.', blockers: ['legal/proof claims must be confirmed']},
+    {id: 'handoff', label: 'handoff', status: 'NEXT', owner: 'Deliver final package, route list, QA proof and support instructions.', blockers: []},
+    {id: 'post_handoff_followup', label: 'post-handoff follow-up', status: 'NEXT', owner: 'Schedule non-automated follow-up and support notes.', blockers: ['no CRM/email/Telegram automation in this demo']}
+  ];
+  const statusLegend = ['DONE', 'IN_PROGRESS', 'NEXT', 'BLOCKED', 'OWNER_REQUIRED', 'CLIENT_REQUIRED'];
+  const linkedRoutes = [
+    ['/delivery-lifecycle/', 'delivery lifecycle'],
+    ['/client-portal-preview/', 'client portal preview'],
+    ['/proposal-quote/', 'proposal/quote'],
+    ['/client-handoff-pack/', 'client handoff pack'],
+    ['/route-health/', 'route health']
+  ];
+  const exportPayload = {
+    schema_version: 'webstudio.delivery_timeline.v65',
+    marker,
+    generated_at: nowIso(),
+    mode: 'static_sanitized_demo_only',
+    order_id: active.order_id || 'LOCAL-DEMO',
+    safety: {
+      no_live_dispatch: true,
+      no_crm_email_telegram_payment_booking_writes: true,
+      no_private_data: true,
+      no_destructive_supabase_changes: true,
+      owner_approval_required_before_public_launch: true
+    },
+    milestones,
+    linked_routes: linkedRoutes.map(([path, label]) => ({path, label})),
+    next_safe_step: 'Close V6.5 public verification before starting V6.6.'
+  };
+  const copyPlan = `Delivery Timeline v65\nMarker: ${marker}\nOrder: ${active.order_id || 'LOCAL-DEMO'}\nMode: static/sanitized only. No live dispatch, CRM, email, Telegram, payment or booking writes.\n\nMilestones:\n${milestones.map(m => `- ${m.label}: ${m.status} — ${m.owner}`).join('\n')}\n\nStop-gate: V6.6 starts only after remote SHA, Actions, Pages marker check, Supabase row and hfinalize.`;
+  const milestoneCard = (m, index) => `<article class="chain-step milestone-card ${statusClass(m.status)}"><span>${fmt(String(index + 1).padStart(2, '0'))} · ${fmt(m.status)}</span><strong>${fmt(m.label)}</strong><small>${fmt(m.owner)}</small>${asArray(m.blockers).length ? `<p class="blocker-strip">${fmt(m.blockers.join('; '))}</p>` : ''}</article>`;
+  return `<div class="grid operator-os delivery-timeline" data-view="delivery-timeline" data-marker="${marker}">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">V6.5 · Delivery Timeline</p><h2>Milestone tracker для client-safe delivery.</h2><p>Статический sanitized маршрут показывает путь от discovery до post-handoff follow-up: статусы, blockers, owner/client actions и связанные delivery routes. Live dispatch и внешние записи отключены.</p></div>${heroMetric('Milestones', milestones.length, 'demo-safe')}</section>
+    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">Safety contract</p><h3>Tracker не запускает доставку</h3><p class="label">Нет live CRM/email/Telegram/payment/booking writes, нет private data, нет destructive Supabase changes.</p></div>${badge('static only', 'ok')}</div>
+      <div class="proof-grid">${proofItem('Live dispatch', 'нет', 'ok')}${proofItem('Private data', 'нет', 'ok')}${proofItem('CRM/email/Telegram writes', 'нет', 'ok')}${proofItem('Payments / booking', 'нет', 'ok')}${proofItem('Supabase destructive changes', 'нет', 'ok')}${proofItem('V6.6 stop-gate', 'active', 'warn')}</div>
+    </section>
+    <section class="card span-8"><div class="section-head"><div><p class="eyebrow">Delivery path</p><h3>Milestones</h3></div>${badge('delivery-timeline-v65', 'ok')}</div><div class="chain-list milestone-list">${milestones.map(milestoneCard).join('')}</div></section>
+    <section class="card span-4"><h3>Status chips</h3><div class="proof-grid compact-grid">${statusLegend.map(s => proofItem(s, s === 'DONE' ? 'closed' : s === 'IN_PROGRESS' ? 'active' : s === 'BLOCKED' ? 'blocked' : 'waiting', s === 'BLOCKED' || s.endsWith('REQUIRED') ? 'warn' : 'ok')).join('')}</div>${toolbar([copyButton('Скопировать timeline plan', copyPlan), copyButton('Экспорт timeline JSON', jsonCopy(exportPayload))])}</section>
+    <section class="card span-6 warning-surface"><h3>Blockers and owner actions</h3><ul class="clean-list"><li>Asset collection requires owner/client-supplied public-safe materials.</li><li>Revision round stays blocked until client review notes arrive.</li><li>Final approval requires proof/legal/copy confirmation.</li><li>Post-handoff follow-up is manual notes only, no automated send.</li></ul></section>
+    <section class="card span-6"><h3>Linked delivery routes</h3><div class="chain-list">${linkedRoutes.map(([path, label]) => `<a class="chain-step" href="${esc(path)}"><span>${fmt(path)}</span><strong>${fmt(label)}</strong><small>static route reference</small></a>`).join('')}</div></section>
+    ${collapsibleCard('Delivery timeline JSON', `<pre class="code block">${fmt(jsonCopy(exportPayload))}</pre>`, 'span-12')}
+  </div>`;
+}
+
 function leadResearchView() {
   const leads = asArray(os().lead_research_queue);
   return `<div class="grid operator-os">
@@ -2306,7 +2361,7 @@ function supabasePlanView() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'delivery-timeline': deliveryTimelineMilestones, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

@@ -1,0 +1,31 @@
+{
+  "component": "webstudio-delivery-timeline-milestones",
+  "version": "v6.5",
+  "status": "PARTIAL",
+  "route": "/delivery-timeline/",
+  "marker": "delivery-timeline-v65",
+  "base_commit": "45a7064a28df9891837b49e0b9659ad8b7033a71",
+  "updated_at": "2026-06-07T22:28:11Z",
+  "safety": {
+    "static_sanitized_only": true,
+    "no_live_dispatch": true,
+    "no_private_data": true,
+    "no_crm_email_telegram_payment_booking_writes": true,
+    "no_destructive_supabase_changes": true,
+    "no_force_push": true
+  },
+  "required_markers": [
+    "delivery-timeline-v65",
+    "discovery",
+    "asset collection",
+    "proposal/quote",
+    "final approval",
+    "post-handoff follow-up"
+  ],
+  "local_checks": "PASS",
+  "local_commit": "LOCAL_COMMIT_PENDING_REMOTE_PUSH",
+  "remote_sha": "45a7064a28df9891837b49e0b9659ad8b7033a71",
+  "supabase_row_id": "1e7bd758-3b8e-4e8c-9b8c-9d0ee60bc35c",
+  "remote_push": "BLOCKED_DIRECT_PUSH_HOST_AUTOPUSH_PENDING",
+  "public_route": "HTTP_404_NOT_DEPLOYED"
+}
