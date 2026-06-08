@@ -2,7 +2,7 @@
   "component": "webstudio-proof-case-study-system",
   "version": "v6.6",
   "route": "/proof-case-study/",
-  "status": "IMPLEMENTED_PENDING_GATES",
+  "status": "DEPLOYED_PASS_PENDING_SUPABASE_FINALIZER",
   "created_at": "2026-06-08T23:16:46.061746+00:00",
   "safety": [
     "fake testimonials",
@@ -14,5 +14,27 @@
     "live CRM/email/Telegram/payment/client-send writes",
     "browser-side secrets"
   ],
-  "stop_gate": "Do not start V6.7 until V6.6 fully closed."
+  "stop_gate": "Do not start V6.7 until V6.6 fully closed.",
+  "implementation_commit": "c1aef716bc397016702dc762158a15df9252eb1d",
+  "remote_sha_verified": "c1aef716bc397016702dc762158a15df9252eb1d",
+  "github_actions": {
+    "run_id": "27173600680",
+    "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/27173600680",
+    "status": "completed",
+    "conclusion": "success"
+  },
+  "public_route_smoke": {
+    "url": "https://pltnv123.github.io/webstudio-ops-dashboard/proof-case-study/",
+    "http_status": 200,
+    "pass": true,
+    "markers": {
+      "proof-case-study-v66": true,
+      "case study outline": true,
+      "allowed proof checklist": true,
+      "no fake proof": true,
+      "testimonial approval policy": true,
+      "READY_FOR_CASE_STUDY": true
+    }
+  },
+  "updated_at": "2026-06-08T23:32:01.780373+00:00"
 }

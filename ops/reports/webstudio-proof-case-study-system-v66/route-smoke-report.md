@@ -1,23 +1,17 @@
 # V6.6 route smoke report
 
-## Local static route
+- url: https://pltnv123.github.io/webstudio-ops-dashboard/proof-case-study/
+- checked_url: https://pltnv123.github.io/webstudio-ops-dashboard/proof-case-study/?cb=20260608233127
+- http_status: 200
+- pass: True
 
-- checked_at: 2026-06-08T23:20:19.888299+00:00
-- route_dir: `/workspace/output/webstudio-ops-dashboard-static/proof-case-study`
-- index.html: True
-- app.js: True
-- app.js sha256: `add613fd2fb1af245169f054b9c44c8af5d002329b17f840bb7aefb7061c8a13`
-- status: PASS
-
-## Required markers
-
+## Markers
 - proof-case-study-v66: True
 - case study outline: True
 - allowed proof checklist: True
 - no fake proof: True
 - testimonial approval policy: True
-- ready_for_case_study: True
+- READY_FOR_CASE_STUDY: True
 
-## Public route
-
-Pending remote push + GitHub Pages deploy verification.
+## Assets checked
+- https://pltnv123.github.io/webstudio-ops-dashboard/proof-case-study/app.js?v=webstudio-critical-ux-v110: 200
