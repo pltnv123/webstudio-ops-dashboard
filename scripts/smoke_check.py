@@ -31,7 +31,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'premium-factory', 'kanban', 'production', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'real-assets', 'proposal-quote', 'delivery-timeline', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'premium-factory', 'kanban', 'production', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'real-assets', 'proposal-quote', 'delivery-timeline', 'proof-case-study', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -64,6 +64,13 @@ required_js_symbols = [
     'proposal/quote',
     'final approval',
     'post-handoff follow-up',
+    'proofCaseStudySystem',
+    'proof-case-study-v66',
+    'case study outline',
+    'allowed proof checklist',
+    'no fake proof',
+    'testimonial approval policy',
+    'READY_FOR_CASE_STUDY',
     'approvals',
     'health',
     'artifacts',

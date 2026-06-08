@@ -21,7 +21,7 @@ function normalizeRoute(value) {
   if (raw === 'Обзор') return 'overview';
   return raw;
 }
-let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','delivery-timeline','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','work-factory','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','delivery-timeline','proof-case-study','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','work-factory','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -2280,6 +2280,93 @@ function deliveryTimelineMilestones() {
   </div>`;
 }
 
+function proofCaseStudySystem() {
+  const marker = 'proof-case-study-v66';
+  const statusChips = ['PROOF_REQUIRED', 'CLIENT_APPROVAL_REQUIRED', 'DEMO_PLACEHOLDER', 'BLOCKED_NO_PROOF', 'READY_FOR_CASE_STUDY', 'DO_NOT_FAKE'];
+  const linkedRoutes = [
+    ['/asset-intake-pack/', 'asset intake pack'],
+    ['/client-safe-preview/', 'client-safe preview'],
+    ['/client-approval-room/', 'client approval room'],
+    ['/client-handoff-pack/', 'client handoff pack'],
+    ['/webstudio-showcase/', 'webstudio showcase'],
+    ['/generated-demo-site-v35/', 'generated demo site v35']
+  ];
+  const caseStudyOutline = [
+    ['Client context', 'Use public-approved client description only; no private data or inferred credentials.'],
+    ['Problem before work', 'Describe observable workflow or website gap with owner/client approval.'],
+    ['Intervention', 'List delivered pages, UX changes, assets, integrations and QA artifacts.'],
+    ['Proof artifacts', 'Attach screenshots, approved before/after assets, signed-off copy, QA reports and delivery notes.'],
+    ['Outcome', 'Use only verified metrics or mark outcome as qualitative / pending measurement.'],
+    ['Approval record', 'Case study can publish only after client approval and owner legal/proof review.']
+  ];
+  const allowedProof = [
+    'approved screenshots from delivered public pages',
+    'client-supplied logos with written permission',
+    'signed-off testimonial text from the named client',
+    'analytics/exported metrics with source date and owner/client approval',
+    'QA reports, route smoke checks, handoff artifacts and public links',
+    'sanitized process screenshots with private data removed'
+  ];
+  const missingProof = [
+    'no written testimonial approval',
+    'no verified analytics source',
+    'no permission for logo usage',
+    'before screenshot missing or not approved',
+    'medical/legal claim not reviewed',
+    'client identity must stay private'
+  ];
+  const artifactChecklist = [
+    'public route URL',
+    'before screenshot approval',
+    'after screenshot approval',
+    'metric source and date',
+    'testimonial approval record',
+    'logo/brand permission',
+    'client approval room decision',
+    'handoff pack reference',
+    'legal/medical claim review if relevant'
+  ];
+  const policy = {
+    schema_version: 'webstudio.proof_case_study.v66',
+    marker,
+    mode: 'static_sanitized_demo_only',
+    safety: {
+      no_private_client_data: true,
+      no_fake_testimonials: true,
+      no_fake_metrics: true,
+      no_fake_logos: true,
+      no_fabricated_credentials: true,
+      no_medical_legal_overclaims: true,
+      no_live_crm_email_telegram_payment_client_send_writes: true,
+      no_browser_side_secrets: true
+    },
+    status_chips: statusChips,
+    linked_routes: linkedRoutes.map(([path, label]) => ({path, label})),
+    required_approval: ['owner proof review', 'client approval', 'legal/medical review when applicable']
+  };
+  const chipTone = (chip) => chip === 'READY_FOR_CASE_STUDY' ? 'ok' : chip === 'DO_NOT_FAKE' || chip === 'BLOCKED_NO_PROOF' ? 'warn' : 'info';
+  const checklist = (items) => `<ul class="clean-list">${items.map(item => `<li>${fmt(item)}</li>`).join('')}</ul>`;
+  const outlineRows = caseStudyOutline.map(([title, body], index) => `<article class="chain-step milestone-card"><span>${fmt(String(index + 1).padStart(2, '0'))} · case study outline</span><strong>${fmt(title)}</strong><small>${fmt(body)}</small></article>`).join('');
+  const linked = linkedRoutes.map(([path, label]) => `<a class="chain-step" href="${esc(path)}"><span>${fmt(path)}</span><strong>${fmt(label)}</strong><small>safe static dependency / reference</small></a>`).join('');
+  const copyPolicy = `Proof Case Study v66\nMarker: ${marker}\n\nNo fake proof. No fake testimonials. No fake metrics. No fake logos. No fabricated credentials. No medical/legal overclaims.\n\nCase study can become READY_FOR_CASE_STUDY only after proof artifacts, metric sources, testimonial approval and client approval gates are closed.`;
+  return `<div class="grid operator-os proof-case-study" data-view="proof-case-study" data-marker="${marker}">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">V6.6 · Proof / Case Study System</p><h2>Proof system без фейковых отзывов, метрик, логотипов и credential claims.</h2><p>Статический sanitized маршрут превращает delivery artifacts в case study только после client approval, verified proof и owner/legal review. Нет live CRM/email/Telegram/payment/client-send writes.</p></div>${heroMetric('Proof gates', artifactChecklist.length, 'approval-first')}</section>
+    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">No fake proof warning</p><h3>no fake proof: кейс нельзя публиковать без подтверждений</h3><p class="label">DEMO_PLACEHOLDER должен оставаться видимым, пока нет разрешения на логотип, testimonial, before/after и метрики.</p></div>${badge(marker, 'ok')}</div>
+      <div class="proof-grid compact-grid">${statusChips.map(chip => proofItem(chip, chip === 'READY_FOR_CASE_STUDY' ? 'only after gates' : chip === 'DO_NOT_FAKE' ? 'always active' : 'policy', chipTone(chip))).join('')}</div>
+    </section>
+    <section class="card span-7"><div class="section-head"><div><p class="eyebrow">Case study outline</p><h3>Case study outline</h3></div>${badge('PROOF_REQUIRED', 'warn')}</div><div class="chain-list milestone-list">${outlineRows}</div></section>
+    <section class="card span-5 warning-surface"><h3>Approval gates</h3>${checklist(['CLIENT_APPROVAL_REQUIRED before publication', 'Owner proof review before using metrics or claims', 'Logo permission before showing brand marks', 'Testimonial approval record before quotes', 'Medical/legal review before regulated claims', 'BLOCKED_NO_PROOF when evidence is missing'])}${toolbar([copyButton('Copy proof policy', copyPolicy), copyButton('Export proof policy JSON', jsonCopy(policy))])}</section>
+    <section class="card span-6"><h3>allowed proof checklist</h3>${checklist(allowedProof)}</section>
+    <section class="card span-6 warning-surface"><h3>Missing proof checklist</h3>${checklist(missingProof)}</section>
+    <section class="card span-4"><h3>Before/after placeholder policy</h3>${kv({allowed: 'blurred/sanitized placeholders clearly labeled DEMO_PLACEHOLDER', forbidden: 'implying a real client transformation without approved before/after proof', publish_gate: 'client approval + asset permission'})}</section>
+    <section class="card span-4"><h3>Metrics policy</h3>${kv({allowed: 'verified analytics, dated screenshots, signed-off owner/client source', forbidden: 'invented conversion lifts, revenue, traffic, ROI, rankings', fallback: 'qualitative outcome / measurement pending'})}</section>
+    <section class="card span-4"><h3>testimonial approval policy</h3>${kv({allowed: 'exact client-approved quote with date/source', forbidden: 'synthetic praise, composite testimonial, anonymous fake persona', status: 'CLIENT_APPROVAL_REQUIRED'})}</section>
+    <section class="card span-6"><h3>Proof artifact checklist</h3>${checklist(artifactChecklist)}</section>
+    <section class="card span-6"><h3>Linked safe routes</h3><div class="chain-list">${linked}</div></section>
+    ${collapsibleCard('Proof / case study policy JSON', `<pre class="code block">${fmt(jsonCopy(policy))}</pre>`, 'span-12')}
+  </div>`;
+}
+
 function leadResearchView() {
   const leads = asArray(os().lead_research_queue);
   return `<div class="grid operator-os">
@@ -2361,7 +2448,7 @@ function supabasePlanView() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'delivery-timeline': deliveryTimelineMilestones, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'delivery-timeline': deliveryTimelineMilestones, 'proof-case-study': proofCaseStudySystem, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

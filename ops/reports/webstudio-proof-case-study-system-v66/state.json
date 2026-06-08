@@ -1,0 +1,18 @@
+{
+  "component": "webstudio-proof-case-study-system",
+  "version": "v6.6",
+  "route": "/proof-case-study/",
+  "status": "IMPLEMENTED_PENDING_GATES",
+  "created_at": "2026-06-08T23:16:46.061746+00:00",
+  "safety": [
+    "fake testimonials",
+    "fake metrics",
+    "fake logos",
+    "fabricated credentials",
+    "private client data",
+    "medical/legal overclaims",
+    "live CRM/email/Telegram/payment/client-send writes",
+    "browser-side secrets"
+  ],
+  "stop_gate": "Do not start V6.7 until V6.6 fully closed."
+}
