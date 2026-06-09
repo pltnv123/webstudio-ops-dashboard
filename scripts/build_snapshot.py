@@ -1343,14 +1343,13 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     index_html = (SRC / "index.html").read_text()
     if state is not None:
         embedded = json.dumps(state, ensure_ascii=False).replace("</", "<\\/")
-        index_html = index_html.replace(
-            '  <script src="./app.js"></script>',
-            f'  <script>window.__WEBSTUDIO_STATE__ = {embedded};</script>\n  <script src="./app.js"></script>'
-        )
+        state_script = f'  <script>window.__WEBSTUDIO_STATE__ = {embedded};</script>\n'
+        if "window.__WEBSTUDIO_STATE__" not in index_html:
+            index_html = re.sub(r'(\s*<script\s+src="\./app\.js[^"]*"\s*>\s*</script>)', state_script + r'\1', index_html, count=1)
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "agent-workflow", "approvals", "health", "artifacts", "marathon", "owner-feedback", "real-assets", "proposal-quote", "delivery-timeline", "proof-case-study", "delivery-lifecycle", "client-portal-preview", "client-handoff-pack", "route-health"]:
+    for route_name in ["kanban", "production", "agent-workflow", "approvals", "health", "artifacts", "marathon", "owner-feedback", "real-assets", "proposal-quote", "integration-plan", "lead-capture-demo", "client-portal-preview", "delivery-timeline", "work-factory", "owner-command-center", "supabase-memory"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)

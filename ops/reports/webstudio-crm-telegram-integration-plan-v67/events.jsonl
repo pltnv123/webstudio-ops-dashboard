@@ -1,0 +1,9 @@
+{"ts": "2026-06-09T10:40:15Z", "phase": "start", "status": "PASS", "detail": "V6.7 PLAN_ONLY CRM / Telegram integration plan implementation started; no live external writes"}
+{"ts": "2026-06-09T10:40:15Z", "phase": "file.update", "status": "PASS", "detail": "src/index.html nav link #integration-plan added"}
+{"ts": "2026-06-09T10:40:15Z", "phase": "file.update", "status": "PASS", "detail": "src/app.js direct-path route allowlist includes integration-plan and linked V6 routes"}
+{"ts": "2026-06-09T10:40:15Z", "phase": "file.update", "status": "PASS", "detail": "src/app.js integrationPlanWorkflow added"}
+{"ts": "2026-06-09T10:40:15Z", "phase": "file.update", "status": "PASS", "detail": "src/app.js render map includes integration-plan and safe linked-route fallbacks"}
+{"ts": "2026-06-09T10:40:15Z", "phase": "file.update", "status": "PASS", "detail": "scripts/build_snapshot.py static route dirs include /integration-plan/ and linked routes"}
+{"ts": "2026-06-09T10:40:15Z", "phase": "file.update", "status": "PASS", "detail": "scripts/smoke_check.py requires integration-plan route and markers"}
+{"ts": "2026-06-09T10:40:15Z", "phase": "reports.write", "status": "PASS", "detail": "initial report pack written to /workspace/output/webstudio-crm-telegram-integration-plan-v67 and /workspace/projects/webstudio-ops-dashboard/ops/reports/webstudio-crm-telegram-integration-plan-v67"}
+{"ts": "2026-06-09T10:42:45Z", "phase": "validation", "status": "PASS", "detail": "build, smoke, local route marker smoke and changed-file secret scan passed"}

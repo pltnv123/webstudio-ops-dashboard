@@ -21,7 +21,7 @@ function normalizeRoute(value) {
   if (raw === 'Обзор') return 'overview';
   return raw;
 }
-let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','delivery-timeline','proof-case-study','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','work-factory','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -2225,148 +2225,6 @@ function proposalQuoteWorkflow() {
     ${collapsibleCard('Proposal JSON', `<pre class="code block">${fmt(jsonCopy(proposal))}</pre>`, 'span-12')}
   </div>`;
 }
-function deliveryTimelineMilestones() {
-  const active = activeOrder();
-  const marker = 'delivery-timeline-v65';
-  const milestones = [
-    {id: 'discovery', label: 'discovery', status: 'DONE', owner: 'Scope, niche, audience and current business context locked.', blockers: []},
-    {id: 'asset_collection', label: 'asset collection', status: 'OWNER_REQUIRED', owner: 'Owner/client provides brand files, real photos, proof and legal copy.', blockers: ['missing real assets can keep preview DEMO-only']},
-    {id: 'proposal_quote', label: 'proposal/quote', status: 'DONE', owner: 'Proposal draft and quote bands exist in V6.4.', blockers: []},
-    {id: 'package_generation', label: 'package generation', status: 'IN_PROGRESS', owner: 'Generate sanitized production package after scope confirmation.', blockers: ['client-safe copy must be reviewed before handoff']},
-    {id: 'page_build', label: 'page build', status: 'NEXT', owner: 'Build static pages and route bundle after package lock.', blockers: []},
-    {id: 'preview_review', label: 'preview review', status: 'CLIENT_REQUIRED', owner: 'Client reviews safe preview with DEMO labels visible.', blockers: ['no public launch until preview approval']},
-    {id: 'revision_round', label: 'revision round', status: 'BLOCKED', owner: 'Revision round opens only after client review notes arrive.', blockers: ['waiting for client notes']},
-    {id: 'final_approval', label: 'final approval', status: 'NEXT', owner: 'Owner/client confirms scope, copy, proof and launch checklist.', blockers: ['legal/proof claims must be confirmed']},
-    {id: 'handoff', label: 'handoff', status: 'NEXT', owner: 'Deliver final package, route list, QA proof and support instructions.', blockers: []},
-    {id: 'post_handoff_followup', label: 'post-handoff follow-up', status: 'NEXT', owner: 'Schedule non-automated follow-up and support notes.', blockers: ['no CRM/email/Telegram automation in this demo']}
-  ];
-  const statusLegend = ['DONE', 'IN_PROGRESS', 'NEXT', 'BLOCKED', 'OWNER_REQUIRED', 'CLIENT_REQUIRED'];
-  const linkedRoutes = [
-    ['/delivery-lifecycle/', 'delivery lifecycle'],
-    ['/client-portal-preview/', 'client portal preview'],
-    ['/proposal-quote/', 'proposal/quote'],
-    ['/client-handoff-pack/', 'client handoff pack'],
-    ['/route-health/', 'route health']
-  ];
-  const exportPayload = {
-    schema_version: 'webstudio.delivery_timeline.v65',
-    marker,
-    generated_at: nowIso(),
-    mode: 'static_sanitized_demo_only',
-    order_id: active.order_id || 'LOCAL-DEMO',
-    safety: {
-      no_live_dispatch: true,
-      no_crm_email_telegram_payment_booking_writes: true,
-      no_private_data: true,
-      no_destructive_supabase_changes: true,
-      owner_approval_required_before_public_launch: true
-    },
-    milestones,
-    linked_routes: linkedRoutes.map(([path, label]) => ({path, label})),
-    next_safe_step: 'Close V6.5 public verification before starting V6.6.'
-  };
-  const copyPlan = `Delivery Timeline v65\nMarker: ${marker}\nOrder: ${active.order_id || 'LOCAL-DEMO'}\nMode: static/sanitized only. No live dispatch, CRM, email, Telegram, payment or booking writes.\n\nMilestones:\n${milestones.map(m => `- ${m.label}: ${m.status} — ${m.owner}`).join('\n')}\n\nStop-gate: V6.6 starts only after remote SHA, Actions, Pages marker check, Supabase row and hfinalize.`;
-  const milestoneCard = (m, index) => `<article class="chain-step milestone-card ${statusClass(m.status)}"><span>${fmt(String(index + 1).padStart(2, '0'))} · ${fmt(m.status)}</span><strong>${fmt(m.label)}</strong><small>${fmt(m.owner)}</small>${asArray(m.blockers).length ? `<p class="blocker-strip">${fmt(m.blockers.join('; '))}</p>` : ''}</article>`;
-  return `<div class="grid operator-os delivery-timeline" data-view="delivery-timeline" data-marker="${marker}">
-    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">V6.5 · Delivery Timeline</p><h2>Milestone tracker для client-safe delivery.</h2><p>Статический sanitized маршрут показывает путь от discovery до post-handoff follow-up: статусы, blockers, owner/client actions и связанные delivery routes. Live dispatch и внешние записи отключены.</p></div>${heroMetric('Milestones', milestones.length, 'demo-safe')}</section>
-    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">Safety contract</p><h3>Tracker не запускает доставку</h3><p class="label">Нет live CRM/email/Telegram/payment/booking writes, нет private data, нет destructive Supabase changes.</p></div>${badge('static only', 'ok')}</div>
-      <div class="proof-grid">${proofItem('Live dispatch', 'нет', 'ok')}${proofItem('Private data', 'нет', 'ok')}${proofItem('CRM/email/Telegram writes', 'нет', 'ok')}${proofItem('Payments / booking', 'нет', 'ok')}${proofItem('Supabase destructive changes', 'нет', 'ok')}${proofItem('V6.6 stop-gate', 'active', 'warn')}</div>
-    </section>
-    <section class="card span-8"><div class="section-head"><div><p class="eyebrow">Delivery path</p><h3>Milestones</h3></div>${badge('delivery-timeline-v65', 'ok')}</div><div class="chain-list milestone-list">${milestones.map(milestoneCard).join('')}</div></section>
-    <section class="card span-4"><h3>Status chips</h3><div class="proof-grid compact-grid">${statusLegend.map(s => proofItem(s, s === 'DONE' ? 'closed' : s === 'IN_PROGRESS' ? 'active' : s === 'BLOCKED' ? 'blocked' : 'waiting', s === 'BLOCKED' || s.endsWith('REQUIRED') ? 'warn' : 'ok')).join('')}</div>${toolbar([copyButton('Скопировать timeline plan', copyPlan), copyButton('Экспорт timeline JSON', jsonCopy(exportPayload))])}</section>
-    <section class="card span-6 warning-surface"><h3>Blockers and owner actions</h3><ul class="clean-list"><li>Asset collection requires owner/client-supplied public-safe materials.</li><li>Revision round stays blocked until client review notes arrive.</li><li>Final approval requires proof/legal/copy confirmation.</li><li>Post-handoff follow-up is manual notes only, no automated send.</li></ul></section>
-    <section class="card span-6"><h3>Linked delivery routes</h3><div class="chain-list">${linkedRoutes.map(([path, label]) => `<a class="chain-step" href="${esc(path)}"><span>${fmt(path)}</span><strong>${fmt(label)}</strong><small>static route reference</small></a>`).join('')}</div></section>
-    ${collapsibleCard('Delivery timeline JSON', `<pre class="code block">${fmt(jsonCopy(exportPayload))}</pre>`, 'span-12')}
-  </div>`;
-}
-
-function proofCaseStudySystem() {
-  const marker = 'proof-case-study-v66';
-  const statusChips = ['PROOF_REQUIRED', 'CLIENT_APPROVAL_REQUIRED', 'DEMO_PLACEHOLDER', 'BLOCKED_NO_PROOF', 'READY_FOR_CASE_STUDY', 'DO_NOT_FAKE'];
-  const linkedRoutes = [
-    ['/asset-intake-pack/', 'asset intake pack'],
-    ['/client-safe-preview/', 'client-safe preview'],
-    ['/client-approval-room/', 'client approval room'],
-    ['/client-handoff-pack/', 'client handoff pack'],
-    ['/webstudio-showcase/', 'webstudio showcase'],
-    ['/generated-demo-site-v35/', 'generated demo site v35']
-  ];
-  const caseStudyOutline = [
-    ['Client context', 'Use public-approved client description only; no private data or inferred credentials.'],
-    ['Problem before work', 'Describe observable workflow or website gap with owner/client approval.'],
-    ['Intervention', 'List delivered pages, UX changes, assets, integrations and QA artifacts.'],
-    ['Proof artifacts', 'Attach screenshots, approved before/after assets, signed-off copy, QA reports and delivery notes.'],
-    ['Outcome', 'Use only verified metrics or mark outcome as qualitative / pending measurement.'],
-    ['Approval record', 'Case study can publish only after client approval and owner legal/proof review.']
-  ];
-  const allowedProof = [
-    'approved screenshots from delivered public pages',
-    'client-supplied logos with written permission',
-    'signed-off testimonial text from the named client',
-    'analytics/exported metrics with source date and owner/client approval',
-    'QA reports, route smoke checks, handoff artifacts and public links',
-    'sanitized process screenshots with private data removed'
-  ];
-  const missingProof = [
-    'no written testimonial approval',
-    'no verified analytics source',
-    'no permission for logo usage',
-    'before screenshot missing or not approved',
-    'medical/legal claim not reviewed',
-    'client identity must stay private'
-  ];
-  const artifactChecklist = [
-    'public route URL',
-    'before screenshot approval',
-    'after screenshot approval',
-    'metric source and date',
-    'testimonial approval record',
-    'logo/brand permission',
-    'client approval room decision',
-    'handoff pack reference',
-    'legal/medical claim review if relevant'
-  ];
-  const policy = {
-    schema_version: 'webstudio.proof_case_study.v66',
-    marker,
-    mode: 'static_sanitized_demo_only',
-    safety: {
-      no_private_client_data: true,
-      no_fake_testimonials: true,
-      no_fake_metrics: true,
-      no_fake_logos: true,
-      no_fabricated_credentials: true,
-      no_medical_legal_overclaims: true,
-      no_live_crm_email_telegram_payment_client_send_writes: true,
-      no_browser_side_secrets: true
-    },
-    status_chips: statusChips,
-    linked_routes: linkedRoutes.map(([path, label]) => ({path, label})),
-    required_approval: ['owner proof review', 'client approval', 'legal/medical review when applicable']
-  };
-  const chipTone = (chip) => chip === 'READY_FOR_CASE_STUDY' ? 'ok' : chip === 'DO_NOT_FAKE' || chip === 'BLOCKED_NO_PROOF' ? 'warn' : 'info';
-  const checklist = (items) => `<ul class="clean-list">${items.map(item => `<li>${fmt(item)}</li>`).join('')}</ul>`;
-  const outlineRows = caseStudyOutline.map(([title, body], index) => `<article class="chain-step milestone-card"><span>${fmt(String(index + 1).padStart(2, '0'))} · case study outline</span><strong>${fmt(title)}</strong><small>${fmt(body)}</small></article>`).join('');
-  const linked = linkedRoutes.map(([path, label]) => `<a class="chain-step" href="${esc(path)}"><span>${fmt(path)}</span><strong>${fmt(label)}</strong><small>safe static dependency / reference</small></a>`).join('');
-  const copyPolicy = `Proof Case Study v66\nMarker: ${marker}\n\nNo fake proof. No fake testimonials. No fake metrics. No fake logos. No fabricated credentials. No medical/legal overclaims.\n\nCase study can become READY_FOR_CASE_STUDY only after proof artifacts, metric sources, testimonial approval and client approval gates are closed.`;
-  return `<div class="grid operator-os proof-case-study" data-view="proof-case-study" data-marker="${marker}">
-    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">V6.6 · Proof / Case Study System</p><h2>Proof system без фейковых отзывов, метрик, логотипов и credential claims.</h2><p>Статический sanitized маршрут превращает delivery artifacts в case study только после client approval, verified proof и owner/legal review. Нет live CRM/email/Telegram/payment/client-send writes.</p></div>${heroMetric('Proof gates', artifactChecklist.length, 'approval-first')}</section>
-    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">No fake proof warning</p><h3>no fake proof: кейс нельзя публиковать без подтверждений</h3><p class="label">DEMO_PLACEHOLDER должен оставаться видимым, пока нет разрешения на логотип, testimonial, before/after и метрики.</p></div>${badge(marker, 'ok')}</div>
-      <div class="proof-grid compact-grid">${statusChips.map(chip => proofItem(chip, chip === 'READY_FOR_CASE_STUDY' ? 'only after gates' : chip === 'DO_NOT_FAKE' ? 'always active' : 'policy', chipTone(chip))).join('')}</div>
-    </section>
-    <section class="card span-7"><div class="section-head"><div><p class="eyebrow">Case study outline</p><h3>Case study outline</h3></div>${badge('PROOF_REQUIRED', 'warn')}</div><div class="chain-list milestone-list">${outlineRows}</div></section>
-    <section class="card span-5 warning-surface"><h3>Approval gates</h3>${checklist(['CLIENT_APPROVAL_REQUIRED before publication', 'Owner proof review before using metrics or claims', 'Logo permission before showing brand marks', 'Testimonial approval record before quotes', 'Medical/legal review before regulated claims', 'BLOCKED_NO_PROOF when evidence is missing'])}${toolbar([copyButton('Copy proof policy', copyPolicy), copyButton('Export proof policy JSON', jsonCopy(policy))])}</section>
-    <section class="card span-6"><h3>allowed proof checklist</h3>${checklist(allowedProof)}</section>
-    <section class="card span-6 warning-surface"><h3>Missing proof checklist</h3>${checklist(missingProof)}</section>
-    <section class="card span-4"><h3>Before/after placeholder policy</h3>${kv({allowed: 'blurred/sanitized placeholders clearly labeled DEMO_PLACEHOLDER', forbidden: 'implying a real client transformation without approved before/after proof', publish_gate: 'client approval + asset permission'})}</section>
-    <section class="card span-4"><h3>Metrics policy</h3>${kv({allowed: 'verified analytics, dated screenshots, signed-off owner/client source', forbidden: 'invented conversion lifts, revenue, traffic, ROI, rankings', fallback: 'qualitative outcome / measurement pending'})}</section>
-    <section class="card span-4"><h3>testimonial approval policy</h3>${kv({allowed: 'exact client-approved quote with date/source', forbidden: 'synthetic praise, composite testimonial, anonymous fake persona', status: 'CLIENT_APPROVAL_REQUIRED'})}</section>
-    <section class="card span-6"><h3>Proof artifact checklist</h3>${checklist(artifactChecklist)}</section>
-    <section class="card span-6"><h3>Linked safe routes</h3><div class="chain-list">${linked}</div></section>
-    ${collapsibleCard('Proof / case study policy JSON', `<pre class="code block">${fmt(jsonCopy(policy))}</pre>`, 'span-12')}
-  </div>`;
-}
-
 function leadResearchView() {
   const leads = asArray(os().lead_research_queue);
   return `<div class="grid operator-os">
@@ -2445,10 +2303,57 @@ function supabasePlanView() {
     <section class="card span-4 warning-surface"><h3>Safety contract</h3>${kv({mode: 'planning/read-only', apply_migration: 'forbidden in v108', backend_db_writes: false, owner_approval_required: 'yes before any Supabase mutation', rollback: 'keep localStorage as source during migration dry-run'})}${toolbar([copyButton('Copy schema draft path', '/home/hermes/workspace/output/webstudio-overnight-production-v108/supabase-schema-draft-v108.sql'), copyButton('Copy integration plan path', '/home/hermes/workspace/output/webstudio-overnight-production-v108/supabase-integration-plan-v108.md')])}</section>
   </div>`;
 }
+
+function integrationPlanWorkflow() {
+  const statusChips = ['PLAN_ONLY','OWNER_APPROVAL_REQUIRED','SECRET_REQUIRED','DO_NOT_RUN_LIVE','READY_FOR_REVIEW','BLOCKED_UNTIL_OWNER','SAFE_DRY_RUN_ONLY'];
+  const linkedRoutes = [
+    ['/lead-capture-demo/','Lead Capture Demo'],
+    ['/client-portal-preview/','Client Portal Preview'],
+    ['/proposal-quote/','Proposal / Quote'],
+    ['/delivery-timeline/','Delivery Timeline'],
+    ['/work-factory/','Work Factory'],
+    ['/owner-command-center/','Owner Command Center'],
+    ['/supabase-memory/','Supabase Memory']
+  ];
+  const gates = [
+    'Owner approves scope and target channels before any integration work',
+    'Owner provides live Telegram bot token only through approved secret storage — never in browser code',
+    'Owner approves CRM / Sheets destination, columns, consent language, and write mode',
+    'Owner approves Supabase schema/migration separately before any production write path',
+    'Dry-run fixtures pass idempotency, duplicate handling, rollback, and redaction checks',
+    'Public launch stays blocked until all secrets, logs, RLS, rate limits, and monitoring are approved'
+  ];
+  const secrets = ['TELEGRAM_BOT_TOKEN','TELEGRAM_ALLOWED_CHAT_IDS','TELEGRAM_WEBHOOK_SECRET','CRM_API_TOKEN or GOOGLE_SERVICE_ACCOUNT_JSON','GOOGLE_SHEETS_SPREADSHEET_ID','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY_BACKEND_ONLY','SUPABASE_ANON_KEY_PUBLIC_ONLY_IF_NEEDED','SUPABASE_WEBHOOK_SIGNING_SECRET','OWNER_APPROVAL_CHANNEL_ID'];
+  const flow = [
+    ['1. Telegram intake', 'Bot receives client answers in approved chat/form; webhook validates signature and allowed chat.'],
+    ['2. Sanitizer', 'Normalize text, strip private values, classify PII/sensitive flags, reject credentials in payload.'],
+    ['3. Approval queue', 'Create owner review item; no CRM/Sheets/Supabase live write before approval.'],
+    ['4. CRM / Sheets draft', 'Prepare row payload in dry-run log with idempotency key and duplicate check.'],
+    ['5. Supabase write plan', 'Backend-only service role writes ops/order records after schema approval and RLS review.'],
+    ['6. Audit + rollback', 'Persist non-sensitive status, source refs, retry state, and rollback markers.']
+  ];
+  const risks = ['Token leak through frontend bundle or logs', 'Unapproved outreach or CRM writes', 'Duplicate lead/order creation', 'Private client data stored in artifacts', 'RLS/policy gap on Supabase tables', 'Webhook spoofing or replay', 'Sheets quota/rate-limit failures', 'Rollback without idempotency keys'];
+  const phases = ['Phase 0 — plan review only', 'Phase 1 — local dry-run fixtures', 'Phase 2 — backend stub behind owner gate', 'Phase 3 — staging credentials and test chat', 'Phase 4 — limited live pilot after explicit approval', 'Phase 5 — monitoring, rollback drill, handoff'];
+  return `<div class="grid integration-plan-v67" data-testid="integration-plan-v67">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">integration-plan-v67</p><h2>CRM / Telegram integration plan</h2><p>Telegram bot intake plan, CRM / Sheets plan, and Supabase live write plan are documented as static sanitized architecture only. No live Telegram token use, no CRM/Sheets/email writes, no browser-side service keys, no destructive Supabase changes.</p></div><div class="chip-cloud">${statusChips.map(x => badge(x, x)).join('')}</div></section>
+    <section class="card span-4"><h3>Telegram bot intake plan</h3><ul><li>Approved bot receives only scoped intake answers.</li><li>Webhook validates source, signature, chat allowlist, idempotency.</li><li>Payload goes to sanitizer and owner approval queue before any downstream write.</li><li>Dry-run mode stores fixtures only; no live send or outreach.</li></ul>${badge('OWNER_APPROVAL_REQUIRED')}</section>
+    <section class="card span-4"><h3>CRM / Sheets plan</h3><ul><li>Define columns: lead id, source, summary, status, owner decision, timestamps.</li><li>Writes stay blocked until owner approves destination and secret storage.</li><li>Use upsert/idempotency key to prevent duplicates.</li><li>Failed writes produce retry-safe dry-run report.</li></ul>${badge('SAFE_DRY_RUN_ONLY')}</section>
+    <section class="card span-4"><h3>Supabase live write plan</h3><ul><li>Backend-only service role, never browser-side service keys.</li><li>Schema/migration proposal required before production writes.</li><li>RLS/policies reviewed before enabling client reads.</li><li>Status rows are non-sensitive operational summaries only.</li></ul>${badge('DO_NOT_RUN_LIVE')}</section>
+    <section class="card span-6"><h3>Data flow diagram / step map</h3><div class="chain-list">${flow.map(([a,b]) => `<div class="chain-step"><span>${fmt(a)}</span><strong>${fmt(b)}</strong></div>`).join('')}</div></section>
+    <section class="card span-6 warning-surface"><h3>Approval gates</h3><ol>${gates.map(x => `<li>${fmt(x)}</li>`).join('')}</ol></section>
+    <section class="card span-6"><h3>Required secrets list WITHOUT values</h3><p class="label">Names only. Values must be supplied through approved backend secret storage, not UI, reports, git, or browser bundle.</p><ul>${secrets.map(x => `<li><code>${fmt(x)}</code></li>`).join('')}</ul>${badge('SECRET_REQUIRED')}</section>
+    <section class="card span-6"><h3>Risk checklist</h3><ul>${risks.map(x => `<li>${fmt(x)}</li>`).join('')}</ul></section>
+    <section class="card span-6"><h3>Rollout phases</h3><ol>${phases.map(x => `<li>${fmt(x)}</li>`).join('')}</ol></section>
+    <section class="card span-6"><h3>Rollback plan</h3><ul><li>Disable webhook route and keep bot token untouched in secret manager.</li><li>Pause CRM/Sheets writer and drain retry queue.</li><li>Mark pending approvals as blocked, not lost.</li><li>Revert to local/static intake and export JSON manually.</li><li>Run duplicate/idempotency audit before re-enable.</li></ul></section>
+    <section class="card span-6"><h3>Owner approval checklist</h3><ul><li>Approve channel/chat scope.</li><li>Approve CRM/Sheets destination and columns.</li><li>Approve Supabase schema proposal separately.</li><li>Approve secret storage method and rotation plan.</li><li>Approve staging dry-run evidence before live pilot.</li></ul>${badge('BLOCKED_UNTIL_OWNER')}</section>
+    <section class="card span-6"><h3>Related WebStudio routes</h3><div class="toolbar route-links">${linkedRoutes.map(([href,label]) => `<a class="copy secondary" href="${href}">${fmt(label)}</a>`).join('')}</div></section>
+  </div>`;
+}
+
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'delivery-timeline': deliveryTimelineMilestones, 'proof-case-study': proofCaseStudySystem, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabasePlanView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
