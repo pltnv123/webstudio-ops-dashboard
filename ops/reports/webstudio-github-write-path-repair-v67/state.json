@@ -1,0 +1,15 @@
+{
+  "status": "PARTIAL",
+  "reason": "SUPABASE_MCP_TIMEOUT_AFTER_DEPLOY_PASS",
+  "checked_at": "2026-06-14T23:47:30Z",
+  "selected_github_write_path": "host_bridge_minimal_sha_preserving_git_push",
+  "implementation_commit": "1c96cc9e261f13387fcd177e9cb5a58868377a59",
+  "remote_branch": "webstudio/product-build-v31",
+  "github_actions_status": "completed/success",
+  "github_actions_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/27515761793",
+  "integration_plan_url": "https://pltnv123.github.io/webstudio-ops-dashboard/integration-plan/",
+  "route_http_status": 200,
+  "marker_result": "PASS",
+  "supabase_row_status": "BLOCKED_NOT_UPDATED",
+  "do_not_start_v68": true
+}
