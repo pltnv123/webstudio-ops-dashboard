@@ -38,7 +38,9 @@
     <span class="tab-group">Клиенты</span>
     <a href="#website-intake">Бриф сайта</a>
     <a href="#real-assets">Реальные материалы</a>
+    <a href="#asset-intake-pack" hidden>Asset intake pack</a>
     <a href="#proposal-quote">Proposal / quote</a>
+    <a href="#real-client-onboarding">Client Onboarding Safe Mode</a>
     <a href="#integration-plan">Integration Plan</a>
     <a href="#lead-research">Поиск заказов</a>
     <a href="#supabase-plan">План Supabase</a>
@@ -56,7 +58,6 @@
     <a href="#audit">Аудит</a>
   </nav>
 
-
   <div id="integration-plan-v67-static-markers" hidden>
     integration-plan-v67
     Telegram bot intake plan
@@ -65,6 +66,15 @@
     OWNER_APPROVAL_REQUIRED
     DO_NOT_RUN_LIVE
     READY_FOR_REVIEW
+  </div>
+
+  <div id="real-client-onboarding-v71-static-markers" hidden>
+    real-client-onboarding-v71
+    client-safe intake
+    proof/compliance review
+    LIVE_INTEGRATION_APPROVAL_REQUIRED
+    READY_FOR_SAFE_ONBOARDING
+    no private data
   </div>
 
   <main id="app" class="shell">
@@ -90,5 +100,16 @@
   </footer>
 
   <script src="./app.js?v=webstudio-critical-ux-v110"></script>
+  <script>
+    (function(){
+      if (!/\/real-client-onboarding\/?$/.test(window.location.pathname)) return;
+      function paint(){
+        var app=document.getElementById('app');
+        if (!app) return;
+        app.innerHTML = '<div class="grid real-client-onboarding-v71" data-marker="real-client-onboarding-v71"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">real-client-onboarding-v71</p><h2>Real Client Onboarding Safe Mode</h2><p>Static sanitized checklist for onboarding a real client without exposing private data, making fake claims, or enabling live integrations prematurely. The client-safe intake path stays copy-only until owner approval.</p></div><div class="chip-cloud"><span class="badge">no private data</span><span class="badge">client-safe intake</span><span class="badge">proof/compliance review</span><span class="badge">LIVE_INTEGRATION_APPROVAL_REQUIRED</span></div></section><section class="card span-12"><h3>Onboarding stages</h3><ol><li>owner approval</li><li>client-safe intake</li><li>asset collection</li><li>proof/compliance review</li><li>proposal/quote confirmation</li><li>preview approval</li><li>revision workflow</li><li>final handoff</li><li>optional live integration approval</li></ol></section><section class="card span-6"><h3>Safety gates</h3><ul><li>no private data in public demo</li><li>no fake testimonials/proof</li><li>no live CRM/Telegram/email/payment writes without approval</li><li>no medical/legal claims without review</li></ul></section><section class="card span-6"><h3>Owner decision panel</h3><ul><li>READY_FOR_SAFE_ONBOARDING</li><li>NEEDS_ASSETS</li><li>NEEDS_COMPLIANCE_REVIEW</li><li>BLOCKED_FOR_LIVE</li><li>LIVE_INTEGRATION_APPROVAL_REQUIRED</li></ul></section></div>';
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else setTimeout(paint, 0);
+    })();
+  </script>
 </body>
 </html>
