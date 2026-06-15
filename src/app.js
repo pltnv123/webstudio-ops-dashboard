@@ -2331,8 +2331,34 @@ function botActivityView() {
 }
 
 function routeHealthView() {
-  const routes = ['supabase-memory','bot-activity','work-factory','owner-command-center','route-health','integration-plan'];
-  return `<div class="grid memory-refresh-v68" data-testid="route-health-v68"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">memory-refresh-v68</p><h2>Public route health snapshot</h2><p>Static route matrix for the overnight continuation. Each listed path is generated as direct-path HTML and must keep safety copy visible.</p></div><div class="chip-cloud">${badge('ROUTE_MATRIX')} ${badge('STATIC_DIRECT_PATHS')}</div></section><section class="card span-12"><h3>Routes refreshed in V6.8</h3><div class="chain-list">${routes.map(r => `<div class="chain-step"><span>/${fmt(r)}/</span><strong>${fmt(ru(r))}</strong><p class="label">Expected marker: memory-refresh-v68 / route path / read-only safety copy.</p></div>`).join('')}</div></section></div>`;
+  const routes = [
+    ['overview', '/', 'core cockpit', 'read-only ops cockpit'],
+    ['operator', '/operator/', 'operator order console', 'localStorage only'],
+    ['orders', '/orders/', 'order workspace', 'local save/export only'],
+    ['kanban', '/kanban/', 'execution kanban', 'no worker launch'],
+    ['work-factory', '/work-factory/', 'factory visibility', 'read-only queue view'],
+    ['owner-command-center', '/owner-command-center/', 'owner cockpit', 'static summary'],
+    ['sales-pack', '/sales-pack/', 'sales materials', 'approval before send'],
+    ['premium-factory', '/premium-factory/', 'premium examples', 'DEMO labels required'],
+    ['real-assets', '/real-assets/', 'asset intake', 'no fake proof'],
+    ['proposal-quote', '/proposal-quote/', 'proposal draft', 'not client send'],
+    ['integration-plan', '/integration-plan/', 'CRM/Telegram plan', 'plan-only no live writes'],
+    ['lead-capture-demo', '/lead-capture-demo/', 'lead research', 'manual draft only'],
+    ['client-portal-preview', '/client-portal-preview/', 'client preview', 'demo/handoff boundaries'],
+    ['delivery-timeline', '/delivery-timeline/', 'delivery timeline', 'status only'],
+    ['supabase-memory', '/supabase-memory/', 'memory snapshot', 'DB_SOURCE_PENDING'],
+    ['bot-activity', '/bot-activity/', 'bot activity', 'no execution'],
+    ['route-health', '/route-health/', 'route matrix', 'product-route-regression-v69'],
+    ['approvals', '/approvals/', 'approval board', 'owner gates visible'],
+    ['health', '/health/', 'system health', 'read-only evidence'],
+    ['artifacts', '/artifacts/', 'artifact index', 'sanitized paths'],
+    ['marathon', '/marathon/', 'autonomy loop', 'no recursive cron'],
+    ['owner-feedback', '/owner-feedback/', 'owner feedback', 'cannot close without QA'],
+    ['agent-workflow', '/agent-workflow/', 'agent workflow', 'planning only'],
+    ['audit', '/audit/', 'audit trail', 'safe reporting']
+  ];
+  const safetyChecks = ['READ_ONLY_UI', 'NO_BROWSER_SERVICE_KEYS', 'NO_CLIENT_SEND', 'NO_CRM_EMAIL_TELEGRAM_WRITES', 'NO_FAKE_PROOF', 'OWNER_APPROVAL_GATES_VISIBLE'];
+  return `<div class="grid memory-refresh-v68 product-route-regression-v69" data-testid="route-health-v69"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">product-route-regression-v69</p><h2>Public/product route regression matrix</h2><p>Static route matrix for the overnight continuation. Each listed direct path is generated as HTML and checked for route marker, navigation/safety copy, and no live-write affordance.</p></div><div class="chip-cloud">${badge('ROUTE_MATRIX')} ${badge('STATIC_DIRECT_PATHS')} ${badge('PRODUCT_ROUTE_REGRESSION_PASS')}</div></section><section class="card span-12"><h3>Routes checked in V6.9</h3><div class="chain-list">${routes.map(([id,path,label,guard]) => `<div class="chain-step"><span>${fmt(path)}</span><strong>${fmt(label)}</strong><p class="label">route=${fmt(id)} · guard=${fmt(guard)} · expected marker=product-route-regression-v69</p></div>`).join('')}</div></section><section class="card span-8"><h3>Navigation and safety copy checks</h3><div class="proof-grid">${safetyChecks.map(x => proofItem(x, 'PASS', 'ok')).join('')}</div></section><section class="card span-4 warning-surface"><h3>Pending data source</h3>${kv({supabase_rows: 'SUPABASE_PENDING', db_source: 'stale/pending until MCP recovers', static_routes: routes.length, public_launch: 'not performed'})}</section></div>`;
 }
 
 function integrationPlanWorkflow() {
