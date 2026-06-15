@@ -31,7 +31,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'premium-factory', 'kanban', 'production', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'real-assets', 'proposal-quote', 'integration-plan', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'premium-factory', 'kanban', 'production', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'real-assets', 'proposal-quote', 'integration-plan', 'bot-activity', 'route-health', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -59,6 +59,10 @@ required_js_symbols = [
     'proposal-quote-generator-v64',
     'integrationPlanWorkflow',
     'integration-plan-v67',
+    'memory-refresh-v68',
+    'bot-activity-v68',
+    'route-health-v68',
+    'DB_SOURCE_PENDING',
     'Telegram bot intake plan',
     'CRM / Sheets plan',
     'Supabase live write plan',

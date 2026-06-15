@@ -21,7 +21,7 @@ function normalizeRoute(value) {
   if (raw === 'Обзор') return 'overview';
   return raw;
 }
-let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','bot-activity','route-health','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -55,7 +55,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','bot-activity':'Активность ботов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote','supabase-memory':'Память Supabase','route-health':'Здоровье маршрутов',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
@@ -2304,6 +2304,37 @@ function supabasePlanView() {
   </div>`;
 }
 
+function supabaseMemoryView() {
+  const github = state.github_readiness || {};
+  const sources = state.sources || {};
+  const snapshotBuild = state.snapshot_build || {};
+  const rows = [
+    ['webstudio_ops_status', 'SUPABASE_PENDING', 'MCP write path timed out/backoff; use pending ledger until verified row exists'],
+    ['control_plane_state', state.generated_at || 'UNKNOWN', 'static sanitized snapshot embedded in this build'],
+    ['github_route_data', github.status || 'UNKNOWN', github.latest_commit_sha || 'remote data unavailable in sandbox'],
+    ['snapshot_source', sources.last_valid_snapshot || sources.control_plane_state || 'local reports only', snapshotBuild.status || 'local_static_refresh']
+  ];
+  return `<div class="grid memory-refresh-v68" data-testid="memory-refresh-v68"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">memory-refresh-v68</p><h2>Supabase memory snapshot</h2><p>DB source is marked STALE/PENDING until the missing V6.7 status row is verified. This page shows only sanitized static/GitHub/report evidence and never exposes keys, cookies, credentials, or private client data.</p></div><div class="chip-cloud">${badge('DB_SOURCE_PENDING')} ${badge('STATIC_SNAPSHOT_PASS')} ${badge('NO_BROWSER_SERVICE_KEYS')}</div></section><section class="card span-8"><h3>Memory rows / source matrix</h3><div class="chain-list">${rows.map(([name,status,note]) => `<div class="chain-step"><span>${fmt(name)}</span><strong>${fmt(status)}</strong><p class="label">${fmt(note)}</p></div>`).join('')}</div></section><section class="card span-4 warning-surface"><h3>Safety gates</h3>${kv({supabase_writes: 'not executed from browser', v67_row: 'SUPABASE_PENDING', service_role_key: 'backend-only, absent from bundle', private_data: 'not used'})}</section></div>`;
+}
+
+function botActivityView() {
+  const workflow = state.agent_workflow || {};
+  const worker = state.worker_health || {};
+  const wf = state.work_factory || {};
+  const metrics = [
+    ['workflow_status', workflow.status || workflow.mode || 'tracked_static'],
+    ['worker_health', worker.status || worker.summary || 'read_only_snapshot'],
+    ['factory_completed', wf.counts?.completed ?? 'unknown'],
+    ['factory_total', wf.counts?.total ?? wf.task_total ?? 'unknown']
+  ];
+  return `<div class="grid memory-refresh-v68" data-testid="bot-activity-v68"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">memory-refresh-v68</p><h2>Bot activity snapshot</h2><p>Read-only activity rollup for Hermes/WebStudio operators. It does not start agents, schedule tasks, send Telegram/email/CRM messages, or perform live writes.</p></div><div class="chip-cloud">${badge('READ_ONLY')} ${badge('NO_CLIENT_SEND')} ${badge('NO_LIVE_EXECUTION')}</div></section><section class="card span-8"><h3>Activity indicators</h3><div class="chain-list">${metrics.map(([k,v]) => `<div class="chain-step"><span>${fmt(k)}</span><strong>${fmt(v)}</strong></div>`).join('')}</div></section><section class="card span-4"><h3>Boundaries</h3><ul><li>Only sanitized local state is displayed.</li><li>Telegram/CRM/email writes are explicitly out of scope.</li><li>Supabase row remains pending until MCP recovers.</li></ul></section></div>`;
+}
+
+function routeHealthView() {
+  const routes = ['supabase-memory','bot-activity','work-factory','owner-command-center','route-health','integration-plan'];
+  return `<div class="grid memory-refresh-v68" data-testid="route-health-v68"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">memory-refresh-v68</p><h2>Public route health snapshot</h2><p>Static route matrix for the overnight continuation. Each listed path is generated as direct-path HTML and must keep safety copy visible.</p></div><div class="chip-cloud">${badge('ROUTE_MATRIX')} ${badge('STATIC_DIRECT_PATHS')}</div></section><section class="card span-12"><h3>Routes refreshed in V6.8</h3><div class="chain-list">${routes.map(r => `<div class="chain-step"><span>/${fmt(r)}/</span><strong>${fmt(ru(r))}</strong><p class="label">Expected marker: memory-refresh-v68 / route path / read-only safety copy.</p></div>`).join('')}</div></section></div>`;
+}
+
 function integrationPlanWorkflow() {
   const statusChips = ['PLAN_ONLY','OWNER_APPROVAL_REQUIRED','SECRET_REQUIRED','DO_NOT_RUN_LIVE','READY_FOR_REVIEW','BLOCKED_UNTIL_OWNER','SAFE_DRY_RUN_ONLY'];
   const linkedRoutes = [
@@ -2313,7 +2344,9 @@ function integrationPlanWorkflow() {
     ['/delivery-timeline/','Delivery Timeline'],
     ['/work-factory/','Work Factory'],
     ['/owner-command-center/','Owner Command Center'],
-    ['/supabase-memory/','Supabase Memory']
+    ['/supabase-memory/','Supabase Memory'],
+    ['/bot-activity/','Bot Activity'],
+    ['/route-health/','Route Health']
   ];
   const gates = [
     'Owner approves scope and target channels before any integration work',
@@ -2353,7 +2386,7 @@ function integrationPlanWorkflow() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabasePlanView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabaseMemoryView, 'bot-activity': botActivityView, 'route-health': routeHealthView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
