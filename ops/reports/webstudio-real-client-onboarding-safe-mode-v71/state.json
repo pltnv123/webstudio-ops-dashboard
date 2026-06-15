@@ -1,0 +1,8 @@
+{
+  "status": "IN_PROGRESS",
+  "route": "/real-client-onboarding/",
+  "marker": "real-client-onboarding-v71",
+  "created_at": "2026-06-15T23:17:54.669343+00:00",
+  "output_root": "/workspace/output/webstudio-real-client-onboarding-safe-mode-v71",
+  "repo_reports": "/workspace/projects/webstudio-ops-dashboard-v70-work/ops/reports/webstudio-real-client-onboarding-safe-mode-v71"
+}
