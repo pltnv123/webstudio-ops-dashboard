@@ -1,6 +1,6 @@
 {
-  "status": "LOCAL_PASS_PUSH_PENDING",
-  "updated_at": "2026-06-15T03:29:57Z",
+  "status": "RECOVERY_LOCAL_PASS_PUSH_PENDING",
+  "updated_at": "2026-06-15T04:40:54Z",
   "phase": "phase_3_v69_product_route_regression",
   "base_head_before_commit": "ccd52ee1719b7c4035efd971a692e82424915853",
   "routes_checked": [
@@ -31,8 +31,11 @@
   ],
   "local_http_smoke": "PASS",
   "supabase": "SUPABASE_PENDING",
-  "github_push": "PENDING",
-  "actions": "PENDING",
-  "pages": "PENDING",
-  "output_root": "/workspace/output/webstudio-product-route-regression-v69"
+  "github_push": "PENDING_RECOVERY_HOST_BRIDGE",
+  "actions": "PENDING_RECOVERY_COMMIT",
+  "pages": "PENDING_RECOVERY_COMMIT",
+  "output_root": "/workspace/output/webstudio-product-route-regression-v69",
+  "failed_actions_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/27522552287",
+  "recovery_reason": "Clean CI smoke required route-health-v68 marker from V6.8; V6.9 route-health view only exposed route-health-v69.",
+  "recovery_fix": "Preserve both route-health-v68 and route-health-v69 markers in routeHealthView."
 }

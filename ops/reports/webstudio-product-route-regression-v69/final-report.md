@@ -1,6 +1,6 @@
 # WebStudio V6.9 Product Route Regression Report
 
-- status: LOCAL_PASS_PUSH_PENDING_FINAL_DEPLOY_AWAITED
+- status: RECOVERY_LOCAL_PASS_PUSH_PENDING_FINAL_DEPLOY_AWAITED
 - checked_at: 2026-06-15T03:29:57Z
 - base_head_before_commit: ccd52ee1719b7c4035efd971a692e82424915853
 - branch: webstudio/product-build-v31
@@ -8,7 +8,7 @@
 - routes_checked: 24
 - local_http_smoke: PASS
 - supabase_rows: SUPABASE_PENDING (MCP mutation/list surface unavailable in this cron tick)
-- public_deploy: pending host bridge push + GitHub Pages Actions verification
+- public_deploy: previous recovery push reached remote, but GitHub Actions run 27522552287 failed clean smoke; recovery commit pending host bridge + Actions/Pages verification
 
 ## Routes
 - `/` — HTTP shell PASS locally
@@ -46,3 +46,11 @@
 - local threaded smoke: /workspace/output/webstudio-product-route-regression-v69/local-threaded-http-smoke.md
 - build log: /workspace/output/webstudio-product-route-regression-v69-build.log
 - smoke log: /workspace/output/webstudio-product-route-regression-v69-smoke.log
+
+
+## Recovery note — 2026-06-15T04:40:54Z
+- Remote branch reached `3651b72d441cc11f290185bdd9643b9a7362c2de`, but Actions run https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/27522552287 failed in Build static artifact.
+- Clean CI reproduction found `AssertionError: missing JS symbol route-health-v68`.
+- Fix: preserve both V6.8 and V6.9 route-health markers in `src/app.js`.
+- Local build and smoke after fix: PASS.
+- Final deploy proof remains pending until the recovery commit is pushed and GitHub Pages route markers pass.
