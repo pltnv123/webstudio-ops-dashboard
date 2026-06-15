@@ -21,7 +21,7 @@ function normalizeRoute(value) {
   if (raw === 'Обзор') return 'overview';
   return raw;
 }
-let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','bot-activity','route-health','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','bot-activity','route-health','owner-morning-report','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -55,7 +55,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','bot-activity':'Активность ботов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote','supabase-memory':'Память Supabase','route-health':'Здоровье маршрутов',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','bot-activity':'Активность ботов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote','supabase-memory':'Память Supabase','route-health':'Здоровье маршрутов','owner-morning-report':'Утренний отчёт',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
@@ -2349,6 +2349,7 @@ function routeHealthView() {
     ['supabase-memory', '/supabase-memory/', 'memory snapshot', 'DB_SOURCE_PENDING'],
     ['bot-activity', '/bot-activity/', 'bot activity', 'no execution'],
     ['route-health', '/route-health/', 'route matrix', 'product-route-regression-v69'],
+    ['owner-morning-report', '/owner-morning-report/', 'morning owner report', 'overnight-v70'],
     ['approvals', '/approvals/', 'approval board', 'owner gates visible'],
     ['health', '/health/', 'system health', 'read-only evidence'],
     ['artifacts', '/artifacts/', 'artifact index', 'sanitized paths'],
@@ -2359,6 +2360,31 @@ function routeHealthView() {
   ];
   const safetyChecks = ['READ_ONLY_UI', 'NO_BROWSER_SERVICE_KEYS', 'NO_CLIENT_SEND', 'NO_CRM_EMAIL_TELEGRAM_WRITES', 'NO_FAKE_PROOF', 'OWNER_APPROVAL_GATES_VISIBLE'];
   return `<div class="grid memory-refresh-v68 product-route-regression-v69" data-testid="route-health-v68 route-health-v69"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">product-route-regression-v69</p><h2>Public/product route regression matrix</h2><p>Static route matrix for the overnight continuation. Each listed direct path is generated as HTML and checked for route marker, navigation/safety copy, and no live-write affordance.</p></div><div class="chip-cloud">${badge('ROUTE_MATRIX')} ${badge('STATIC_DIRECT_PATHS')} ${badge('PRODUCT_ROUTE_REGRESSION_PASS')}</div></section><section class="card span-12"><h3>Routes checked in V6.9</h3><div class="chain-list">${routes.map(([id,path,label,guard]) => `<div class="chain-step"><span>${fmt(path)}</span><strong>${fmt(label)}</strong><p class="label">route=${fmt(id)} · guard=${fmt(guard)} · expected marker=product-route-regression-v69</p></div>`).join('')}</div></section><section class="card span-8"><h3>Navigation and safety copy checks</h3><div class="proof-grid">${safetyChecks.map(x => proofItem(x, 'PASS', 'ok')).join('')}</div></section><section class="card span-4 warning-surface"><h3>Pending data source</h3>${kv({supabase_rows: 'SUPABASE_PENDING', db_source: 'stale/pending until MCP recovers', static_routes: routes.length, public_launch: 'not performed'})}</section></div>`;
+}
+
+function ownerMorningReportView() {
+  const completed = [
+    ['V6.7 Integration Plan', 'PASS', 'remote b52814e · route /integration-plan/ · Actions 27515958320'],
+    ['V6.8 Memory Refresh', 'PASS', 'remote ccd52ee · memory/bot/route pages verified'],
+    ['V6.9 Route Regression', 'PASS', 'remote 7facbea · route-health and product routes verified'],
+    ['Supabase status rows', 'PENDING', 'MCP write path unavailable; ledger kept for bounded retry']
+  ];
+  const routes = [
+    ['/integration-plan/', 'V6.7 PASS'],
+    ['/supabase-memory/', 'V6.8 PASS'],
+    ['/bot-activity/', 'V6.8 PASS'],
+    ['/route-health/', 'V6.9 PASS'],
+    ['/sales-pack/', 'V6.9 PASS'],
+    ['/premium-factory/', 'V6.9 PASS'],
+    ['/owner-morning-report/', 'V7.0 marker']
+  ];
+  const next = [
+    'Retry only missing Supabase status rows after MCP backoff.',
+    'Prepare next sprint decision pack without live sends or private client data.',
+    'Keep public-launch approval separate from client demo readiness.',
+    'Do not start live CRM, Telegram, email, booking, payment, or DB mutations from the browser.'
+  ];
+  return `<div class="grid owner-morning-report-v70" data-testid="owner-morning-report-v70"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">owner-morning-report-v70</p><h2>Overnight WebStudio status for owner review</h2><p>Static morning handoff: completed route work, commits, Actions proof, pending Supabase rows, blockers, next safe actions, and guardrails. No live client sends, no browser-side service keys, no private client data.</p></div><div class="chip-cloud">${badge('DEMO_READY_STATIC_ROUTES')} ${badge('PUBLIC_LAUNCH_APPROVAL_OPEN')} ${badge('SUPABASE_PENDING')}</div></section><section class="card span-8"><h3>Completed overnight phases</h3><div class="chain-list">${completed.map(([name,status,note]) => `<div class="chain-step"><span>${fmt(name)}</span><strong>${fmt(status)}</strong><p class="label">${fmt(note)}</p></div>`).join('')}</div></section><section class="card span-4 warning-surface"><h3>Owner gates</h3>${kv({client_demo_ready: 'static routes PASS', public_launch_ready: 'NO — approvals remain open', supabase_rows: 'PENDING', live_actions: 'blocked until explicit approval'})}</section><section class="card span-6"><h3>Pages route proof board</h3><div class="chain-list">${routes.map(([href,status]) => `<div class="chain-step"><span>${fmt(href)}</span><strong>${fmt(status)}</strong><p class="label">public path smoke checked or added for V7.0</p></div>`).join('')}</div></section><section class="card span-6"><h3>Next safe actions</h3><ol>${next.map(x => `<li>${fmt(x)}</li>`).join('')}</ol></section></div>`;
 }
 
 function integrationPlanWorkflow() {
@@ -2412,7 +2438,7 @@ function integrationPlanWorkflow() {
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabaseMemoryView, 'bot-activity': botActivityView, 'route-health': routeHealthView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabaseMemoryView, 'bot-activity': botActivityView, 'route-health': routeHealthView, 'owner-morning-report': ownerMorningReportView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }
