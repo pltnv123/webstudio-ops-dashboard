@@ -4,3 +4,5 @@
 
 {"ts":"2026-06-16T19:31:22Z","event":"recovery.validation","status":"PASS","head":"75c098c3f38f6453ca1828e5cec1c16b5061b0bc"}
 {"ts":"2026-06-16T19:31:29Z","event":"recovery.validation.copied","status":"PASS"}
+{"ts":"2026-06-16T19:40:29Z","event":"final.partial","status":"PARTIAL","head":"9e80d87ef755c19c32928b0dca9c259a953bd92a","remote":"9e80d87ef755c19c32928b0dca9c259a953bd92a","supabase_row_written":true}
+{"ts": "2026-06-16T19:41:40Z", "event": "deploy.verified", "status": "DEPLOYED_PASS", "commit": "9e80d87ef755c19c32928b0dca9c259a953bd92a", "route": "/client-data-room/"}
