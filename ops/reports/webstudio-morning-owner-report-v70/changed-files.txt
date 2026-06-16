@@ -1,0 +1,8 @@
+ M scripts/build_snapshot.py
+ M src/app.js
+ M src/index.html
+?? ops/reports/webstudio-morning-owner-report-v70/changed-files.txt
+?? ops/reports/webstudio-morning-owner-report-v70/events.jsonl
+?? ops/reports/webstudio-morning-owner-report-v70/final-report.md
+?? ops/reports/webstudio-morning-owner-report-v70/state.json
+?? ops/reports/webstudio-morning-owner-report-v70/validation.md

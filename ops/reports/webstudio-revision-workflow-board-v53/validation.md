@@ -1,0 +1,73 @@
+# Validation — V5.2-V5.6
+## git diff --check
+## changed files
+ M scripts/build_snapshot.py
+ M src/app.js
+ M src/index.html
+ M src/styles.css
+?? ops/reports/webstudio-client-approval-room-v52/approval-checklist.md
+?? ops/reports/webstudio-client-approval-room-v52/approval-room-design.md
+?? ops/reports/webstudio-client-approval-room-v52/build-smoke-report.md
+?? ops/reports/webstudio-client-approval-room-v52/current-state-report.md
+?? ops/reports/webstudio-client-approval-room-v52/deploy-report.md
+?? ops/reports/webstudio-client-approval-room-v52/events.jsonl
+?? ops/reports/webstudio-client-approval-room-v52/final-report.md
+?? ops/reports/webstudio-client-approval-room-v52/github-push-report.md
+?? ops/reports/webstudio-client-approval-room-v52/go-no-go-summary.md
+?? ops/reports/webstudio-client-approval-room-v52/revision-request-map.md
+?? ops/reports/webstudio-client-approval-room-v52/route-smoke-report.md
+?? ops/reports/webstudio-client-approval-room-v52/state.json
+?? ops/reports/webstudio-client-approval-room-v52/supabase-status-update.md
+?? ops/reports/webstudio-client-approval-room-v52/supabase-verification.md
+?? ops/reports/webstudio-client-approval-room-v52/ui-implementation.md
+?? ops/reports/webstudio-client-approval-room-v52/validation.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/build-smoke-report.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/deploy-report.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/events.jsonl
+?? ops/reports/webstudio-productized-sales-funnel-v55/final-report.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/github-push-report.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/journey-map.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/offer-gates.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/sales-funnel-design.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/state.json
+?? ops/reports/webstudio-productized-sales-funnel-v55/supabase-status-update.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/ui-implementation.md
+?? ops/reports/webstudio-productized-sales-funnel-v55/validation.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/build-smoke-report.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/data-policy.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/deploy-report.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/events.jsonl
+?? ops/reports/webstudio-real-client-readiness-pack-v54/final-report.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/github-push-report.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/readiness-checklist.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/real-client-readiness-design.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/state.json
+?? ops/reports/webstudio-real-client-readiness-pack-v54/supabase-status-update.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/ui-implementation.md
+?? ops/reports/webstudio-real-client-readiness-pack-v54/validation.md
+?? ops/reports/webstudio-revision-workflow-board-v53/build-smoke-report.md
+?? ops/reports/webstudio-revision-workflow-board-v53/category-triage.md
+?? ops/reports/webstudio-revision-workflow-board-v53/deploy-report.md
+?? ops/reports/webstudio-revision-workflow-board-v53/events.jsonl
+?? ops/reports/webstudio-revision-workflow-board-v53/final-report.md
+?? ops/reports/webstudio-revision-workflow-board-v53/github-push-report.md
+?? ops/reports/webstudio-revision-workflow-board-v53/revision-board-map.md
+?? ops/reports/webstudio-revision-workflow-board-v53/revision-workflow-design.md
+?? ops/reports/webstudio-revision-workflow-board-v53/state.json
+?? ops/reports/webstudio-revision-workflow-board-v53/supabase-status-update.md
+?? ops/reports/webstudio-revision-workflow-board-v53/ui-implementation.md
+?? ops/reports/webstudio-revision-workflow-board-v53/validation.md
+?? ops/reports/webstudio-route-health-regression-v56/build-smoke-report.md
+?? ops/reports/webstudio-route-health-regression-v56/deploy-report.md
+?? ops/reports/webstudio-route-health-regression-v56/events.jsonl
+?? ops/reports/webstudio-route-health-regression-v56/final-report.md
+?? ops/reports/webstudio-route-health-regression-v56/github-push-report.md
+?? ops/reports/webstudio-route-health-regression-v56/regression-monitor-checklist.md
+?? ops/reports/webstudio-route-health-regression-v56/route-health-regression-design.md
+?? ops/reports/webstudio-route-health-regression-v56/route-smoke-report.md
+?? ops/reports/webstudio-route-health-regression-v56/state.json
+?? ops/reports/webstudio-route-health-regression-v56/supabase-status-update.md
+?? ops/reports/webstudio-route-health-regression-v56/ui-implementation.md
+?? ops/reports/webstudio-route-health-regression-v56/validation.md
+## changed-file scan
+changed-file scan PASS

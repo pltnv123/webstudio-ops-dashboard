@@ -1,0 +1,20 @@
+# Client #004 Interview v34
+
+{
+  "client": "Client #004",
+  "industry": "premium dental clinic",
+  "geography": "Moscow",
+  "services": [
+    "implantation",
+    "veneers",
+    "consultation",
+    "Telegram intake"
+  ],
+  "constraints": [
+    "no guarantees",
+    "no fake proof",
+    "real assets approval required"
+  ],
+  "selected_package": "Premium Landing + HyperFrames Hero",
+  "cta": "Telegram consultation intake"
+}

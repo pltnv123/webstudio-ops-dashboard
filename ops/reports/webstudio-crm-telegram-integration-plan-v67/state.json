@@ -1,0 +1,17 @@
+{
+  "task": "webstudio-crm-telegram-integration-plan-v67",
+  "version": "v6.7",
+  "status": "IMPLEMENTED_LOCAL_PENDING_VALIDATION",
+  "route": "/integration-plan/",
+  "output_root": "/workspace/output/webstudio-crm-telegram-integration-plan-v67",
+  "safety": {
+    "plan_only": true,
+    "live_telegram_token_used": false,
+    "crm_sheets_email_writes": false,
+    "supabase_live_data_writes_except_status": false,
+    "secrets_printed": false,
+    "officebot_used": false,
+    "gateway_restart": false
+  },
+  "created_at": "2026-06-09T10:40:15Z"
+}

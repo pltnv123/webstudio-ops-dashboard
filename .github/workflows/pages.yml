@@ -1,0 +1,77 @@
+name: Deploy staging to GitHub Pages
+
+on:
+  push:
+    branches:
+      - webstudio/product-build-v31
+      - webstudio/product-build-v32-premium-generator
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-staging
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build static artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Prepare CI output metadata
+        env:
+          WORKSPACE: ${{ github.workspace }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "$WORKSPACE/output"
+          python3 - <<'PY'
+          import json, os, pathlib
+          out = pathlib.Path(os.environ['WORKSPACE']) / 'output'
+          row = {
+              'status': 'UPDATED',
+              'pr_url': 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/5',
+              'headRefOid': os.environ.get('HEAD_SHA'),
+              'latest_commit_sha': os.environ.get('HEAD_SHA'),
+              'checks_status': 'github_actions_pages_build',
+          }
+          (out / 'webstudio-github-pr1-status.json').write_text(json.dumps(row, indent=2))
+          PY
+
+      - name: Build static snapshot
+        env:
+          WORKSPACE: ${{ github.workspace }}
+        run: python3 scripts/build_snapshot.py --dist dist
+
+      - name: Smoke static snapshot
+        env:
+          WORKSPACE: ${{ github.workspace }}
+          WEBSTUDIO_CI: '1'
+        run: python3 scripts/smoke_check.py
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

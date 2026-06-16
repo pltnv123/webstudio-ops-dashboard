@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-06-01T14:59:28.532929Z",
+  "all_ok": false,
+  "routes": [
+    {
+      "attempt": 24,
+      "name": "premium_factory_v34",
+      "http": 200,
+      "bytes": 116664,
+      "sha256": "b7ecf783c41e3818",
+      "markers": {
+        "V3.4 Client Order": false,
+        "client_order_pilot": true
+      },
+      "ok": false,
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/premium-factory-v34/",
+      "error": ""
+    },
+    {
+      "attempt": 24,
+      "name": "state_root",
+      "http": 200,
+      "bytes": 137346,
+      "sha256": "afc260352e445026",
+      "markers": {
+        "Northstar Executive Wellness Studio": true,
+        "webstudio-v34-demo-client-order": true,
+        "PACKAGE_READY": true,
+        "client_order_pilot": true
+      },
+      "ok": true,
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/data/webstudio-control-plane-state.json",
+      "error": ""
+    },
+    {
+      "attempt": 24,
+      "name": "state_route",
+      "http": 200,
+      "bytes": 137346,
+      "sha256": "afc260352e445026",
+      "markers": {
+        "Northstar Executive Wellness Studio": true,
+        "webstudio-v34-demo-client-order": true,
+        "PACKAGE_READY": true,
+        "client_order_pilot": true
+      },
+      "ok": true,
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/premium-factory-v34/data/webstudio-control-plane-state.json",
+      "error": ""
+    },
+    {
+      "attempt": 24,
+      "name": "order_builder",
+      "http": 200,
+      "bytes": 116664,
+      "sha256": "b7ecf783c41e3818",
+      "markers": {
+        "Order Builder": true,
+        "public_demo_only": true
+      },
+      "ok": true,
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/order-builder/",
+      "error": ""
+    }
+  ]
+}

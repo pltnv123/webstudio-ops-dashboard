@@ -1,0 +1,12 @@
+{
+  "component": "webstudio-handoff-review-matrix",
+  "version": "v4.2",
+  "status": "DEPLOYED",
+  "route": "/handoff-review-matrix/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/handoff-review-matrix/",
+  "git_commit": "09942866566ab9a4e6aedd22c168eadb252c4d8e",
+  "actions_run_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26916607506",
+  "supabase_ops_status_id": "f86fe38b-9398-413d-b6f1-1a7126763b46",
+  "supabase_artifact_id": "a634d082-6ce3-4077-816a-f3f099387ced",
+  "updated_at": "2026-06-03T22:23:10Z"
+}

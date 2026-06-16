@@ -1,0 +1,12 @@
+{
+  "component": "webstudio-night-shift-summary",
+  "version": "v4.7",
+  "status": "DEPLOYED",
+  "route": "/morning-summary/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/morning-summary/",
+  "git_commit": "09942866566ab9a4e6aedd22c168eadb252c4d8e",
+  "actions_run_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26916607506",
+  "supabase_ops_status_id": "2a10e854-9542-413a-9089-e12e06744f43",
+  "supabase_artifact_id": "a9cfeaf1-b865-4f7e-a48e-545c0465b63d",
+  "updated_at": "2026-06-03T22:23:10Z"
+}

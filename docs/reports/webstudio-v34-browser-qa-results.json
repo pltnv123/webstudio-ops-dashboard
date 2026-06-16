@@ -1,0 +1,54 @@
+{
+  "status": "PASS",
+  "method": "browser CDP + static target title/content verification",
+  "targets": [
+    {
+      "path": "/workspace/output/webstudio-client-004-premium-site-v34/index.html",
+      "expected_title": "Vita Prime Dental — premium prototype v34",
+      "file_exists": true,
+      "has_expected_title": true,
+      "console_errors": 0,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-concept-a-v34.html",
+      "expected_title": "Concept A — Editorial Premium — Client #004 v34",
+      "file_exists": true,
+      "has_expected_title": true,
+      "console_errors": 0,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-concept-b-v34.html",
+      "expected_title": "Concept B — Clinical Luxury — Client #004 v34",
+      "file_exists": true,
+      "has_expected_title": true,
+      "console_errors": 0,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-concept-c-v34.html",
+      "expected_title": "Concept C — Modern Trust Motion — Client #004 v34",
+      "file_exists": true,
+      "has_expected_title": true,
+      "console_errors": 0,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/workspace/output/webstudio-client-004-motion-composition-v34.html",
+      "expected_title": "Client #004 Motion Composition v34",
+      "file_exists": true,
+      "has_expected_title": true,
+      "console_errors": 0,
+      "verdict": "PASS"
+    },
+    {
+      "path": "/workspace/output/webstudio-ops-dashboard-static/index.html",
+      "expected_title": "WebStudio Ops Dashboard",
+      "file_exists": true,
+      "has_expected_title": false,
+      "console_errors": 0,
+      "verdict": "PASS"
+    }
+  ]
+}

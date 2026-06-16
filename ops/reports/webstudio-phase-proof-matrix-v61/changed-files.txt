@@ -1,0 +1,11 @@
+scripts/build_snapshot.py
+scripts/smoke_check.py
+src/app.js
+src/index.html
+ops/reports/webstudio-phase-proof-matrix-v61/changed-files.txt
+ops/reports/webstudio-phase-proof-matrix-v61/events.jsonl
+ops/reports/webstudio-phase-proof-matrix-v61/state.json
+ops/reports/webstudio-phase-proof-matrix-v61/validation.md
+ops/reports/webstudio-phase-proof-matrix-v61/blockers.md
+ops/reports/webstudio-phase-proof-matrix-v61/final-report.md
+ops/reports/webstudio-phase-proof-matrix-v61/supabase-status-update.md

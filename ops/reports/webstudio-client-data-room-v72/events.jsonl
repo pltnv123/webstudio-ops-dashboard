@@ -1,0 +1,7 @@
+{"ts": "2026-06-16T17:40:59Z", "event": "phase.start", "phase": "reconcile", "status": "PASS", "summary": "Cloned latest remote V7.1 commit 8d5c34f9"}
+{"ts": "2026-06-16T17:40:59Z", "event": "phase.done", "phase": "implementation", "status": "PASS", "summary": "Added /client-data-room/ static route, nav, direct static marker fallback, build route generation, smoke markers"}
+{"ts": "2026-06-16T17:40:59Z", "event": "validation.done", "status": "PASS", "summary": "py_compile, npm run build, npm run smoke, local static HTTP 200 marker smoke, git diff --check, diff-added secret scan"}
+{"ts": "2026-06-16T18:02:58Z", "event": "github.push", "status": "PASS", "commit": "4fbd71209161c05e07fe92c7d44d5b19adf4f2a6", "summary": "Host runner pushed V7.2 product/report commit"}
+{"ts": "2026-06-16T18:02:58Z", "event": "github.actions", "status": "PASS", "run_id": "27637594265", "summary": "Deploy staging to GitHub Pages completed successfully"}
+{"ts": "2026-06-16T18:02:58Z", "event": "public.route_smoke", "status": "PASS", "url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-data-room/", "markers": ["client-data-room-v72", "SAFE_FOR_REVIEW", "demo/static only", "no live writes", "no private data", "proposal/quote", "delivery timeline"]}
+{"ts": "2026-06-16T18:02:58Z", "event": "supabase.row", "status": "PASS", "row_id": "416fb5ac-7016-4f6d-a11c-873712ebcb4d", "summary": "webstudio_ops_status row inserted as DEPLOYED_PASS"}

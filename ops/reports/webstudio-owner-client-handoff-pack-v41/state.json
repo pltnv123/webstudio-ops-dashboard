@@ -1,0 +1,36 @@
+{
+  "task": "WEBSTUDIO V4.1 — OWNER REVIEW + CLIENT HANDOFF PACK",
+  "status": "DEPLOYED",
+  "component": "webstudio-owner-client-handoff-pack",
+  "version": "v4.1",
+  "route": "/client-handoff-pack/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-handoff-pack/",
+  "preview_url": "https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/",
+  "source": "V4.0 one_click_demo_assembly_v40",
+  "base_commit": "ec7db0675d9a3239f48215bab9bfaa43c51de514",
+  "safety": {
+    "demo_static_sanitized_only": true,
+    "live_booking_writes": false,
+    "crm_email_telegram_writes": false,
+    "browser_side_secrets": false,
+    "destructive_supabase_changes": false
+  },
+  "required_markers": [
+    "client-handoff-pack-v41",
+    "client-facing preview",
+    "owner review checklist",
+    "QA evidence",
+    "revision plan",
+    "demo only"
+  ],
+  "created_at": "2026-06-03T21:46:09Z",
+  "updated_at": "2026-06-03T21:52:07Z",
+  "deploy_status": "DEPLOYED",
+  "supabase_status": "DEPLOYED",
+  "commit": "cf4286ee96a76a63e08fdae79ceb00d1388b3e66",
+  "latest_deploy_status": "success",
+  "actions_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26915189954",
+  "public_route_verified": true,
+  "supabase_ops_row_id": "ede8cd4f-13e7-4dae-b7dc-8236dd59af9e",
+  "supabase_artifact_row_id": "d97a18b0-bafb-4189-a375-63dc81aff70b"
+}

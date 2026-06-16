@@ -1,0 +1,11 @@
+{
+  "schema_version": "webstudio-day1-autopush-result.v37.1",
+  "generated_at": "2026-05-26T16:25:17.609853Z",
+  "status": "LOCAL_READY_PENDING_HOST_RUNNER",
+  "local_commit": "899ac3b0611c898e671ae51ecf4e49c87fce4727",
+  "sandbox_push": "BLOCKED_KNOWN_RECOVERABLE",
+  "recovery": "Host Runner github/autopush job queued; owner manual push required: NO",
+  "host_job": "/workspace/.hermes-host-jobs/webstudio-v37-1-day1-and-error-handling-autopush.sh",
+  "owner_action_required": false,
+  "pr_verify": "pending host runner"
+}

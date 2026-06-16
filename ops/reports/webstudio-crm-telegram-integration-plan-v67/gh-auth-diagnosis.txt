@@ -1,0 +1,7 @@
+# GitHub Push Retry / Auth Diagnosis
+
+/workspace/bin/gh
+gh wrapper: no GitHub CLI binary found in /usr/bin, /usr/local/bin, /snap/bin, /opt/gh/bin
+
+gh repo view:
+gh wrapper: no GitHub CLI binary found in /usr/bin, /usr/local/bin, /snap/bin, /opt/gh/bin

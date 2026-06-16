@@ -1,0 +1,68 @@
+{
+  "task": "webstudio-generated-demo-website-v35",
+  "status": "PARTIAL_PUSH_BLOCKED",
+  "created_at": "2026-06-02T07:55:54.747606+00:00",
+  "base_commit": "b1d28764520fd82cb2f8612534443479a04f99a4",
+  "route": "/generated-demo-site-v35/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/generated-demo-site-v35/",
+  "output_root": "/workspace/output/webstudio-generated-demo-website-v35",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "branch": "webstudio/product-build-v31",
+  "changed_files": [
+    "scripts/build_snapshot.py",
+    "scripts/smoke_check.py",
+    "src/app.js",
+    "src/index.html",
+    "src/styles.css"
+  ],
+  "checks": {
+    "npm_run_build": "PASS",
+    "npm_run_smoke": "PASS",
+    "local_static_route": "PASS",
+    "secret_scan": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "safety": {
+    "demo_only": true,
+    "static_sanitized_data_only": true,
+    "browser_side_secrets": false,
+    "live_booking_writes": false,
+    "crm_writes": false,
+    "payment_writes": false,
+    "medical_claims_policy": "generic marketing only; no diagnosis, cure, guaranteed outcomes, or fake credentials"
+  },
+  "markers": [
+    "generated-demo-site-v35",
+    "Northstar Executive Wellness Studio",
+    "webstudio-v34-demo-client-order",
+    "PACKAGE_READY",
+    "client_order_pilot"
+  ],
+  "commit_hash": "78fcef51b58a67f484567f202015bf37d0ebd3d8",
+  "deploy_status": "BLOCKED_NOT_PUSHED",
+  "supabase_rows_written": [
+    {
+      "table": "webstudio_ops_status",
+      "id": "44010623-8937-41f9-9b90-0d87fd364212",
+      "status": "PARTIAL"
+    },
+    {
+      "table": "webstudio_jobs",
+      "id": "4705f868-3bd1-4552-b6ba-46da620e20e4",
+      "status": "PARTIAL"
+    },
+    {
+      "table": "webstudio_artifacts",
+      "id": "74acfef5-d81e-491c-8489-ff0740a75145",
+      "status": "PARTIAL"
+    },
+    {
+      "table": "webstudio_memory_index",
+      "id": "ea079876-3e56-4c20-8045-875997dd4f25",
+      "status": "INDEXED"
+    }
+  ],
+  "blockers": [
+    "Docker environment has no usable GitHub CLI/auth for git push; public Pages deploy cannot be verified from this session."
+  ]
+}

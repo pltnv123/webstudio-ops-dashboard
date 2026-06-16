@@ -1,0 +1,41 @@
+{
+  "schema_version": "webstudio-order-builder.v3.0.demo-schema",
+  "generated_at": "2026-06-01T03:51:43Z",
+  "source_mode": "static_sanitized_demo_schema",
+  "safety": {
+    "public_demo_only": true,
+    "real_sensitive_client_data": false,
+    "browser_side_supabase": false
+  },
+  "sample_order": {
+    "client_profile": "Demo owner / sanitized sample",
+    "business_type": "Premium service business",
+    "offer_service_product": "High-conversion premium website package",
+    "target_audience": "Qualified buyers needing trust, clarity, and fast handoff",
+    "desired_style": "Editorial Premium / Ops Cockpit Dark hybrid",
+    "required_pages": [
+      "Home",
+      "Services",
+      "Case studies",
+      "About",
+      "Contact"
+    ],
+    "assets_needed": [
+      "logo",
+      "brand colors",
+      "3-5 real photos",
+      "testimonials with approval"
+    ],
+    "content_status": "outline_ready_demo_copy_only",
+    "pricing_package": "Premium Website Factory — package selection pending owner pricing policy",
+    "timeline": "demo timeline only; no fixed promise",
+    "generated_production_brief": "Create a premium responsive website with clear offer, trust proof, contact CTA, QA checklist, and deploy preview handoff."
+  },
+  "next_safe_action": "Use this as a non-sensitive intake schema; do not collect real client secrets in public UI.",
+  "production_task_template": {
+    "component": "webstudio-order-builder",
+    "status": "QUEUED_DEMO",
+    "artifact_target": "webstudio_jobs or webstudio_artifacts sanitized payload only"
+  },
+  "schema_policy": "Existing ops tables can store non-sensitive sanitized artifacts/jobs. New client tables require migration proposal and owner approval."
+}

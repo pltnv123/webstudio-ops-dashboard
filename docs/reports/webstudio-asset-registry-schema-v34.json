@@ -1,0 +1,16 @@
+{
+  "asset": {
+    "id": "string",
+    "type": "hero|doctor|certificate|case|interior|process|video",
+    "classification": "real_client_asset|official_reference|licensed_stock|generated_concept|planned_shoot|placeholder|forbidden_unverified",
+    "source": "string",
+    "license_status": "string",
+    "real_generated_planned": "real|generated|planned",
+    "allowed_usage": "string",
+    "approval_required": true,
+    "where_used": [
+      "string"
+    ],
+    "replacement_needed": true
+  }
+}

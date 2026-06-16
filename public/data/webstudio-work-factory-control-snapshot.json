@@ -1,0 +1,656 @@
+{
+  "schema_version": "webstudio-work-factory-control.v2.8.static-snapshot",
+  "generated_at": "2026-06-01T03:32:16Z",
+  "source_mode": "static_sanitized_supabase_mcp_github_cli_and_local_control_plane_snapshot",
+  "safety": {
+    "browser_side_supabase": false,
+    "browser_side_github_token": false,
+    "control_mode": "read_only_copy_only",
+    "secret_policy": "No Supabase keys, GitHub tokens, service-role credentials, env values, raw private memory, or raw payload bodies are embedded."
+  },
+  "links": {
+    "pages": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+    "work_factory_route": "https://pltnv123.github.io/webstudio-ops-dashboard/work-factory/",
+    "bot_activity_route": "https://pltnv123.github.io/webstudio-ops-dashboard/bot-activity/",
+    "supabase_memory_route": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+    "github_repo": "https://github.com/pltnv123/webstudio-ops-dashboard",
+    "github_pr": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5",
+    "latest_pages_run": ""
+  },
+  "status_chips": [
+    "PASS",
+    "DEPLOYED",
+    "RUNNING",
+    "QUEUED",
+    "PARTIAL",
+    "BLOCKED",
+    "NEEDS_OWNER"
+  ],
+  "filters": [
+    "status",
+    "component",
+    "time"
+  ],
+  "counts": {
+    "queued": 7,
+    "running": 0,
+    "blocked": 0,
+    "completed": 28,
+    "owner_approval_needed": 3,
+    "supabase_status_rows": 5,
+    "supabase_job_rows": 3
+  },
+  "queued_jobs": [
+    {
+      "id": "WF0357",
+      "title": "Official static hosting docs research update",
+      "status": "QUEUED",
+      "raw_status": "pending",
+      "component": "ops-health",
+      "bucket": "pending",
+      "time": "",
+      "summary": "/workspace/output/work-factory-wf0357-official-static-hosting-docs-research-update.md",
+      "report": "/workspace/output/work-factory-wf0357-official-static-hosting-docs-research-update.md"
+    },
+    {
+      "id": "WF0361",
+      "title": "WebStudio D1 production artifact refresh",
+      "status": "QUEUED",
+      "raw_status": "pending",
+      "component": "ops-health",
+      "bucket": "pending",
+      "time": "",
+      "summary": "/workspace/output/work-factory-wf0361-webstudio-d1-production-artifact-refresh.md",
+      "report": "/workspace/output/work-factory-wf0361-webstudio-d1-production-artifact-refresh.md"
+    },
+    {
+      "id": "WF0362",
+      "title": "WebStudio D2 AI-intake bot artifact refresh",
+      "status": "QUEUED",
+      "raw_status": "pending",
+      "component": "ops-health",
+      "bucket": "pending",
+      "time": "",
+      "summary": "/workspace/output/work-factory-wf0362-webstudio-d2-ai-intake-bot-artifact-refresh.md",
+      "report": "/workspace/output/work-factory-wf0362-webstudio-d2-ai-intake-bot-artifact-refresh.md"
+    },
+    {
+      "id": "WF0372",
+      "title": "Official static hosting docs research update",
+      "status": "QUEUED",
+      "raw_status": "pending",
+      "component": "ops-health",
+      "bucket": "pending",
+      "time": "",
+      "summary": "/workspace/output/work-factory-wf0372-official-static-hosting-docs-research-update.md",
+      "report": "/workspace/output/work-factory-wf0372-official-static-hosting-docs-research-update.md"
+    },
+    {
+      "id": "WF0376",
+      "title": "WebStudio D1 production artifact refresh",
+      "status": "QUEUED",
+      "raw_status": "pending",
+      "component": "ops-health",
+      "bucket": "pending",
+      "time": "",
+      "summary": "/workspace/output/work-factory-wf0376-webstudio-d1-production-artifact-refresh.md",
+      "report": "/workspace/output/work-factory-wf0376-webstudio-d1-production-artifact-refresh.md"
+    },
+    {
+      "id": "WF0377",
+      "title": "Daily capability inventory refresh",
+      "status": "QUEUED",
+      "raw_status": "pending",
+      "component": "ops-health",
+      "bucket": "pending",
+      "time": "",
+      "summary": "/workspace/output/work-factory-wf0377-daily-capability-inventory-refresh.md",
+      "report": "/workspace/output/work-factory-wf0377-daily-capability-inventory-refresh.md"
+    },
+    {
+      "id": "WF0378",
+      "title": "Daily capability inventory refresh",
+      "status": "QUEUED",
+      "raw_status": "pending",
+      "component": "ops-health",
+      "bucket": "pending",
+      "time": "",
+      "summary": "/workspace/output/work-factory-wf0378-daily-capability-inventory-refresh.md",
+      "report": "/workspace/output/work-factory-wf0378-daily-capability-inventory-refresh.md"
+    }
+  ],
+  "running_jobs": [],
+  "blocked_jobs": [],
+  "owner_approval_needed": [
+    {
+      "id": "WF-APPROVAL-OWNER-HANDOFF",
+      "title": "Approval required: owner-handoff next decision",
+      "status": "NEEDS_OWNER",
+      "raw_status": "approval_required",
+      "component": "approval_required",
+      "bucket": "approval_required",
+      "time": "",
+      "summary": "/workspace/output/work-factory-approval-required-owner-handoff.md",
+      "report": "/workspace/output/work-factory-approval-required-owner-handoff.md"
+    },
+    {
+      "id": "WF-APPROVAL-DEPLOY-READINESS",
+      "title": "Approval required: deploy-readiness next decision",
+      "status": "NEEDS_OWNER",
+      "raw_status": "approval_required",
+      "component": "approval_required",
+      "bucket": "approval_required",
+      "time": "",
+      "summary": "/workspace/output/work-factory-approval-required-deploy-readiness.md",
+      "report": "/workspace/output/work-factory-approval-required-deploy-readiness.md"
+    },
+    {
+      "id": "WF-APPROVAL-BACKEND-PLANNING",
+      "title": "Approval required: backend-planning next decision",
+      "status": "NEEDS_OWNER",
+      "raw_status": "approval_required",
+      "component": "approval_required",
+      "bucket": "approval_required",
+      "time": "",
+      "summary": "/workspace/output/work-factory-approval-required-backend-planning.md",
+      "report": "/workspace/output/work-factory-approval-required-backend-planning.md"
+    }
+  ],
+  "completed_jobs": [
+    {
+      "id": "WF0348",
+      "title": "Internal tools: hpreview fullpage roadmap improvements",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T21:51:40Z",
+      "summary": "/workspace/output/work-factory-wf0348-internal-tools-hpreview-fullpage-roadmap-improvements.md",
+      "report": "/workspace/output/work-factory-wf0348-internal-tools-hpreview-fullpage-roadmap-improvements.md"
+    },
+    {
+      "id": "WF0343",
+      "title": "Index/update/check: Template system: QA checklist template",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T21:36:28Z",
+      "summary": "/workspace/output/work-factory-wf0343-index-update-check-template-system-qa-checklist-template.md",
+      "report": "/workspace/output/work-factory-wf0343-index-update-check-template-system-qa-checklist-template.md"
+    },
+    {
+      "id": "WF0342",
+      "title": "Template system: landing project template",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T21:21:22Z",
+      "summary": "/workspace/output/work-factory-wf0342-template-system-landing-project-template.md",
+      "report": "/workspace/output/work-factory-wf0342-template-system-landing-project-template.md"
+    },
+    {
+      "id": "WF0338",
+      "title": "Index/update/check: Research workbench: official accessibility QA research",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T21:06:12Z",
+      "summary": "/workspace/output/work-factory-wf0338-index-update-check-research-workbench-official-accessibility-qa-research.md",
+      "report": "/workspace/output/work-factory-wf0338-index-update-check-research-workbench-official-accessibility-qa-research.md"
+    },
+    {
+      "id": "WF0337",
+      "title": "Index/update/check: Research workbench: official static hosting research",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T20:49:55Z",
+      "summary": "/workspace/output/work-factory-wf0337-index-update-check-research-workbench-official-static-hosting-research.md",
+      "report": "/workspace/output/work-factory-wf0337-index-update-check-research-workbench-official-static-hosting-research.md"
+    },
+    {
+      "id": "WF0332",
+      "title": "Reliability: bridge health dashboard spec",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T20:34:43Z",
+      "summary": "/workspace/output/work-factory-wf0332-reliability-bridge-health-dashboard-spec.md",
+      "report": "/workspace/output/work-factory-wf0332-reliability-bridge-health-dashboard-spec.md"
+    },
+    {
+      "id": "WF0331",
+      "title": "Reliability: supervisor health dashboard spec",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T20:19:31Z",
+      "summary": "/workspace/output/work-factory-wf0331-reliability-supervisor-health-dashboard-spec.md",
+      "report": "/workspace/output/work-factory-wf0331-reliability-supervisor-health-dashboard-spec.md"
+    },
+    {
+      "id": "WF0326",
+      "title": "Productization: pricing/package internal draft",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T20:04:20Z",
+      "summary": "/workspace/output/work-factory-wf0326-productization-pricing-package-internal-draft.md",
+      "report": "/workspace/output/work-factory-wf0326-productization-pricing-package-internal-draft.md"
+    },
+    {
+      "id": "WF0325",
+      "title": "Productization: service package catalog",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T19:48:39Z",
+      "summary": "/workspace/output/work-factory-wf0325-productization-service-package-catalog.md",
+      "report": "/workspace/output/work-factory-wf0325-productization-service-package-catalog.md"
+    },
+    {
+      "id": "WF0322",
+      "title": "Multi-project: Ops Automation Case Study page plan",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T19:33:23Z",
+      "summary": "/workspace/output/work-factory-wf0322-multi-project-ops-automation-case-study-page-plan.md",
+      "report": "/workspace/output/work-factory-wf0322-multi-project-ops-automation-case-study-page-plan.md"
+    },
+    {
+      "id": "WF0321",
+      "title": "Deploy readiness docs refresh, no deploy",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "deploy-readiness",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T19:18:13Z",
+      "summary": "/workspace/output/work-factory-wf0321-deploy-readiness-docs-refresh-no-deploy.md",
+      "report": "/workspace/output/work-factory-wf0321-deploy-readiness-docs-refresh-no-deploy.md"
+    },
+    {
+      "id": "WF0320",
+      "title": "Owner review docs refresh",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "owner-handoff",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T19:03:10Z",
+      "summary": "/workspace/output/work-factory-wf0320-owner-review-docs-refresh.md",
+      "report": "/workspace/output/work-factory-wf0320-owner-review-docs-refresh.md"
+    },
+    {
+      "id": "WF0310",
+      "title": "Backend/API planning docs, no implementation",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "backend-planning",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T18:47:29Z",
+      "summary": "/workspace/output/work-factory-wf0310-backend-api-planning-docs-no-implementation.md",
+      "report": "/workspace/output/work-factory-wf0310-backend-api-planning-docs-no-implementation.md"
+    },
+    {
+      "id": "WF0309",
+      "title": "Deploy readiness docs refresh, no deploy",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "deploy-readiness",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T18:40:28Z",
+      "summary": "/workspace/output/work-factory-wf0309-deploy-readiness-docs-refresh-no-deploy.md",
+      "report": "/workspace/output/work-factory-wf0309-deploy-readiness-docs-refresh-no-deploy.md"
+    },
+    {
+      "id": "WF0308",
+      "title": "Owner review docs refresh",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "owner-handoff",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T18:25:05Z",
+      "summary": "/workspace/output/work-factory-wf0308-owner-review-docs-refresh.md",
+      "report": "/workspace/output/work-factory-wf0308-owner-review-docs-refresh.md"
+    },
+    {
+      "id": "WF0300",
+      "title": "Multi-project: AI Workflow Audit page plan",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T18:10:03Z",
+      "summary": "/workspace/output/work-factory-wf0300-multi-project-ai-workflow-audit-page-plan.md",
+      "report": "/workspace/output/work-factory-wf0300-multi-project-ai-workflow-audit-page-plan.md"
+    },
+    {
+      "id": "WF0294",
+      "title": "Backend Planning: schema sketch v4",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T17:54:23Z",
+      "summary": "/workspace/output/work-factory-wf0294-backend-planning-schema-sketch-v4.md",
+      "report": "/workspace/output/work-factory-wf0294-backend-planning-schema-sketch-v4.md"
+    },
+    {
+      "id": "WF0293",
+      "title": "Backend Planning: API contract vNext v4",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T17:39:22Z",
+      "summary": "/workspace/output/work-factory-wf0293-backend-planning-api-contract-vnext-v4.md",
+      "report": "/workspace/output/work-factory-wf0293-backend-planning-api-contract-vnext-v4.md"
+    },
+    {
+      "id": "WF0288",
+      "title": "Deploy Prep: rollback drills v4",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T17:23:39Z",
+      "summary": "/workspace/output/work-factory-wf0288-deploy-prep-rollback-drills-v4.md",
+      "report": "/workspace/output/work-factory-wf0288-deploy-prep-rollback-drills-v4.md"
+    },
+    {
+      "id": "WF0287",
+      "title": "Deploy Prep: provider comparison v4",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T17:08:35Z",
+      "summary": "/workspace/output/work-factory-wf0287-deploy-prep-provider-comparison-v4-update-check-cycle-01.md",
+      "report": "/workspace/output/work-factory-wf0287-deploy-prep-provider-comparison-v4-update-check-cycle-01.md"
+    },
+    {
+      "id": "WF0286",
+      "title": "Work Factory capability dashboard plan",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T16:38:21Z",
+      "summary": "/workspace/output/work-factory-wf0286-work-factory-capability-dashboard-plan.md",
+      "report": "/workspace/output/work-factory-wf0286-work-factory-capability-dashboard-plan.md"
+    },
+    {
+      "id": "WF0285",
+      "title": "Supabase read-only probe plan",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T16:23:00Z",
+      "summary": "/workspace/output/work-factory-wf0285-supabase-read-only-probe-plan.md",
+      "report": "/workspace/output/work-factory-wf0285-supabase-read-only-probe-plan.md"
+    },
+    {
+      "id": "WF0284",
+      "title": "stale snapshot processor diagnostic plan",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T16:07:58Z",
+      "summary": "/workspace/output/work-factory-wf0284-stale-snapshot-processor-diagnostic-plan.md",
+      "report": "/workspace/output/work-factory-wf0284-stale-snapshot-processor-diagnostic-plan.md"
+    },
+    {
+      "id": "WF0283",
+      "title": "full-system-health repair plan",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T15:52:00Z",
+      "summary": "/workspace/output/work-factory-wf0283-full-system-health-repair-plan.md",
+      "report": "/workspace/output/work-factory-wf0283-full-system-health-repair-plan.md"
+    },
+    {
+      "id": "WF0282",
+      "title": "hkanban status --json plan",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "ops-health",
+      "bucket": "latest_completed",
+      "time": "2026-05-20T15:36:59Z",
+      "summary": "/workspace/output/work-factory-wf0282-hkanban-status-json-plan.md",
+      "report": "/workspace/output/work-factory-wf0282-hkanban-status-json-plan.md"
+    },
+    {
+      "id": "83136f76-da95-4c64-abe1-21a3efbb711a",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "status": "PASS",
+      "raw_status": "PASS",
+      "component": "webstudio-production-autopilot",
+      "bucket": "supabase_job",
+      "time": "2026-05-30T20:27:18Z",
+      "summary": "Sanitized report committed and pushed; scan passed.",
+      "report": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    },
+    {
+      "id": "9a77e47a-705f-468f-b178-5fee9c59562e",
+      "title": "WebStudio Production Autopilot V2.3B GitHub Reporting Baseline",
+      "status": "PASS",
+      "raw_status": "completed",
+      "component": "webstudio-production-autopilot",
+      "bucket": "supabase_job",
+      "time": "2026-05-30T20:27:00Z",
+      "summary": "Final GitHub reporting baseline pushed; PR head verified.",
+      "report": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    },
+    {
+      "id": "f56cc6fb-c6b2-4236-80d2-e7ec76895e51",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "status": "PASS",
+      "raw_status": "PASS",
+      "component": "webstudio-production-autopilot",
+      "bucket": "supabase_job",
+      "time": "2026-05-30T20:24:46Z",
+      "summary": "Sanitized report committed and pushed; PR found; scan passed.",
+      "report": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    }
+  ],
+  "latest_supabase_status": [
+    {
+      "id": "82295fb5-e0ad-4474-820f-49f139a1383a",
+      "component": "webstudio-live-bot-activity-feed",
+      "version": "v2.7",
+      "status": "DEPLOYED",
+      "git_commit": "f29638dda5ac2745a1c27e93c75a245d74c7ab63",
+      "deployment_target": "https://pltnv123.github.io/webstudio-ops-dashboard/bot-activity/",
+      "created_at": "2026-06-01T03:18:59Z",
+      "summary": "V2.7 Bot Activity route deployed and verified."
+    },
+    {
+      "id": "d19d64e4-7e1c-41ec-8238-5c2f88e29bf9",
+      "component": "webstudio-supabase-memory-ui",
+      "version": "v2.6",
+      "status": "DEPLOYED",
+      "git_commit": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+      "deployment_target": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+      "created_at": "2026-06-01T03:10:47Z",
+      "summary": "V2.6 Supabase Memory route deployed and verified."
+    },
+    {
+      "id": "37ae6a5f-f4a4-4b8e-8994-82e4784fbad8",
+      "component": "webstudio-supabase-memory-ui",
+      "version": "v2.6",
+      "status": "DEPLOYED",
+      "git_commit": "9309f49b7e31bb6132223785b82152e8a93e4268",
+      "deployment_target": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+      "created_at": "2026-06-01T03:08:57Z",
+      "summary": "V2.6 UI implementation deployed."
+    },
+    {
+      "id": "0c5743f9-a8b7-4acd-a5a4-6c5583dd7d4d",
+      "component": "webstudio-autonomous-delivery-loop",
+      "version": "v2.5",
+      "status": "BASELINE_READY",
+      "git_commit": "d418910591ac74187906028d9a78423db7cbc5ad",
+      "deployment_target": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+      "created_at": "2026-06-01T02:58:29Z",
+      "summary": "Autonomous delivery loop baseline ready."
+    },
+    {
+      "id": "ebe08810-fcfc-4bd1-b547-78e6c06bfec6",
+      "component": "webstudio-branch-strategy",
+      "version": "v2.4b",
+      "status": "DEFAULT_BRANCH_LOCKED",
+      "git_commit": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+      "deployment_target": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+      "created_at": "2026-06-01T02:51:37Z",
+      "summary": "Default branch locked to webstudio/product-build-v31."
+    }
+  ],
+  "latest_supabase_jobs": [
+    {
+      "id": "83136f76-da95-4c64-abe1-21a3efbb711a",
+      "job_key": "webstudio-production-autopilot:v2.3b-github-reporting-baseline:a659b97",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "status": "PASS",
+      "priority": 100,
+      "component": "webstudio-production-autopilot",
+      "created_at": "2026-05-30T20:27:18Z",
+      "updated_at": "2026-05-30T20:27:18Z",
+      "summary": "Sanitized report committed and pushed; scan passed.",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    },
+    {
+      "id": "9a77e47a-705f-468f-b178-5fee9c59562e",
+      "job_key": "webstudio-production-autopilot-v2_3b",
+      "title": "WebStudio Production Autopilot V2.3B GitHub Reporting Baseline",
+      "status": "completed",
+      "priority": 10,
+      "component": "webstudio-production-autopilot",
+      "created_at": "2026-05-30T20:26:02Z",
+      "updated_at": "2026-05-30T20:27:00Z",
+      "summary": "Final GitHub reporting baseline pushed; PR head verified.",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    },
+    {
+      "id": "f56cc6fb-c6b2-4236-80d2-e7ec76895e51",
+      "job_key": "webstudio-production-autopilot:v2.3b-github-reporting-baseline:030ec47",
+      "title": "webstudio-production-autopilot v2.3b GitHub reporting baseline",
+      "status": "PASS",
+      "priority": 100,
+      "component": "webstudio-production-autopilot",
+      "created_at": "2026-05-30T20:24:46Z",
+      "updated_at": "2026-05-30T20:24:46Z",
+      "summary": "Sanitized report committed and pushed; PR found; scan passed.",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"
+    }
+  ],
+  "latest_artifacts": [],
+  "latest_memory_index": [],
+  "github": {
+    "latest_commit": {
+      "sha": "6e2ee486acb33d98807b13cbab611b50d087a0b5",
+      "short": "6e2ee48",
+      "message": "docs: finalize live bot activity feed v2.7 reports",
+      "created_at": "2026-06-01T03:19:33Z",
+      "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/6e2ee486acb33d98807b13cbab611b50d087a0b5"
+    },
+    "commits": [
+      {
+        "sha": "6e2ee486acb33d98807b13cbab611b50d087a0b5",
+        "short": "6e2ee48",
+        "message": "docs: finalize live bot activity feed v2.7 reports",
+        "created_at": "2026-06-01T03:19:33Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/6e2ee486acb33d98807b13cbab611b50d087a0b5"
+      },
+      {
+        "sha": "f29638dda5ac2745a1c27e93c75a245d74c7ab63",
+        "short": "f29638d",
+        "message": "feat: add live bot activity feed v2.7",
+        "created_at": "2026-06-01T03:18:08Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/f29638dda5ac2745a1c27e93c75a245d74c7ab63"
+      },
+      {
+        "sha": "53937a7f94e31ce1eadefa9081f63ac3414dd99e",
+        "short": "53937a7",
+        "message": "docs: finalize supabase memory ui v2.6 reports",
+        "created_at": "2026-06-01T03:09:59Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/53937a7f94e31ce1eadefa9081f63ac3414dd99e"
+      },
+      {
+        "sha": "9309f49b7e31bb6132223785b82152e8a93e4268",
+        "short": "9309f49",
+        "message": "feat: add supabase memory dashboard ui v2.6",
+        "created_at": "2026-06-01T03:08:05Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/9309f49b7e31bb6132223785b82152e8a93e4268"
+      },
+      {
+        "sha": "d418910591ac74187906028d9a78423db7cbc5ad",
+        "short": "d418910",
+        "message": "docs: fix v2.5 delivery loop report formatting",
+        "created_at": "2026-06-01T02:57:51Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/d418910591ac74187906028d9a78423db7cbc5ad"
+      },
+      {
+        "sha": "e83bb326eda34cabeb02951c85bac071a72d14e6",
+        "short": "e83bb32",
+        "message": "docs: install autonomous delivery loop baseline v2.5",
+        "created_at": "2026-06-01T02:56:55Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/e83bb326eda34cabeb02951c85bac071a72d14e6"
+      },
+      {
+        "sha": "94eee6d2ad702fa6f47350ae3b3827bbedf12886",
+        "short": "94eee6d",
+        "message": "docs: lock webstudio default branch strategy v2.4b",
+        "created_at": "2026-06-01T02:50:46Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/94eee6d2ad702fa6f47350ae3b3827bbedf12886"
+      },
+      {
+        "sha": "c002bd7db0e1ed8ef1024f8eeccf5191ce4171cb",
+        "short": "c002bd7",
+        "message": "docs: add serverless control plane baseline v2.4",
+        "created_at": "2026-06-01T02:42:32Z",
+        "url": "https://github.com/pltnv123/webstudio-ops-dashboard/commit/c002bd7db0e1ed8ef1024f8eeccf5191ce4171cb"
+      }
+    ],
+    "latest_pages_run": {},
+    "pages_runs": [],
+    "repo": "pltnv123/webstudio-ops-dashboard",
+    "branch": "webstudio/product-build-v31"
+  },
+  "reports": [
+    {
+      "title": "V2.8 output root",
+      "path": "/workspace/output/webstudio-work-factory-control-v28"
+    },
+    {
+      "title": "V2.7 reports",
+      "path": "ops/reports/webstudio-live-bot-activity-feed-v27/"
+    },
+    {
+      "title": "V2.6 reports",
+      "path": "ops/reports/webstudio-supabase-memory-ui-v26/"
+    }
+  ],
+  "next_safe_action": "Review owner approvals and blockers first; otherwise continue with the next scoped WebStudio version from the current default branch.",
+  "summary": {
+    "status": "PASS",
+    "panel": "Work Factory Control",
+    "read_only": true,
+    "blockers": 0,
+    "approvals": 3,
+    "queue": 7,
+    "completed": 28
+  }
+}

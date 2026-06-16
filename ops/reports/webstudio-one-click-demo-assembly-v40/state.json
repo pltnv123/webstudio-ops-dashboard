@@ -1,0 +1,35 @@
+{
+  "task": "WEBSTUDIO V4.0 — ONE-CLICK DEMO WEBSITE ASSEMBLY",
+  "status": "DEPLOYED",
+  "component": "webstudio-one-click-demo-assembly",
+  "version": "v4.0",
+  "route": "/one-click-demo-assembly/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/",
+  "source": "V3.9 website_page_builder_v39",
+  "base_commit": "eda151b106384c817d8bd47992e7a48b185d03b5",
+  "safety": {
+    "demo_static_sanitized_only": true,
+    "live_booking_writes": false,
+    "crm_email_telegram_writes": false,
+    "browser_side_secrets": false,
+    "destructive_supabase_changes": false
+  },
+  "required_markers": [
+    "one-click-demo-assembly-v40",
+    "full assembled landing page preview",
+    "hero section",
+    "services/packages",
+    "FAQ",
+    "demo only"
+  ],
+  "created_at": "2026-06-03T11:19:03Z",
+  "updated_at": "2026-06-03T11:42:28Z",
+  "commit": "f299b717d1015514643ac9c2fc913b026e8a0bce",
+  "deploy_status": "DEPLOYED",
+  "supabase_status": "DEPLOYED",
+  "latest_deploy_status": "success",
+  "actions_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26882334114",
+  "public_route_verified": true,
+  "supabase_ops_row_id": "ff9c1de7-3e59-4d6c-a5c4-f9a6313fa2b5",
+  "supabase_artifact_row_id": "bae7ddb3-259a-40dc-9990-f1097505a613"
+}

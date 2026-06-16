@@ -1,0 +1,12 @@
+{
+  "status": "DEPLOYED_PASS",
+  "route": "/real-client-onboarding/",
+  "marker": "real-client-onboarding-v71",
+  "created_at": "2026-06-15T23:17:54.669343+00:00",
+  "output_root": "/workspace/output/webstudio-real-client-onboarding-safe-mode-v71",
+  "repo_reports": "/workspace/projects/webstudio-ops-dashboard-v70-work/ops/reports/webstudio-real-client-onboarding-safe-mode-v71",
+  "remote_commit": "d686ef239eb8cd7d1e3ba702d541e4cb1cede694",
+  "local_commit": "e2c2af07536fe0c050ac474849ef413f67461950",
+  "url": "https://pltnv123.github.io/webstudio-ops-dashboard/real-client-onboarding/",
+  "supabase_row_id": "8c091bf4-a89e-4ca1-9d5f-7a4708d566db"
+}

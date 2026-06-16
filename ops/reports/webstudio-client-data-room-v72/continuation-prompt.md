@@ -1,0 +1,1 @@
+V7.2 Client Portal Data Room is DEPLOYED_PASS after hfinalize evidence is recorded. Do not start V7.3 unless final response confirms hfinalize attempt. Next safe action after closure: select V7.3 only from an explicit owner request.

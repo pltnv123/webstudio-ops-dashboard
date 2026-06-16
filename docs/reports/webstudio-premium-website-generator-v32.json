@@ -1,0 +1,72 @@
+{
+  "version": "v32",
+  "status": "PASS",
+  "generated_at": "2026-05-25T16:32:12Z",
+  "name": "Premium Site Generator",
+  "inputs": [
+    "client brief",
+    "product/service",
+    "audience",
+    "proof",
+    "objections",
+    "CTA",
+    "tone",
+    "industry",
+    "geography",
+    "visual style",
+    "motion style",
+    "integrations",
+    "assets availability",
+    "legal constraints"
+  ],
+  "outputs": [
+    "strategy brief",
+    "offer",
+    "section map",
+    "copy blocks",
+    "design direction",
+    "image direction",
+    "motion direction",
+    "three concepts",
+    "selected concept",
+    "site preview",
+    "HyperFrames assets",
+    "QA report",
+    "handoff pack"
+  ],
+  "pipeline": [
+    "intake",
+    "adaptive interview",
+    "strategy",
+    "concept A/B/C",
+    "visual system",
+    "site build",
+    "visual assets",
+    "motion composition",
+    "QA",
+    "handoff",
+    "GitHub PR"
+  ],
+  "paths": {
+    "research": "/workspace/output/webstudio-premium-site-generator-v32-research.md",
+    "generator": "/workspace/output/webstudio-premium-site-generator-v32.md",
+    "pipeline": "/workspace/output/webstudio-premium-site-generator-pipeline-v32.md",
+    "premium_site": "/workspace/output/webstudio-client-004-premium-site-v32/index.html",
+    "fallback": "/workspace/output/webstudio-client-004-premium-site-v32.html",
+    "qa": "/workspace/output/webstudio-client-004-premium-site-qa-v32.md"
+  },
+  "client_004": {
+    "status": "PASS",
+    "industry": "premium dental clinic Moscow",
+    "visuals": "CONCEPT_GENERATED_PLANNED_REAL_ASSETS",
+    "motion": "HTML_COMPOSITION_HYPERFRAMES_READY",
+    "qa_score": 93
+  },
+  "mp4_status": "RENDER_COMMAND_READY_MP4_NOT_CLAIMED",
+  "owner_action_required": [
+    "merge PR",
+    "approve real photo/document publication",
+    "approve live Telegram/CRM",
+    "approve MP4 render/deploy"
+  ]
+}

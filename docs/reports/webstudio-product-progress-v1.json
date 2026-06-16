@@ -1,440 +1,117 @@
 {
-  "source_of_truth": "/workspace/output/webstudio-product-progress-v1.json",
-  "source": {
-    "path": "/workspace/output/webstudio-product-progress-v1.json",
-    "exists": true,
-    "size": 4771,
-    "mtime": "2026-05-24T21:28:10Z",
-    "sha256": "b3fc1fab3ccfd25853fe8ee0d13838331440d38676edd464eec3bb73bd48141e"
-  },
-  "updated_at": "2026-05-25T14:07:37Z",
-  "mode": "safe_local_artifacts_only",
-  "phase": "Product Build v29 — Premium Client-Facing Website Delivery System",
-  "status": "PASS_LOCAL_READY_QA_PENDING",
-  "v10_status": null,
-  "v11_status": null,
-  "pr_verification_verdict": "MAINLINE_MERGED",
-  "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
+  "timestamp": "2026-05-26T13:47:29.402103Z",
+  "product": "Client #004 premium dental site",
+  "last_product_status": "v34.3 PASS / demo ready",
+  "active_system_task": "Hermes Runtime Repair v35",
+  "status": "ACTIVE_DAY0_CONTINUING",
   "items": [
     {
+      "id": "d1-premium-factory-research",
       "product_line": "D1",
-      "artifact_type": "delivery_system_v29",
-      "title": "Premium website delivery system",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-premium-website-delivery-system-v29.md",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 96
+      "title": "Premium factory research",
+      "status": "done",
+      "category": "research",
+      "kind": "report",
+      "output": "/workspace/output/webstudio-premium-factory-research-v37.md"
     },
     {
+      "id": "d1-design-systems",
       "product_line": "D1",
-      "artifact_type": "client_delivery_pipeline_v29",
-      "title": "Client delivery pipeline JSON",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-delivery-pipeline-v29.json",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 96
+      "title": "Design systems and DESIGN.md",
+      "status": "done",
+      "category": "design",
+      "kind": "report",
+      "output": "/workspace/output/webstudio-master-design-system-v37.md"
     },
     {
+      "id": "d1-webstudio-skills",
       "product_line": "D1",
-      "artifact_type": "client_delivery_pack_template_v29",
-      "title": "Client delivery pack template",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-delivery-pack-template-v29.html",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 95
+      "title": "WebStudio skills",
+      "status": "done",
+      "category": "skills",
+      "kind": "report",
+      "output": "/workspace/output/webstudio-skills-inventory-v37.md"
     },
     {
-      "product_line": "D1",
-      "artifact_type": "client_003_delivery_pack_v29",
-      "title": "Client #003 delivery pack",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-example-003-delivery-pack-v1.html",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 94
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "premium_website_qa_system_v29",
-      "title": "Premium website QA system",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-premium-website-qa-system-v29.md",
-      "updated_at": "2026-05-25T12:52:19Z",
-      "readiness_score": 95
-    },
-    {
-      "product_line": "D3",
-      "artifact_type": "automation_readiness",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-order-builder-v27.json",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
+      "id": "d2-premium-factory-visual-sourcing",
       "product_line": "D2",
-      "artifact_type": "telegram_intake_planning",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-example-002-production-plan.md",
-      "updated_at": "2026-05-24T21:28:10Z"
+      "title": "Premium factory visual sourcing",
+      "status": "ready",
+      "category": "visuals",
+      "kind": "roadmap",
+      "output": "/workspace/output/webstudio-day2-visual-sourcing-engine-v37.md"
     },
     {
-      "product_line": "D1",
-      "artifact_type": "client_example_002_concepts",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-example-002-concept-a.html",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "premium_site_blueprint",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-premium-site-production-blueprint-v27.md",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "order_builder",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-order-builder-v27.md",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "intake_wizard",
-      "status": "PASS",
-      "path": "/workspace/output/webstudio-client-intake-wizard-v27.md",
-      "updated_at": "2026-05-24T21:28:10Z"
-    },
-    {
-      "product_line": "OPS",
-      "artifact_type": "motion_generator_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-motion-data-driven-generator-v26.md"
-    },
-    {
+      "id": "d3-premium-factory-automation-review",
       "product_line": "D3",
-      "artifact_type": "motion_bundle_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d3-motion-bundle-v26.md"
-    },
-    {
-      "product_line": "D2",
-      "artifact_type": "motion_bundle_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d2-motion-bundle-v26.md"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "motion_bundle_v26",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d1-motion-bundle-v26.md"
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "client_showcase",
-      "title": "Example #003 brief",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-client-example-003-brief.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "premium_site_concept",
-      "title": "Example #003 concept A",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-client-example-003-concept-a.html",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "motion_plan",
-      "title": "Example #003 motion plan",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-client-example-003-motion-plan.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "D1",
-      "artifact_type": "service_package",
-      "title": "D1/D2/D3 service packages",
-      "status": "READY",
-      "path": "/workspace/output/webstudio-d1-d2-d3-service-packages-v28.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
-    },
-    {
-      "product_line": "OPS",
-      "artifact_type": "github_audit",
-      "title": "GitHub contribution visibility audit v28",
-      "status": "READY",
-      "path": "/workspace/output/github-contribution-visibility-audit-v28.md",
-      "updated_at": "2026-05-24T22:10:41Z",
-      "readiness_score": 92
+      "title": "Premium factory automation review",
+      "status": "ready",
+      "category": "automation",
+      "kind": "roadmap",
+      "output": "/workspace/output/webstudio-day3-automation-review-v37.md"
     }
   ],
-  "client_simulation": {},
-  "system_layer": {},
-  "analytics": {},
-  "github_sync": {
-    "status": "MAINLINE_MERGED",
-    "pr_1": "MERGED",
-    "default_branch": "main",
-    "default_sha": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-    "contribution_visibility_note": "GitHub graph may update with 1-24h delay; check private contribution visibility and author email only if still empty later.",
-    "v29_pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/2",
-    "v29_branch": "webstudio/product-build-v29",
-    "v29_head_sha": "1433f9e7a2fab16506ccf56aab48da7ad7b4bcc5",
-    "v29_checks_failed": 0,
-    "v29_checks_pending": 0,
-    "v29_owner_action_required": false
-  },
-  "qmd_maintenance": {},
-  "repo_sync": {
-    "worktree": "/workspace/tmp/webstudio-ops-dashboard-pr",
-    "meaningful_changes_needed": true,
-    "reason": "Ops Cockpit/dashboard source should expose Premium Motion Factory v25/v26 capability and docs/reports should be tracked in PR; v25 output-only MP4 assets remain /workspace/output deliverables."
-  },
-  "v18_status": null,
-  "v19_status": null,
-  "v20_status": null,
-  "v21_status": null,
-  "premium_motion_factory_v25": "PASS",
-  "premium_motion_factory_v26": {
-    "status": "PASS_REPO_SYNCED_PRODUCTION_HARDENED",
-    "repo_sync": "PASS_VIA_PR_BRANCH",
-    "v26_commit": "dc806425cf5de0aec6e7981968e234821de90979",
-    "pr_latest_commit": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "auto_push_result": "N/A_THIS_PASS_ALREADY_PUSHED_BY_SUPERSET_BRANCH",
-    "production_generator": "PASS",
-    "batch_render": "PASS_EXISTING_ASSETS_VERIFIED_NO_HEAVY_RERENDER",
-    "poster_auto_pick": "PASS",
-    "reduced_motion_fallback": "PASS",
-    "handoff_pack": "PASS",
-    "d1_d2_d3_motion_bundles": "PASS",
-    "owner_action_required": false,
-    "report": "/workspace/output/webstudio-premium-motion-factory-v26-report.md"
-  },
-  "production_generator": "READY",
-  "batch_render_workflow": "READY",
-  "poster_auto_pick": "PASS",
-  "reduced_motion_fallback": "READY",
-  "client_handoff_pack": "READY",
-  "video_metadata_path": "/workspace/output/webstudio-motion-v26-video-metadata.json",
-  "latest_pr_commit": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-  "report": "/workspace/output/webstudio-client-intake-order-builder-v27-report.md",
-  "by_line": {
-    "D1": [
-      {
-        "product_line": "D1",
-        "artifact_type": "client_example_002_concepts",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-client-example-002-concept-a.html",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "premium_site_blueprint",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-premium-site-production-blueprint-v27.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "order_builder",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-order-builder-v27.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "intake_wizard",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-client-intake-wizard-v27.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D1",
-        "artifact_type": "motion_bundle_v26",
-        "status": "READY",
-        "path": "/workspace/output/webstudio-d1-motion-bundle-v26.md"
-      }
-    ],
-    "D2": [
-      {
-        "product_line": "D2",
-        "artifact_type": "telegram_intake_planning",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-client-example-002-production-plan.md",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D2",
-        "artifact_type": "motion_bundle_v26",
-        "status": "READY",
-        "path": "/workspace/output/webstudio-d2-motion-bundle-v26.md"
-      }
-    ],
-    "D3": [
-      {
-        "product_line": "D3",
-        "artifact_type": "automation_readiness",
-        "status": "PASS",
-        "path": "/workspace/output/webstudio-order-builder-v27.json",
-        "updated_at": "2026-05-24T21:28:10Z"
-      },
-      {
-        "product_line": "D3",
-        "artifact_type": "motion_bundle_v26",
-        "status": "READY",
-        "path": "/workspace/output/webstudio-d3-motion-bundle-v26.md"
-      }
-    ]
-  },
-  "latest_summary": [
-    "D3: automation_readiness → /workspace/output/webstudio-order-builder-v27.json",
-    "D2: telegram_intake_planning → /workspace/output/webstudio-client-example-002-production-plan.md",
-    "D1: client_example_002_concepts → /workspace/output/webstudio-client-example-002-concept-a.html",
-    "D1: premium_site_blueprint → /workspace/output/webstudio-premium-site-production-blueprint-v27.md",
-    "D1: order_builder → /workspace/output/webstudio-order-builder-v27.md",
-    "D1: intake_wizard → /workspace/output/webstudio-client-intake-wizard-v27.md",
-    "OPS: motion_generator_v26 → /workspace/output/webstudio-motion-data-driven-generator-v26.md",
-    "D3: motion_bundle_v26 → /workspace/output/webstudio-d3-motion-bundle-v26.md",
-    "D2: motion_bundle_v26 → /workspace/output/webstudio-d2-motion-bundle-v26.md",
-    "D1: motion_bundle_v26 → /workspace/output/webstudio-d1-motion-bundle-v26.md"
+  "owner_action_required": "NO",
+  "artifacts": [
+    "/workspace/output/hermes-runtime-repair-v35-report.md",
+    "/workspace/output/current-task-continuation-checkpoint.md"
   ],
-  "v28_status": "CONTINUING_OVERNIGHT",
-  "v28_1_status": "PASS",
-  "github_mainline": {
-    "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
-    "branch": "webstudio/hardening-v3-host-completion",
-    "latest_pr_sha": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "default_branch": "main",
-    "default_branch_sha": "67a31d484677488758c99e30343a08e95463fe9e",
-    "pr_merged": false,
-    "checks_status": "NO_FAILED_CHECKS",
-    "gitguardian": "SUCCESS",
-    "merge_approval_packet": "/workspace/output/github-mainline-merge-approval-packet-v28.md",
-    "owner_action_required": true
-  },
-  "host_runner": {
-    "status": "PASS_AFTER_REQUEUE",
-    "runner_latest": "/workspace/output/host-job-runner/latest.json",
-    "root": "/home/hermes/workspace/.hermes-host-jobs",
-    "allowed_pending_dirs": [
-      "github",
-      "system"
-    ],
-    "reason_original_job_not_processed": "original job was at root and marker was github/autopush-mainline-v28; runner scans github/*.sh/system/*.sh and allowlists marker github/autopush or github/pr-verify"
-  },
-  "iteration_auto_extend": {
-    "max_turns": 240,
-    "auto_extend_iterations": true,
-    "chunk": 120,
-    "max_extensions": 3,
-    "ceiling": 600,
-    "runtime_verification": "PARTIAL: config/source/tests PASS; systemctl service_status unavailable in host job, host snapshot previously active",
-    "report": "/workspace/output/iteration-budget-auto-extend-v28-1-report.md",
-    "recovery_patch": "/workspace/output/iteration-budget-auto-extend-recovery-patch-v28-1.patch",
-    "rollback": "/workspace/output/iteration-budget-auto-extend-rollback-v28-1.md",
-    "runtime_json": "/workspace/output/iteration-budget-auto-extend-v28-1-runtime.json",
-    "checks_pass": true,
-    "config_pass": true,
-    "persistence_status": "RECOVERABLE_PATCH_CREATED_SOURCE_PRESENT_UNCOMMITTED"
-  },
-  "continuation_queue": {
-    "job": "/workspace/.hermes-workqueue/webstudio/pending/webstudio-continuation-v28-overnight-premium-build.json",
-    "status": "pending",
-    "owner_does_not_need_to_type_continue": true
-  },
-  "state_reconciliation_v26_1": {
-    "status": "PASS_RECONCILED_CONTINUE_FROM_V27_V28_MAINLINE_CONTEXT",
-    "system_verdict_v21_7": "PASS_WITH_ISOLATED_OPS_MODEL_QUOTA_WATCH",
-    "product_work_allowed": true,
-    "do_not_return_to_v21_7_ops_hardening": true,
-    "v22_client_showcase": "PASS",
-    "v23_premium_website_factory": "PASS",
-    "v24_hyperframes_runtime": "PASS",
-    "v25_premium_motion_factory": "PASS",
-    "v26_motion_factory_production_hardening": "PASS_REPO_SYNCED_PRODUCTION_HARDENED",
-    "v27_client_intake_order_builder": "PASS_ALREADY_DELIVERED",
-    "latest_pr_commit": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "default_branch_sha": "67a31d484677488758c99e30343a08e95463fe9e",
-    "gitguardian": "SUCCESS",
-    "host_runner_latest": "NOOP_NO_PENDING_JOBS",
-    "next_phase": "v28_1_mainline_merge_approval_or_continue_product_work_after_mainline_decision",
-    "owner_action_required_for_product_work": false,
-    "owner_action_required_for_mainline_merge": true,
-    "report": "/workspace/output/webstudio-state-reconciliation-v26-1.md"
-  },
-  "github_mainline_v28_1": {
-    "schema": "webstudio-mainline-merge-result-v28.1",
-    "timestamp": "2026-05-25T12:33:00Z",
-    "status": "MAINLINE_MERGED",
-    "reason": "PR #1 is verified merged; current default branch already contains representative PR work. The post-merge verifier observed unchanged SHA because merge had already landed before the final verification pass.",
-    "repo": "pltnv123/webstudio-ops-dashboard",
-    "pr": 1,
-    "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
-    "expected_pr_head": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "pr_head_sha": "becbd4534e5ed3787e0dad688900b7c741cde541",
-    "default_branch": "main",
-    "default_branch_sha_before_owner_decision_known": "67a31d484677488758c99e30343a08e95463fe9e",
-    "default_branch_sha_before_final_verification": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-    "default_branch_sha_after": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
-    "pr_state_after": "MERGED",
-    "merged_at": "2026-05-25T10:30:22Z",
-    "merged": true,
-    "merge_method": "squash",
-    "checks_status": "NO_FAILED_CHECKS",
-    "main_checks_failed": 0,
-    "main_checks_pending": 0,
-    "secret_findings": 0,
-    "local_conflict": "NO",
-    "deploy_hook_risk": "NONE_VISIBLE",
-    "owner_action_required": false,
-    "main_contains_representative_pr_work": true,
-    "v28_1": "PASS",
-    "next_phase": "Product Build v29 — Premium client-facing website delivery system"
-  },
-  "v26_accepted_pass": true,
-  "v28_1": "PASS",
-  "next_phase": "Product Build v29 — Premium client-facing website delivery system",
-  "v26_status": "PASS",
-  "mainline_status": "MAINLINE_MERGED",
-  "delivery_system_v29": {
-    "status": "PASS",
-    "pipeline": "/workspace/output/webstudio-client-delivery-pipeline-v29.json",
-    "qa_checklist": "/workspace/output/webstudio-premium-website-qa-checklist-v29.json",
-    "client_003": "/workspace/output/webstudio-client-example-003-delivery-pack-v1.html",
-    "owner_action_required": "no_for_local_artifacts_yes_for_live_actions"
-  },
-  "v29_status": "PASS",
-  "v30_status": "PASS_LOCAL_READY_QA_PENDING",
-  "real_client_execution_v30": {
-    "status": "PASS_LOCAL_READY",
-    "client": "004",
-    "flow_stages": 15,
-    "d1": "PASS",
-    "d2": "PASS",
-    "d3": "PASS_DRY_RUN_ONLY",
-    "motion": "PASS_HTML_COMPOSITION",
-    "preview_package": "PASS",
-    "artifact_registry": "PASS",
-    "owner_action_required": "no_for_local_artifacts_yes_for_live_actions",
-    "paths": {
-      "flow": "/workspace/output/webstudio-real-client-execution-flow-v30.md",
-      "client_report": "/workspace/output/webstudio-client-004-report-v30.md",
-      "preview": "/workspace/output/webstudio-client-004-d1-preview-v30.html",
-      "registry": "/workspace/output/webstudio-preview-export-registry-v30.json"
+  "updated_at": "2026-05-26T15:31:14Z",
+  "current_state_lock": {
+    "v34_3_client_004_production_demo": "PASS_CLIENT_DEMO_READY",
+    "product_work": "PAUSED_UNTIL_RUNTIME_REPAIR_PASS_OR_EXACT_ISOLATED_BLOCKER",
+    "current_blocker": "Hermes Runtime Repair v35 / Host Runner processing",
+    "host_smoke_job": "exists_but_not_processed_per_owner_and_prior_artifacts",
+    "provider_smoke": {
+      "gpt-5.5": "NOT_RUN_PENDING_HOST_RUNNER",
+      "gpt-5.4-mini": "NOT_RUN_PENDING_HOST_RUNNER"
     },
-    "kanban_cards": [
-      "t_4cb282ef",
-      "t_be3ffda7",
-      "t_de8d698e",
-      "t_a6c10326",
-      "t_e250c088",
-      "t_22649d76",
-      "t_70d47b35"
-    ]
-  }
+    "degraded_sandbox": "may have partial host visibility; host snapshot is preferred source",
+    "next_product_phase": "Premium Website Factory v36+ only after allowed system verdict",
+    "no_chat_cron": true,
+    "diagnostics_policy": "long diagnostics to artifacts; compact checkpoint for live prompt"
+  },
+  "phases": {
+    "0_current_state_lock": "in_progress",
+    "1_host_runner_processing_repair": "next",
+    "2_runtime_provider_smoke": "blocked_until_phase1",
+    "3_context_hygiene": "after_phase2_or_parallel_report_only",
+    "4_webstudio_regression": "after_runtime_smoke",
+    "5_github_autopush_health": "after_repo_or_runner_changes",
+    "6_system_green_verdict": "after_1_5",
+    "7_premium_factory_product_work": "not_started"
+  },
+  "approval_boundaries": [
+    "production secrets",
+    "live Telegram token",
+    "live CRM/Sheets writes",
+    "Supabase write migrations",
+    "deploy/release to public production",
+    "payment/live external actions",
+    "private client data approval",
+    "legal/medical public-launch approval"
+  ],
+  "system_verdict": "PASS_WITH_ISOLATED_PROVIDER_WATCH",
+  "host_runner_processing": "PASS",
+  "primary_gpt55_smoke": "PASS",
+  "default_route_smoke": "PASS",
+  "fallback_mini_smoke": "FAIL_ISOLATED_PROVIDER_WATCH",
+  "product_work_next": "Premium Website Factory v36+ allowed with provider watch after finalization",
+  "program": "WebStudio 7-Day Autonomous Premium Factory Program v37",
+  "v34_3_preserved": true,
+  "week_day": 0,
+  "current_phase": "Day 1 ready: research/design-system foundation",
+  "next_autonomous_job": "000-webstudio-v37-day0-state-lock-and-runtime-stability",
+  "weekly_artifacts": [
+    "/workspace/output/webstudio-weekly-plan-v37.md",
+    "/workspace/output/webstudio-weekly-plan-v37.json"
+  ],
+  "day0_status": "PASS_WITH_ISOLATED_PROVIDER_WATCH",
+  "host_runner_system_health_check": "PASS",
+  "host_runner_github_pr_verify": "PASS",
+  "github_autopush": "NOT_NEEDED_THIS_PASS",
+  "github_host_permissions": "ADMIN_PUSH_PULL",
+  "provider_primary": "PASS",
+  "provider_default": "PASS",
+  "provider_fallback_mini": "FAIL_ISOLATED_ENCRYPTED_CONTENT"
 }

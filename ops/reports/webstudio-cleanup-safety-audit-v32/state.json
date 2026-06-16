@@ -1,0 +1,13 @@
+{
+  "component": "webstudio-cleanup-safety-audit",
+  "version": "v3.2",
+  "status": "REPORT_READY_REMOTE_BLOCKED",
+  "route": "report-only",
+  "output_root": "/workspace/output/webstudio-cleanup-safety-audit-v32",
+  "local_base_commit": "38af9731034850071e8aaea5e6922c575587756c",
+  "generated_at": "2026-06-01T03:57:38Z",
+  "push_status": "BLOCKED_HOST_BRIDGE_NOT_EXECUTED",
+  "supabase_row_id": "8396a2c5-f233-40e2-895d-44cc632ee567",
+  "supabase_row_written": true,
+  "updated_at": "2026-06-01T03:58:33Z"
+}

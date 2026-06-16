@@ -1,0 +1,13 @@
+{
+  "component": "webstudio-order-builder",
+  "version": "v3.0",
+  "status": "PARTIAL_LOCAL_PASS_REMOTE_BLOCKED",
+  "route": "/order-builder/",
+  "output_root": "/workspace/output/webstudio-client-interview-order-builder-v30",
+  "local_base_commit": "38af9731034850071e8aaea5e6922c575587756c",
+  "generated_at": "2026-06-01T03:57:38Z",
+  "push_status": "BLOCKED_HOST_BRIDGE_NOT_EXECUTED",
+  "supabase_row_id": "99ebfef7-2931-4376-b5d9-4d1346d070f8",
+  "supabase_row_written": true,
+  "updated_at": "2026-06-01T03:58:33Z"
+}

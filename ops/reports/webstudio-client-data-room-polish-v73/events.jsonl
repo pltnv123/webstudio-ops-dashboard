@@ -1,0 +1,8 @@
+{"ts":"2026-06-16T19:20:53Z","event":"phase.start","status":"PASS","message":"V7.3 continued from clean V7.2 baseline; no restart from scratch."}
+{"ts":"2026-06-16T19:20:53Z","event":"implementation.done","status":"PASS","files":["src/app.js","src/index.html","src/styles.css","scripts/build_snapshot.py","scripts/smoke_check.py"],"message":"Client Data Room polished to v73 and navigation bridge added for key routes."}
+{"ts":"2026-06-16T19:20:53Z","event":"validation.local","status":"PASS","gates":["npm run build","npm run smoke","local static smoke /client-data-room/","linked key routes smoke","secret scan changed files","git diff --check"]}
+
+{"ts":"2026-06-16T19:31:22Z","event":"recovery.validation","status":"PASS","head":"75c098c3f38f6453ca1828e5cec1c16b5061b0bc"}
+{"ts":"2026-06-16T19:31:29Z","event":"recovery.validation.copied","status":"PASS"}
+{"ts":"2026-06-16T19:40:29Z","event":"final.partial","status":"PARTIAL","head":"9e80d87ef755c19c32928b0dca9c259a953bd92a","remote":"9e80d87ef755c19c32928b0dca9c259a953bd92a","supabase_row_written":true}
+{"ts": "2026-06-16T19:41:40Z", "event": "deploy.verified", "status": "DEPLOYED_PASS", "commit": "9e80d87ef755c19c32928b0dca9c259a953bd92a", "route": "/client-data-room/"}

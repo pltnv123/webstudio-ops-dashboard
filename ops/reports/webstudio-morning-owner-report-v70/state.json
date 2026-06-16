@@ -1,0 +1,13 @@
+{
+  "phase": "V7.0 Owner Morning Report Route",
+  "status": "LOCAL_PASS_PENDING_REMOTE_PUSH",
+  "updated_at": "2026-06-15T05:51:53Z",
+  "base_commit": "7facbea54d8188dbc5cc90620c51800f06076b2b",
+  "route": "/owner-morning-report/",
+  "supabase_rows": "PENDING_MCP_UNAVAILABLE",
+  "client_demo_ready": "static route local gates pass; remote proof pending until push/Pages",
+  "public_launch_ready": "NO_APPROVALS_OPEN",
+  "build_log": "/workspace/output/webstudio-morning-owner-report-v70/build.log",
+  "smoke_log": "/workspace/output/webstudio-morning-owner-report-v70/smoke.log",
+  "marker_smoke": "/workspace/output/webstudio-morning-owner-report-v70/static-marker-smoke.jsonl"
+}

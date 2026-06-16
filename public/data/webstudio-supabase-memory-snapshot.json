@@ -1,0 +1,46 @@
+{
+  "schema_version": "webstudio-supabase-memory.v2.6.static-snapshot",
+  "generated_at": "2026-06-01T03:04:31Z",
+  "source_mode": "static_snapshot_from_supabase_mcp",
+  "safety": {
+    "browser_side_supabase": false,
+    "reason": "No publishable-key/RLS proof is committed in this static dashboard. The UI uses sanitized build-time Supabase operational snapshot only.",
+    "secret_policy": "No Supabase keys, service-role tokens, private payloads, auth logs, or .env values are embedded."
+  },
+  "project_ref": "ebqupwyyafvnmhakfwet",
+  "tables": ["webstudio_ops_status", "webstudio_jobs", "webstudio_artifacts", "webstudio_memory_index"],
+  "latest_ops_status": [
+    {"id":"0c5743f9-a8b7-4acd-a5a4-6c5583dd7d4d","component":"webstudio-autonomous-delivery-loop","version":"v2.5","status":"BASELINE_READY","git_commit":"d418910591ac74187906028d9a78423db7cbc5ad","deployment_target":"https://pltnv123.github.io/webstudio-ops-dashboard/","notes":"Final V2.5 autonomous delivery loop baseline row after sanitized policy/report push. Policies installed under ops/reports/webstudio-autonomous-delivery-loop-v25. Pages HTTP 200 and workflow succeeded.","created_at":"2026-06-01T02:58:29.949921Z"},
+    {"id":"e68f16b2-e8ee-416f-b7a9-1c675b25e5a5","component":"webstudio-autonomous-delivery-loop","version":"v2.5","status":"BASELINE_READY","git_commit":"94eee6d2ad702fa6f47350ae3b3827bbedf12886","deployment_target":"https://pltnv123.github.io/webstudio-ops-dashboard/","notes":"V2.5 autonomous delivery loop baseline prepared. Default branch webstudio/product-build-v31, Pages HTTP 200, latest Pages deploy success.","created_at":"2026-06-01T02:56:21.757960Z"},
+    {"id":"ebe08810-fcfc-4bd1-b547-78e6c06bfec6","component":"webstudio-branch-strategy","version":"v2.4b","status":"DEFAULT_BRANCH_LOCKED","git_commit":"94eee6d2ad702fa6f47350ae3b3827bbedf12886","deployment_target":"https://pltnv123.github.io/webstudio-ops-dashboard/","notes":"Default branch locked to webstudio/product-build-v31 after report push. Pages HTTP 200.","created_at":"2026-06-01T02:51:37.089716Z"},
+    {"id":"0266f6f7-2c43-462d-9bbc-32c622bd19d1","component":"webstudio-serverless-control-plane","version":"v2.4","status":"BASELINE_READY","git_commit":"c002bd7db0e1ed8ef1024f8eeccf5191ce4171cb","deployment_target":"https://pltnv123.github.io/webstudio-ops-dashboard/","notes":"V2.4 serverless control-plane baseline ready. Pages HTTP 200, Actions deploy success, Supabase ops tables verified.","created_at":"2026-06-01T02:45:49.770602Z"},
+    {"id":"c5e418ed-f50a-49f8-b6a9-cb08323b6dc4","component":"webstudio-production-autopilot","version":"v2.3e","status":"DEPLOYED","git_commit":"150666666fe41aa2c23146fd475ce559ea375c79","deployment_target":"https://pltnv123.github.io/webstudio-ops-dashboard/","notes":"GitHub Actions/Pages deployment and URL smoke passed.","created_at":"2026-05-31T16:17:12.204648Z"}
+  ],
+  "latest_jobs": [
+    {"id":"83136f76-da95-4c64-abe1-21a3efbb711a","job_key":"webstudio-production-autopilot:v2.3b-github-reporting-baseline:a659b97db9e0ded6bcf8fd45fd454ce52addb127","title":"webstudio-production-autopilot v2.3b GitHub reporting baseline","status":"PASS","priority":100,"payload_summary":{"step":"v2.3b-github-reporting-baseline","component":"webstudio-production-autopilot","commit_hash":"a659b97db9e0ded6bcf8fd45fd454ce52addb127","pr_url":"https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"},"notes":"Sanitized report committed at restored branch head and pushed; secret scan passed.","created_at":"2026-05-30T20:27:18.085989Z","updated_at":"2026-05-30T20:27:18.085989Z"},
+    {"id":"9a77e47a-705f-468f-b178-5fee9c59562e","job_key":"webstudio-production-autopilot-v2_3b","title":"WebStudio Production Autopilot V2.3B -- GitHub Reporting Baseline + Push Policy","status":"completed","priority":10,"payload_summary":{"repo":"pltnv123/webstudio-ops-dashboard","branch":"webstudio/product-build-v32-premium-generator","commit":"5e95fe27588ec040717fa4180bde51ef01023f70","pr_url":"https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"},"notes":"Final V2.3B GitHub reporting baseline pushed; PR head verified; repo evidence allowlist passed.","created_at":"2026-05-30T20:26:02.313467Z","updated_at":"2026-05-30T20:27:00.410739Z"},
+    {"id":"f56cc6fb-c6b2-4236-80d2-e7ec76895e51","job_key":"webstudio-production-autopilot:v2.3b-github-reporting-baseline:030ec4770b4c8805177bf9e3aa16283c904ee743","title":"webstudio-production-autopilot v2.3b GitHub reporting baseline","status":"PASS","priority":100,"payload_summary":{"step":"v2.3b-github-reporting-baseline","component":"webstudio-production-autopilot","commit_hash":"030ec4770b4c8805177bf9e3aa16283c904ee743","pr_url":"https://github.com/pltnv123/webstudio-ops-dashboard/pull/5"},"notes":"Sanitized report committed and pushed; PR updated/found; secret scan passed.","created_at":"2026-05-30T20:24:46.309380Z","updated_at":"2026-05-30T20:24:46.309380Z"}
+  ],
+  "latest_artifacts": [],
+  "latest_memory_index": [],
+  "current_delivery_loop": {
+    "component": "webstudio-autonomous-delivery-loop",
+    "version": "v2.5",
+    "status": "BASELINE_READY",
+    "commit": "d418910591ac74187906028d9a78423db7cbc5ad",
+    "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+    "last_heartbeat_at": "2026-06-01T02:58:29.949921Z"
+  },
+  "latest_deploy": {
+    "commit": "d418910591ac74187906028d9a78423db7cbc5ad",
+    "status": "success",
+    "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/"
+  },
+  "bot_activity_summary": {
+    "supabase_jobs_total_visible": 3,
+    "supabase_jobs_pass_or_completed": 3,
+    "supabase_artifacts_total_visible": 0,
+    "memory_index_total_visible": 0,
+    "summary": "Supabase operational memory has recent status heartbeats and historical job records; artifacts and memory index are currently empty in the latest visible snapshot."
+  }
+}

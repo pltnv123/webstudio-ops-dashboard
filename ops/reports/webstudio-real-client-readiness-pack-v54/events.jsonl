@@ -1,0 +1,3 @@
+{"ts": "2026-06-04T23:18:36.401408+00:00", "event": "start", "status": "START", "component": "webstudio-real-client-readiness-pack"}
+{"ts": "2026-06-04T23:21:06.226100+00:00", "phase": "local_validation", "status": "PASS", "route": "/real-client-readiness/"}
+{"ts": "2026-06-04T23:31:59.566846+00:00", "phase": "deploy_supabase", "status": "PASS", "commit": "a4e8937b41c333b098808b7074babb3163bcedb1", "row_id": "44c11eff-f02f-4bc0-848c-d7d8accc6e1c", "url": "https://pltnv123.github.io/webstudio-ops-dashboard/real-client-readiness/"}

@@ -1,0 +1,12 @@
+{
+  "component": "webstudio-public-showcase",
+  "version": "v4.4",
+  "status": "DEPLOYED",
+  "route": "/webstudio-showcase/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/webstudio-showcase/",
+  "git_commit": "09942866566ab9a4e6aedd22c168eadb252c4d8e",
+  "actions_run_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26916607506",
+  "supabase_ops_status_id": "1994a9b2-1b1c-49dc-9e92-9247f1da3ec7",
+  "supabase_artifact_id": "fe0d7536-9aaa-4938-8903-afc279e420b1",
+  "updated_at": "2026-06-03T22:23:10Z"
+}

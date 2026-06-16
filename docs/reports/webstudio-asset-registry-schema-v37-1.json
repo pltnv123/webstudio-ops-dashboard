@@ -1,0 +1,23 @@
+{
+  "schema_version": "webstudio-asset-registry-schema.v37.1",
+  "fields": [
+    "asset_id",
+    "client_id",
+    "business_vertical",
+    "asset_type",
+    "source_type",
+    "legitimacy_state",
+    "license_or_approval",
+    "usage_context",
+    "public_allowed",
+    "replacement_required_before_launch",
+    "file_path",
+    "notes"
+  ],
+  "required": [
+    "asset_id",
+    "source_type",
+    "legitimacy_state",
+    "public_allowed"
+  ]
+}

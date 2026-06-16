@@ -1,0 +1,85 @@
+{
+  "attempt": 20,
+  "generated_at": "2026-06-01T04:28:06.386712Z",
+  "routes": [
+    {
+      "attempt": 20,
+      "name": "root",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+      "http": 200,
+      "bytes": 95334,
+      "markers": {
+        "Админка веб-студии": true,
+        "Owner Command Center": true
+      },
+      "ok": true,
+      "error": ""
+    },
+    {
+      "attempt": 20,
+      "name": "work_factory",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/work-factory/",
+      "http": 200,
+      "bytes": 95334,
+      "markers": {
+        "Фабрика задач": true,
+        "NEEDS_OWNER": true
+      },
+      "ok": true,
+      "error": ""
+    },
+    {
+      "attempt": 20,
+      "name": "owner_command_center",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/owner-command-center/",
+      "http": 200,
+      "bytes": 95334,
+      "markers": {
+        "Owner Command Center": true,
+        "Next safe action": false
+      },
+      "ok": false,
+      "error": ""
+    },
+    {
+      "attempt": 20,
+      "name": "order_builder",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/order-builder/",
+      "http": 200,
+      "bytes": 95334,
+      "markers": {
+        "Order Builder": true,
+        "Generated production brief": false
+      },
+      "ok": false,
+      "error": ""
+    },
+    {
+      "attempt": 20,
+      "name": "bot_activity",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/bot-activity/",
+      "http": 200,
+      "bytes": 95334,
+      "markers": {
+        "Bot Activity": true,
+        "PASS": true
+      },
+      "ok": true,
+      "error": ""
+    },
+    {
+      "attempt": 20,
+      "name": "supabase_memory",
+      "url": "https://pltnv123.github.io/webstudio-ops-dashboard/supabase-memory/",
+      "http": 200,
+      "bytes": 95334,
+      "markers": {
+        "Supabase Memory": true,
+        "webstudio_ops_status": true
+      },
+      "ok": true,
+      "error": ""
+    }
+  ],
+  "all_ok": false
+}

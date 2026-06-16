@@ -1,0 +1,80 @@
+{
+  "schema_version": "webstudio.client_order.v34.demo.v1",
+  "generated_at": "2026-06-01T14:04:50.885978Z",
+  "demo_only": true,
+  "business_name": "Northstar Executive Wellness Studio",
+  "niche": "premium executive wellness / physiotherapy / recovery studio",
+  "offer": "high-trust premium website for consult bookings, service education, and lead qualification",
+  "target_audience": [
+    "founders",
+    "executives",
+    "busy professionals",
+    "premium local service buyers"
+  ],
+  "brand_tone": [
+    "calm",
+    "clinical but human",
+    "editorial",
+    "precise",
+    "premium without hype"
+  ],
+  "required_pages": [
+    "Home",
+    "Services",
+    "Executive Recovery Program",
+    "About",
+    "Proof & Process",
+    "FAQ",
+    "Contact / Booking"
+  ],
+  "visual_direction": {
+    "style": "warm editorial clinical minimalism",
+    "palette": [
+      "warm ivory",
+      "ink navy",
+      "sage",
+      "muted brass"
+    ],
+    "avoid": [
+      "stock team photos",
+      "fake testimonials",
+      "blue-purple AI gradients",
+      "revenue/health guarantees"
+    ]
+  },
+  "content_assets": {
+    "provided": [
+      "demo service descriptions",
+      "demo founder note",
+      "demo QA policy"
+    ],
+    "needed": [
+      "real practitioner photos",
+      "licensed facility images",
+      "approved compliance copy",
+      "booking integration details"
+    ]
+  },
+  "conversion_goal": "book qualified consultation calls through clear service fit and trust-building proof artifacts",
+  "technical_requirements": [
+    "static GitHub Pages compatible",
+    "no browser-side secrets",
+    "responsive",
+    "fast",
+    "accessible",
+    "structured SEO outline",
+    "future Supabase artifact status integration"
+  ],
+  "delivery_checklist": [
+    "sanitized order",
+    "production brief",
+    "sitemap",
+    "copy outline",
+    "design system",
+    "component plan",
+    "QA gates",
+    "dashboard visibility",
+    "deploy proof",
+    "Supabase status"
+  ]
+}

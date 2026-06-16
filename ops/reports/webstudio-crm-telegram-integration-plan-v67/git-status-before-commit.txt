@@ -1,0 +1,23 @@
+ M scripts/build_snapshot.py
+ M scripts/smoke_check.py
+ M src/app.js
+ M src/index.html
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/approval-gates.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/build-smoke-report.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/continuation-prompt.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/crm-sheets-plan.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/deploy-report.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/events.jsonl
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/github-push-report.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/integration-plan.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/rollback-plan.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/rollout-plan.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/route-smoke-report.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/secret-scan-report.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/secrets-required-without-values.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/state.json
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/supabase-live-write-plan.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/supabase-status-update.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/telegram-intake-plan.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/ui-implementation.md
+?? ops/reports/webstudio-crm-telegram-integration-plan-v67/validation.md

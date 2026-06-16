@@ -1,0 +1,13 @@
+{
+  "component": "webstudio-premium-factory-roadmap",
+  "version": "v3.1",
+  "status": "REPORT_READY_REMOTE_BLOCKED",
+  "route": "report-only",
+  "output_root": "/workspace/output/webstudio-premium-factory-roadmap-v31",
+  "local_base_commit": "38af9731034850071e8aaea5e6922c575587756c",
+  "generated_at": "2026-06-01T03:57:38Z",
+  "push_status": "BLOCKED_HOST_BRIDGE_NOT_EXECUTED",
+  "supabase_row_id": "04ddb77d-1892-4593-b535-04ef89a4a98c",
+  "supabase_row_written": true,
+  "updated_at": "2026-06-01T03:58:33Z"
+}

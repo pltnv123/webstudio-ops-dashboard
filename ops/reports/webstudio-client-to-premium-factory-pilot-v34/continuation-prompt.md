@@ -1,0 +1,1 @@
+Continue WebStudio V3.4 only if final report push, Supabase rows, or hfinalize did not complete. Start by reading `/workspace/output/webstudio-client-to-premium-factory-pilot-v34/state.json`, `latest-checkpoint.md`, `validation.md`, and `phase-index.md`. Do not restart from scratch.

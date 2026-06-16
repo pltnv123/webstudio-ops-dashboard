@@ -1,0 +1,270 @@
+{
+  "version": "v31",
+  "generated_at": "2026-05-25T15:19:08Z",
+  "status": "PASS",
+  "order_types": [
+    {
+      "name": "Premium landing",
+      "what_client_gets": "Premium landing: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "D1",
+      "timeline_class": "2-4 weeks",
+      "upsells": [
+        "motion package",
+        "Telegram intake"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Multipage website",
+      "what_client_gets": "Multipage website: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "D1",
+      "timeline_class": "4-8 weeks",
+      "upsells": [
+        "SEO pillar pages",
+        "brand system"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Telegram AI intake bot",
+      "what_client_gets": "Telegram AI intake bot: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "D2",
+      "timeline_class": "1-3 weeks",
+      "upsells": [
+        "CRM handoff",
+        "analytics"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Automation / CRM readiness",
+      "what_client_gets": "Automation / CRM readiness: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "D3",
+      "timeline_class": "1-3 weeks",
+      "upsells": [
+        "live CRM integration"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Motion package",
+      "what_client_gets": "Motion package: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "D1/Motion",
+      "timeline_class": "1-2 weeks",
+      "upsells": [
+        "website-to-video"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Website-to-video package",
+      "what_client_gets": "Website-to-video package: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "Motion",
+      "timeline_class": "1 week",
+      "upsells": [
+        "social teasers"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Sales pack / offer pack",
+      "what_client_gets": "Sales pack / offer pack: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "D1/Sales",
+      "timeline_class": "1-2 weeks",
+      "upsells": [
+        "proposal automation"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Brand / design system pack",
+      "what_client_gets": "Brand / design system pack: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "D1",
+      "timeline_class": "2-4 weeks",
+      "upsells": [
+        "component library"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Mobile app discovery",
+      "what_client_gets": "Mobile app discovery: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "Product",
+      "timeline_class": "2-3 weeks",
+      "upsells": [
+        "prototype"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    },
+    {
+      "name": "Client handoff package",
+      "what_client_gets": "Client handoff package: scoped premium deliverable with QA and handoff",
+      "inputs_needed": [
+        "brief",
+        "proof assets",
+        "CTA",
+        "approval owner"
+      ],
+      "outputs": [
+        "strategy",
+        "prototype/artifacts",
+        "QA report",
+        "handoff pack"
+      ],
+      "d1_d2_d3_involvement": "Delivery",
+      "timeline_class": "1 week",
+      "upsells": [
+        "support retainer"
+      ],
+      "approval_gates": [
+        "scope approval",
+        "content/proof approval",
+        "launch approval"
+      ]
+    }
+  ]
+}

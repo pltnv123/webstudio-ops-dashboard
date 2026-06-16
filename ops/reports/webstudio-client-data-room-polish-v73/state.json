@@ -1,0 +1,21 @@
+{
+  "task": "WEBSTUDIO V7.3 — Client Data Room Polish + Navigation Integration",
+  "component": "webstudio-client-data-room-polish",
+  "version": "v7.3",
+  "status": "DEPLOYED_PASS",
+  "repo": "/workspace/tmp/webstudio-v72-work",
+  "branch": "webstudio/product-build-v31",
+  "head": "9e80d87ef755c19c32928b0dca9c259a953bd92a",
+  "remote_sha": "9e80d87ef755c19c32928b0dca9c259a953bd92a",
+  "git_status_short_count": 0,
+  "route": "/client-data-room/",
+  "url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-data-room/",
+  "local_gates": "PASS",
+  "github_push": "PASS_HOST_AUTOPUSH",
+  "deploy": "DEPLOYED_PASS",
+  "supabase_row_written": true,
+  "blockers": [],
+  "next_safe_action": "V7.3 closed. Do not start V7.4 unless explicitly requested.",
+  "latest_deploy_status": "RUN 1 27643277662 Deploy staging to GitHub Pages 9e80d87ef755c19c32928b0dca9c259a953bd92a completed success",
+  "public_marker_smoke": "PASS"
+}

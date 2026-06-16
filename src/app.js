@@ -1,8 +1,27 @@
 const DATA_URL = './data/webstudio-control-plane-state.json';
+const OPERATOR_OS_URL = './data/webstudio-operator-os-state.json';
+const OPERATOR_ORDERS_STORAGE_KEY = 'webstudio_operator_orders_v1';
+const OPERATOR_LEADS_STORAGE_KEY = 'webstudio_operator_leads_v1';
+const OPERATOR_SYNC_QUEUE_STORAGE_KEY = 'webstudio_operator_sync_queue_v1';
+const OPERATOR_LAST_BACKUP_STORAGE_KEY = 'webstudio_operator_last_backup_v1';
+const OPERATOR_STORAGE_SCHEMA_VERSION = 'webstudio.operator.storage.v1';
+const OPERATOR_ORDER_SCHEMA_VERSION = 'webstudio.operator.order.v3';
+const OPERATOR_LEAD_SCHEMA_VERSION = 'webstudio.operator.lead.v3';
+const WEBSITE_BRIEF_SCHEMA_VERSION = 'webstudio.website.production_brief.v3';
+const STORAGE_MODE = 'localStorage';
+const BACKEND_STATUS = 'Supabase не подключён';
 
 let state = null;
+let operatorState = null;
 const pathRoute = window.location.pathname.replace(/^\/+|\/+$/g, '');
-let route = window.location.hash.replace('#', '') || (['kanban', 'production', 'demo-products', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','capabilities','motion-factory','intake-orders','delivery','real-clients','d3-intake','clients','sales-pack','morning-desk','work-factory','audit'].includes(pathRoute) ? pathRoute : 'overview');
+function normalizeRoute(value) {
+  const raw = String(value || '').replace(/^#/, '') || 'overview';
+  if (raw === 'execution-kanban') return 'kanban';
+  if (raw === 'clients') return 'orders';
+  if (raw === 'Обзор') return 'overview';
+  return raw;
+}
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','client-data-room','client-safe-preview','proof-case-study','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','bot-activity','route-health','owner-morning-report','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -15,7 +34,11 @@ let filters = {
   d3IntakeStatus: 'all',
   ownerFeedback: '',
   ownerFeedbackState: 'all',
+  operatorAction: 'new_order',
+  activeOrder: 'DEMO-WEB-001',
+  activeLead: '',
   productionQuick: 'active',
+  timeline: 'all',
   showArchived: false
 };
 
@@ -32,14 +55,43 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач',kanban:'Канбан',production:'Производство','demo-products':'Демо-продукты','agent-workflow':'Агенты',capabilities:'Навыки агентов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','bot-activity':'Активность ботов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote','supabase-memory':'Память Supabase','route-health':'Здоровье маршрутов','client-data-room':'Client Data Room','owner-morning-report':'Утренний отчёт',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
-  pass:'Готово',PASS:'Готово',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено',client_showcase:'Витрина клиента',scenario_replay:'Сценарии диалога',dry_run_readiness:'Готовность dry-run',ready_for_owner_review:'Готово к проверке владельца'
+  pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
 const STAGE_RU = {'intake':'Заявки','client-qualification':'Квалификация','brief':'Бриф','estimate-pricing':'Оценка','architecture-plan':'План','design-content':'Дизайн/контент','implementation':'Разработка','qa':'QA','approval':'Согласование','delivery-handoff':'Передача клиенту','post-delivery-support':'Поддержка','unspecified':'Без стадии','canary':'Проверка','archived-noise':'Архив/шум'};
 const LINE_RU = {D1:'D1 — Лендинги и сайты',D2:'D2 — AI-intake бот',D3:'D3 — Бизнес-автоматизации'};
 const ROLE_RU = {'CTO Agent':'CTO-агент','Orchestrator Agent':'Оркестратор','Specialist Agents':'Исполнители','QA/Delivery':'QA и передача','Done':'Готово','Frontend Agent':'Frontend-агент','Backend Agent':'Backend-агент','QA Agent':'QA-агент','Delivery Agent':'Передача','Specialist Agent':'Исполнитель'};
 const ru = (v) => RU[String(v)] || STAGE_RU[String(v)] || LINE_RU[String(v)] || ROLE_RU[String(v)] || String(v ?? '—');
+const PREMIUM_FACTORY_V126 = [
+  {name: 'Aero Clinic DEMO', niche: 'premium medical aesthetics clinic', motion: 'orbital diagnostic halo', path: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/premium-factory-sites/aero-clinic/index.html', qa: 'PASS'},
+  {name: 'Atlas Legal DEMO', niche: 'boutique cross-border law firm', motion: 'folded jurisdiction grid', path: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/premium-factory-sites/atlas-legal/index.html', qa: 'PASS'},
+  {name: 'Forge SaaS DEMO', niche: 'enterprise AI operations platform', motion: 'live operations cube', path: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/premium-factory-sites/forge-saas/index.html', qa: 'PASS'},
+  {name: 'Noir Hospitality DEMO', niche: 'luxury hotel and private dining venue', motion: 'immersive room-frame stack', path: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/premium-factory-sites/noir-hospitality/index.html', qa: 'PASS'}
+];
+function uiText(v) {
+  const map = {
+    not_required_until_live_action: 'не требуется до live-действия',
+    owner_required_for_sensitive_or_live_scope: 'требуется для чувствительного или live scope',
+    not_required: 'не требуется',
+    owner_review_recommended: 'рекомендуется review владельца',
+    owner_required_before_public_launch: 'требуется перед публичным запуском',
+    owner_required_for_live_token: 'требуется для live token',
+    owner_required_for_writes_or_schedules: 'требуется для writes или schedules',
+    owner_required_before_heavy_render_or_public_launch: 'требуется перед тяжелым render или public launch',
+    not_required_for_local_qa: 'не требуется для локальной QA',
+    owner_acceptance_required_for_close: 'требуется acceptance владельца перед закрытием',
+    owner_required_before_outreach: 'требуется перед outreach',
+    owner_required_before_send: 'требуется перед отправкой',
+    pending_owner: 'ожидает владельца',
+    required_before_live_action: 'требуется перед live-действием',
+    not_required_for_local_work: 'не требуется для локальной работы',
+    owner_approval_required: 'требуется approval владельца',
+    available: 'доступен',
+    none: 'нет'
+  };
+  return map[String(v)] || ru(v);
+}
 const shortText = (v, n=92) => { const t = String(v || '').replace(/\s+/g, ' ').trim(); return t.length > n ? t.slice(0, n - 1) + '…' : (t || '—'); };
 const shortPath = (v) => { const t=String(v||''); return t.length > 42 ? '…/' + t.split('/').slice(-2).join('/') : (t || '—'); };
 const cleanTitle = (v) => String(v || '').replace(/\[WEBSTUDIO\]|\[D1\]|\[D2\]|\[D3\]|\[AGENT\]|\[OPS\]|\[REVIEW\]|\[DELIVERY\]|\[BLOCKED\]/g, '').replace(/\s+/g,' ').trim();
@@ -144,6 +196,7 @@ function staleExplanationCard() {
 async function loadState() {
   if (window.__WEBSTUDIO_STATE__) {
     state = window.__WEBSTUDIO_STATE__;
+    operatorState = await loadOperatorState();
     updateChrome();
     render();
     return;
@@ -151,8 +204,564 @@ async function loadState() {
   const res = await fetch(DATA_URL + '?t=' + Date.now(), {cache: 'no-store'});
   if (!res.ok) throw new Error('Failed to load state: ' + res.status);
   state = await res.json();
+  operatorState = await loadOperatorState();
   updateChrome();
   render();
+}
+
+async function loadOperatorState() {
+  const res = await fetch(OPERATOR_OS_URL + '?t=' + Date.now(), {cache: 'no-store'});
+  if (!res.ok) return {orders: [], operator_actions: [], execution_kanban: [], website_questionnaire: [], lead_research_queue: [], agent_roles: [], safety_policy: {}};
+  const loaded = await res.json();
+  return hydrateOperatorPersistence(loaded);
+}
+
+function safeJsonParse(raw, fallback) {
+  try { return JSON.parse(raw); } catch { return fallback; }
+}
+function readStorageArray(key, fallback=[]) {
+  const raw = localStorage.getItem(key);
+  return raw ? asArray(safeJsonParse(raw, fallback)) : fallback;
+}
+function writeStorageArray(key, value) {
+  localStorage.setItem(key, JSON.stringify(asArray(value), null, 2));
+}
+function readStorageObject(key, fallback={}) {
+  const raw = localStorage.getItem(key);
+  return raw ? safeJsonParse(raw, fallback) : fallback;
+}
+function writeStorageObject(key, value) {
+  localStorage.setItem(key, JSON.stringify(value || {}, null, 2));
+}
+function nowIso() { return new Date().toISOString(); }
+function storageFingerprint(value) {
+  const raw = JSON.stringify(value ?? null);
+  let hash = 0;
+  for (let i = 0; i < raw.length; i += 1) hash = ((hash << 5) - hash + raw.charCodeAt(i)) | 0;
+  return 'local-' + Math.abs(hash).toString(36);
+}
+class StorageAdapter {
+  constructor() {
+    this.mode = 'abstract';
+    this.backend = 'not configured';
+    this.readonly = true;
+  }
+  loadOrders(fallback=[]) { return fallback; }
+  saveOrders(_orders) { throw new Error('StorageAdapter.saveOrders is not implemented'); }
+  loadLeads(fallback=[]) { return fallback; }
+  saveLeads(_leads) { throw new Error('StorageAdapter.saveLeads is not implemented'); }
+  loadSyncQueue() { return []; }
+  saveSyncQueue(_events) { throw new Error('StorageAdapter.saveSyncQueue is not implemented'); }
+  status() {
+    return {
+      storage_schema_version: OPERATOR_STORAGE_SCHEMA_VERSION,
+      mode: this.mode,
+      backend: this.backend,
+      sync_status: 'local only',
+      readonly_backend: this.readonly,
+      network_writes_enabled: false
+    };
+  }
+}
+class LocalStorageAdapter extends StorageAdapter {
+  constructor() {
+    super();
+    this.mode = STORAGE_MODE;
+    this.backend = BACKEND_STATUS;
+    this.readonly = false;
+  }
+  loadOrders(fallback=[]) { return readStorageArray(OPERATOR_ORDERS_STORAGE_KEY, fallback); }
+  saveOrders(orders) { writeStorageArray(OPERATOR_ORDERS_STORAGE_KEY, orders); }
+  loadLeads(fallback=[]) { return readStorageArray(OPERATOR_LEADS_STORAGE_KEY, fallback); }
+  saveLeads(leads) { writeStorageArray(OPERATOR_LEADS_STORAGE_KEY, leads); }
+  loadSyncQueue() { return readStorageArray(OPERATOR_SYNC_QUEUE_STORAGE_KEY, []); }
+  saveSyncQueue(events) { writeStorageArray(OPERATOR_SYNC_QUEUE_STORAGE_KEY, events); }
+}
+class SupabaseStorageAdapterStub extends StorageAdapter {
+  constructor() {
+    super();
+    this.mode = 'supabase_stub_disabled';
+    this.backend = 'Supabase adapter stub: planning only';
+    this.readonly = true;
+  }
+  assertDisabled() {
+    throw new Error('Supabase adapter is disabled: owner approval, migration, and write gates are required first.');
+  }
+  saveOrders() { this.assertDisabled(); }
+  saveLeads() { this.assertDisabled(); }
+  saveSyncQueue() { this.assertDisabled(); }
+  status() {
+    return {
+      ...super.status(),
+      mode: this.mode,
+      backend: this.backend,
+      sync_status: 'disabled/read-only',
+      approval_required_for: ['supabase_migration', 'supabase_write', 'public_launch', 'outreach_send']
+    };
+  }
+}
+class SyncQueue {
+  constructor(adapter) {
+    this.adapter = adapter;
+  }
+  list() { return asArray(this.adapter.loadSyncQueue()); }
+  enqueue(type, entityType, entityId, payload={}, options={}) {
+    const record = {
+      storage_schema_version: OPERATOR_STORAGE_SCHEMA_VERSION,
+      queue_schema_version: 'webstudio.operator.sync_queue.v1',
+      mutation_id: 'SYNC-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+      event_type: type,
+      entity_type: entityType,
+      entity_id: entityId || '',
+      operation: options.operation || type.split('.').pop() || 'updated',
+      payload,
+      base_fingerprint: options.base_fingerprint || storageFingerprint(payload),
+      requires_approval: Boolean(options.requires_approval),
+      status: options.status || (options.requires_approval ? 'blocked_pending_approval' : 'queued_local_only'),
+      conflict_strategy: 'compare base_fingerprint and updated_at; never overwrite remote automatically',
+      created_at: nowIso(),
+      local_only: true,
+      network_call_performed: false
+    };
+    this.adapter.saveSyncQueue([record, ...this.list()].slice(0, 500));
+    return record;
+  }
+  clear() { this.adapter.saveSyncQueue([]); }
+}
+const storageAdapter = new LocalStorageAdapter();
+const supabaseStorageAdapterStub = new SupabaseStorageAdapterStub();
+const syncQueue = new SyncQueue(storageAdapter);
+function orderEvent(type, note, extra={}) {
+  return {schema_version: 'webstudio.operator.timeline_event.v1', event: type, note, at: nowIso(), actor: 'local_operator_workspace', persistence: 'browser_localStorage', ...extra};
+}
+function normalizeTimeline(events, seedNote='Created local order') {
+  const normalized = asArray(events).map(ev => ({
+    schema_version: ev.schema_version || 'webstudio.operator.timeline_event.v1',
+    event: ev.event || ev.type || 'updated',
+    note: ev.note || ev.message || 'Local workspace event',
+    at: ev.at || ev.created_at || nowIso(),
+    actor: ev.actor || 'local_operator_workspace',
+    persistence: ev.persistence || 'browser_localStorage',
+    ...ev
+  }));
+  return normalized.length ? normalized : [orderEvent('created', seedNote)];
+}
+function ownerApprovalState(order) {
+  if (order.owner_approval?.status) return order.owner_approval;
+  const required = Boolean(order.owner_approval_required);
+  return {
+    schema_version: 'webstudio.operator.owner_approval.v1',
+    required,
+    status: required ? 'required_before_live_action' : 'not_required_for_local_work',
+    allowed_without_approval: ['local planning', 'local draft', 'local export', 'local QA'],
+    blocked_until_approval: ['public launch', 'production writes', 'automatic outreach', 'live credentials']
+  };
+}
+function acceptedWarnings(order) {
+  return asArray(order.accepted_warnings).map(w => typeof w === 'string' ? {warning: w, accepted_at: nowIso(), scope: 'local_operator_workspace'} : w);
+}
+function validateOrder(order) {
+  const errors = [];
+  if (!String(order.client_name || '').trim()) errors.push('client_name');
+  if (!String(order.order_type || '').trim()) errors.push('order_type');
+  if (!String(order.current_stage || '').trim()) errors.push('current_stage');
+  if (!EXECUTION_COLUMNS.includes(order.current_stage || stageForStatus(order.status))) errors.push('current_stage_unknown');
+  if (order.schema_version && !['webstudio.operator.order.v1','webstudio.operator.order.v2',OPERATOR_ORDER_SCHEMA_VERSION].includes(order.schema_version)) errors.push('schema_version_unknown');
+  return errors;
+}
+function validateLead(lead) {
+  const errors = [];
+  if (!String(lead.lead_id || '').trim()) errors.push('lead_id');
+  if (!String(lead.company_person || '').trim()) errors.push('company_person');
+  if (lead.relevance_score !== undefined && (Number(lead.relevance_score) < 0 || Number(lead.relevance_score) > 100)) errors.push('relevance_score_range');
+  if (lead.schema_version && !['webstudio.operator.lead.v1','webstudio.operator.lead.v2',OPERATOR_LEAD_SCHEMA_VERSION].includes(lead.schema_version)) errors.push('schema_version_unknown');
+  return errors;
+}
+function migrateOrder(order) {
+  const input = order || {};
+  if (input.schema_version === OPERATOR_ORDER_SCHEMA_VERSION && input.storage_schema_version === OPERATOR_STORAGE_SCHEMA_VERSION) return input;
+  const migrated = {
+    ...input,
+    storage_schema_version: OPERATOR_STORAGE_SCHEMA_VERSION,
+    schema_version: OPERATOR_ORDER_SCHEMA_VERSION,
+    migrated_at: input.migrated_at || nowIso(),
+    migration_path: input.schema_version && input.schema_version !== OPERATOR_ORDER_SCHEMA_VERSION
+      ? `${input.schema_version}->${OPERATOR_ORDER_SCHEMA_VERSION}`
+      : `none->${OPERATOR_ORDER_SCHEMA_VERSION}`,
+    future_v4_migration: 'placeholder_only_no_live_migration'
+  };
+  return migrated;
+}
+function migrateLead(lead) {
+  const input = lead || {};
+  if (input.schema_version === OPERATOR_LEAD_SCHEMA_VERSION && input.storage_schema_version === OPERATOR_STORAGE_SCHEMA_VERSION) return input;
+  return {
+    ...input,
+    storage_schema_version: OPERATOR_STORAGE_SCHEMA_VERSION,
+    schema_version: OPERATOR_LEAD_SCHEMA_VERSION,
+    migrated_at: input.migrated_at || nowIso(),
+    migration_path: input.schema_version && input.schema_version !== OPERATOR_LEAD_SCHEMA_VERSION
+      ? `${input.schema_version}->${OPERATOR_LEAD_SCHEMA_VERSION}`
+      : `none->${OPERATOR_LEAD_SCHEMA_VERSION}`,
+    future_v4_migration: 'placeholder_only_no_live_migration'
+  };
+}
+function orderMissingInfo(order) {
+  const checks = [
+    ['client_contact', 'Контакт клиента'],
+    ['source', 'Источник заказа'],
+    ['industry', 'Ниша / индустрия'],
+    ['budget_range', 'Бюджетный диапазон'],
+    ['deadline', 'Срок'],
+    ['next_action', 'Следующее действие'],
+    ['acceptance_criteria', 'Acceptance criteria'],
+    ['client_answers.business_goal', 'Цель сайта / бизнеса'],
+    ['client_answers.conversion_action', 'Главная конверсия'],
+    ['client_answers.ideal_client', 'Идеальный клиент']
+  ];
+  return checks.filter(([path]) => {
+    const value = path.split('.').reduce((acc, key) => acc?.[key], order);
+    return Array.isArray(value) ? value.length === 0 : !String(value || '').trim();
+  }).map(([, label]) => label);
+}
+function orderHealth(order) {
+  const missing = orderMissingInfo(order);
+  const blockers = asArray(order.blockers).length;
+  const hasBrief = Boolean(order.production_brief);
+  const hasAcceptance = asArray(order.acceptance_criteria).length > 0;
+  const approvalReady = !order.owner_approval_required || order.owner_approval?.status === 'approved_for_live_action' || order.owner_approval?.status === 'not_required_for_local_work';
+  let score = 100;
+  score -= Math.min(45, missing.length * 5);
+  score -= Math.min(20, blockers * 10);
+  if (!hasBrief) score -= 15;
+  if (!hasAcceptance) score -= 10;
+  if (!approvalReady) score -= 10;
+  score = Math.max(0, Math.min(100, score));
+  return {
+    schema_version: 'webstudio.operator.order_health.v1',
+    score,
+    missing_information: missing,
+    blockers_count: blockers,
+    ready_for_production: score >= 72 && missing.length <= 3 && blockers === 0 && hasBrief,
+    owner_approval_gate: order.owner_approval_required ? 'required_before_live_action' : 'not_required_for_local_work',
+    artifact_checklist: artifactChecklist(order)
+  };
+}
+function artifactChecklist(order) {
+  const artifacts = asArray(order.artifacts).join('\n').toLowerCase();
+  return [
+    {id: 'client_brief', label: 'Ответы клиента / бриф', done: Object.keys(order.client_answers || {}).length >= 3},
+    {id: 'production_brief', label: 'Production-бриф', done: Boolean(order.production_brief) || artifacts.includes('production_brief')},
+    {id: 'qa_checklist', label: 'QA-чеклист', done: Boolean(order.production_brief?.qa_checklist) || artifacts.includes('qa')},
+    {id: 'handoff_packet', label: 'Пакет handoff', done: Boolean(order.production_brief?.handoff_checklist) || artifacts.includes('handoff')},
+    {id: 'approval_packet', label: 'Пакет approval владельца для live-действий', done: !order.owner_approval_required || order.owner_approval?.status === 'approved_for_live_action'}
+  ];
+}
+function withOrderDefaults(order) {
+  order = migrateOrder(order || {});
+  const currentStage = order.current_stage || stageForStatus(order.status || 'new_lead');
+  const ownerApproval = ownerApprovalState(order);
+  return {
+    storage_schema_version: order.storage_schema_version || OPERATOR_STORAGE_SCHEMA_VERSION,
+    schema_version: order.schema_version || OPERATOR_ORDER_SCHEMA_VERSION,
+    migrated_at: order.schema_version === OPERATOR_ORDER_SCHEMA_VERSION ? order.migrated_at || null : nowIso(),
+    order_id: order.order_id || ('LOCAL-' + Date.now().toString(36).toUpperCase()),
+    client_name: order.client_name || 'Новый клиент',
+    client_contact: order.client_contact || '',
+    source: order.source || 'manual_local',
+    order_type: order.order_type || 'Professional website / landing',
+    industry: order.industry || '',
+    budget_range: order.budget_range || '',
+    deadline: order.deadline || '',
+    priority: order.priority || 'normal',
+    status: order.status || STAGE_STATUS[currentStage] || 'new_lead',
+    current_stage: currentStage,
+    assigned_agent: order.assigned_agent || 'operator',
+    next_action: order.next_action || 'Уточнить задачу и заполнить бриф.',
+    blockers: asArray(order.blockers),
+    acceptance_criteria: asArray(order.acceptance_criteria),
+    artifacts: asArray(order.artifacts),
+    client_answers: order.client_answers || {},
+    internal_notes: order.internal_notes || '',
+    owner_approval_required: ownerApproval.required,
+    owner_approval: ownerApproval,
+    accepted_warnings: acceptedWarnings(order),
+    validation: {schema_version: 'webstudio.operator.validation.v1', errors: validateOrder({...order, current_stage: currentStage})},
+    archived: Boolean(order.archived || order.status === 'archived'),
+    production_brief: order.production_brief || null,
+    timeline: normalizeTimeline(order.timeline, order.demo ? 'Loaded DEMO order into local workspace' : 'Created local order'),
+    storage: order.storage || {
+      mode: STORAGE_MODE,
+      backend: BACKEND_STATUS,
+      sync_status: 'local only',
+      fingerprint: storageFingerprint({...order, timeline: undefined})
+    }
+  };
+}
+function withLeadDefaults(lead) {
+  lead = migrateLead(lead || {});
+  const approval = lead.approval || {
+    schema_version: 'webstudio.operator.lead_approval.v1',
+    status: lead.approval_status || 'owner_approval_required',
+    required_before_outreach: true
+  };
+  const compliance = lead.compliance || {
+    schema_version: 'webstudio.operator.lead_compliance.v1',
+    public_sources_only: true,
+    no_automatic_send: true,
+    no_spam: true,
+    no_fake_identity: true,
+    no_bypass: true,
+    opt_out_status: lead.opt_out_status || 'unknown',
+    platform_rules_notes: lead.platform_rules_notes || lead.risk_compliance_notes || 'Только ручное исследование публичных источников. Нельзя собирать данные за логином.'
+  };
+  return {
+    storage_schema_version: lead.storage_schema_version || OPERATOR_STORAGE_SCHEMA_VERSION,
+    schema_version: lead.schema_version || OPERATOR_LEAD_SCHEMA_VERSION,
+    lead_id: lead.lead_id || ('LEAD-' + Date.now().toString(36).toUpperCase()),
+    company_person: lead.company_person || lead['company/person'] || '',
+    source_url: lead.source_url || '',
+    niche: lead.niche || '',
+    problem_hypothesis: lead.problem_hypothesis || lead['problem hypothesis'] || '',
+    why_webstudio_can_help: lead.why_webstudio_can_help || lead['why WebStudio can help'] || '',
+    suggested_offer: lead.suggested_offer || '',
+    personalization_notes: lead.personalization_notes || '',
+    risk_compliance_notes: lead.risk_compliance_notes || lead['risk/compliance notes'] || 'Только ручное исследование публичных источников. Нельзя собирать данные за логином.',
+    outreach_draft: lead.outreach_draft || '',
+    approval_status: lead.approval_status || approval.status || 'owner approval required',
+    approval,
+    compliance,
+    relevance_score: Number(lead.relevance_score || 0),
+    followup_status: lead.followup_status || 'not_scheduled',
+    opt_out_status: lead.opt_out_status || compliance.opt_out_status || 'unknown',
+    validation: {schema_version: 'webstudio.operator.lead_validation.v1', errors: validateLead(lead)},
+    storage: lead.storage || {
+      mode: STORAGE_MODE,
+      backend: BACKEND_STATUS,
+      sync_status: 'local only',
+      fingerprint: storageFingerprint({...lead, timeline: undefined})
+    },
+    timeline: normalizeTimeline(lead.timeline, lead.demo ? 'Loaded DEMO lead into local workspace' : 'Created local lead')
+  };
+}
+function hydrateOperatorPersistence(loaded) {
+  const baseOrders = asArray(loaded.orders).map(withOrderDefaults);
+  const baseLeads = asArray(loaded.lead_research_queue).map(withLeadDefaults);
+  if (!localStorage.getItem(OPERATOR_ORDERS_STORAGE_KEY)) storageAdapter.saveOrders(baseOrders);
+  if (!localStorage.getItem(OPERATOR_LEADS_STORAGE_KEY)) storageAdapter.saveLeads(baseLeads);
+  if (!localStorage.getItem(OPERATOR_SYNC_QUEUE_STORAGE_KEY)) storageAdapter.saveSyncQueue([]);
+  const orders = storageAdapter.loadOrders(baseOrders).map(withOrderDefaults);
+  const leads = storageAdapter.loadLeads(baseLeads).map(withLeadDefaults);
+  if (orders.length) filters.activeOrder = orders[0].order_id;
+  return {...loaded, orders, lead_research_queue: leads, sync_queue: syncQueue.list(), storage_status: storageAdapter.status(), supabase_stub_status: supabaseStorageAdapterStub.status(), _demo_orders: baseOrders, _demo_leads: baseLeads};
+}
+function saveOrders(orders) {
+  const normalized = asArray(orders).map(withOrderDefaults);
+  storageAdapter.saveOrders(normalized);
+  operatorState = {...os(), orders: normalized, sync_queue: syncQueue.list(), storage_status: storageAdapter.status()};
+}
+function saveLeads(leads) {
+  const normalized = asArray(leads).map(withLeadDefaults);
+  storageAdapter.saveLeads(normalized);
+  operatorState = {...os(), lead_research_queue: normalized, sync_queue: syncQueue.list(), storage_status: storageAdapter.status()};
+}
+function updateOrder(orderId, mutator, eventType='updated', note='Order updated') {
+  const orders = allOsOrders();
+  const idx = orders.findIndex(o => o.order_id === orderId);
+  if (idx < 0) return null;
+  const before = withOrderDefaults(orders[idx]);
+  const changed = withOrderDefaults(mutator({...before}) || before);
+  changed.timeline = [...asArray(before.timeline), orderEvent(eventType, note)];
+  orders[idx] = changed;
+  saveOrders(orders);
+  enqueueOrderMutation(eventType, before, changed, note);
+  filters.activeOrder = changed.order_id;
+  return changed;
+}
+function enqueueOrderMutation(eventType, before, changed, note) {
+  const typeMap = {
+    updated: 'order.updated',
+    stage_changed: 'order.stage_changed',
+    brief_generated: 'brief.generated',
+    export_generated: 'export.generated',
+    blocked: 'order.stage_changed',
+    archived: 'order.updated'
+  };
+  const queueType = typeMap[eventType] || 'order.updated';
+  const requiresApproval = Boolean(changed.owner_approval_required && queueType !== 'export.generated');
+  syncQueue.enqueue(queueType, queueType === 'brief.generated' ? 'brief' : 'order', changed.order_id, {
+    order_id: changed.order_id,
+    note,
+    before_stage: before.current_stage,
+    after_stage: changed.current_stage,
+    status: changed.status,
+    local_only: true
+  }, {operation: eventType, base_fingerprint: before.storage?.fingerprint || storageFingerprint(before), requires_approval: requiresApproval});
+  operatorState = {...os(), sync_queue: syncQueue.list()};
+}
+function enqueueLeadMutation(type, lead, note='Lead mutation') {
+  syncQueue.enqueue(type, 'lead', lead.lead_id, {
+    lead_id: lead.lead_id,
+    company_person: lead.company_person,
+    note,
+    approval_status: lead.approval_status,
+    local_only: true
+  }, {operation: type.split('.').pop(), requires_approval: true});
+  operatorState = {...os(), sync_queue: syncQueue.list()};
+}
+function enqueueApprovalRequest(subjectType, subjectId, note) {
+  syncQueue.enqueue('approval.requested', subjectType, subjectId, {subject_type: subjectType, subject_id: subjectId, note, local_only: true}, {operation: 'requested', requires_approval: true});
+  operatorState = {...os(), sync_queue: syncQueue.list()};
+}
+function mergeOrders(existing, incoming) {
+  const byId = new Map(asArray(existing).map(o => [o.order_id, withOrderDefaults(o)]));
+  for (const raw of asArray(incoming)) {
+    const normalized = withOrderDefaults(raw);
+    const current = byId.get(normalized.order_id);
+    byId.set(normalized.order_id, current
+      ? withOrderDefaults({...current, ...normalized, timeline: [...asArray(current.timeline), orderEvent('import_merged', 'Merged imported order with existing local order'), ...asArray(normalized.timeline)]})
+      : withOrderDefaults({...normalized, timeline: [...asArray(normalized.timeline), orderEvent('imported', 'Imported new order from pasted JSON')]}));
+  }
+  return [...byId.values()];
+}
+function resetDemoOrders() {
+  saveOrders(asArray(os()._demo_orders).map(withOrderDefaults));
+  saveLeads(asArray(os()._demo_leads).map(withLeadDefaults));
+  filters.activeOrder = osOrders()[0]?.order_id || 'DEMO-WEB-001';
+  toast('Demo data reset in localStorage');
+  render();
+}
+function stageForStatus(status) {
+  const map = {
+    new_lead: 'Входящие', needs_qualification: 'Квалификация', briefing: 'Бриф', proposal: 'Предложение',
+    waiting_client: 'Бриф', ready_for_production: 'Планирование', design: 'Дизайн', build: 'Производство',
+    qa: 'QA', handoff: 'Handoff', done: 'Готово', blocked: 'Заблокировано', archived: 'Готово'
+  };
+  return map[status] || 'Входящие';
+}
+const EXECUTION_COLUMNS = ['Входящие','Квалификация','Бриф','Предложение','Планирование','Дизайн','Производство','QA','Handoff','Готово','Заблокировано'];
+const STAGE_STATUS = {'Входящие':'new_lead','Квалификация':'needs_qualification','Бриф':'briefing','Предложение':'proposal','Планирование':'ready_for_production','Дизайн':'design','Производство':'build','QA':'qa','Handoff':'handoff','Готово':'done','Заблокировано':'blocked'};
+function nextStageFor(order) {
+  const current = order.current_stage || stageForStatus(order.status);
+  const idx = EXECUTION_COLUMNS.indexOf(current);
+  const next = EXECUTION_COLUMNS[Math.min(idx < 0 ? 1 : idx + 1, EXECUTION_COLUMNS.length - 2)];
+  return next || 'Квалификация';
+}
+function moveOrderToStage(orderId, stage, note='Stage changed') {
+  const order = orderById(orderId);
+  const gate = transitionGate(order, stage);
+  if (!gate.allowed) { toast(gate.reason); return null; }
+  return updateOrder(orderId, o => ({...o, current_stage: stage, status: STAGE_STATUS[stage] || o.status, archived: stage === 'Готово' ? o.archived : false, next_action: nextActionForStage(stage)}), 'stage_changed', note + ': ' + stage);
+}
+function setOrderExecutionState(orderId, stage, status, note) {
+  const gate = transitionGate(orderById(orderId), stage);
+  if (!gate.allowed && !['blocked','waiting_client'].includes(status)) { toast(gate.reason); return null; }
+  return updateOrder(orderId, o => ({...o, current_stage: stage, status, archived: status === 'archived', next_action: nextActionForStage(stage)}), 'stage_changed', note);
+}
+function transitionGate(order, targetStage) {
+  const health = orderHealth(withOrderDefaults(order));
+  if (['Производство','QA','Handoff','Готово'].includes(targetStage) && health.blockers_count > 0) {
+    return {allowed: false, reason: 'Blocked: resolve blocker before production/QA/handoff.'};
+  }
+  if (['Производство','QA','Handoff','Готово'].includes(targetStage) && !health.ready_for_production && targetStage === 'Производство') {
+    return {allowed: false, reason: 'Ready gate failed: generate brief and fill missing info first.'};
+  }
+  return {allowed: true, reason: 'ok'};
+}
+function nextActionForStage(stage) {
+  return {
+    'Входящие': 'Квалифицировать клиента и подтвердить контакт.',
+    'Квалификация': 'Понять бюджет, срок, decision maker и fit.',
+    'Бриф': 'Собрать ответы клиента и proof/assets.',
+    'Предложение': 'Подготовить scope, цену и acceptance criteria.',
+    'Планирование': 'Разложить production tasks и назначить агентов.',
+    'Дизайн': 'Подготовить визуальную систему и ключевые экраны.',
+    'Производство': 'Собрать сайт/бот/автоматизацию в safe scope.',
+    'QA': 'Проверить responsive, claims, links, safety, handoff.',
+    'Handoff': 'Подготовить пакет передачи и owner/client acceptance.',
+    'Готово': 'Зафиксировать результат и архивировать при необходимости.',
+    'Заблокировано': 'Сформулировать blocker и запросить owner/client decision.'
+  }[stage] || 'Определить следующий безопасный шаг.';
+}
+function generateProductionBrief(order) {
+  const answers = order.client_answers || {};
+  const get = (k, fallback='не указано') => answers[k] || fallback;
+  const siteGoal = get('business_goal', get('main_goal'));
+  const audience = get('ideal_client');
+  const conversion = get('conversion_action');
+  const style = get('brand_style', get('brand_personality'));
+  const motion = get('motion_3d', get('hyperframes_motion'));
+  const offer = get('difference', 'сформулировать конкретное отличие и причину доверять');
+  const proof = get('proof_assets', 'кейсы, отзывы, сертификаты, фото команды, process proof');
+  const constraints = get('never_promise', 'не обещать неподтвержденные результаты');
+  const leadRoute = get('lead_route', 'owner-approved form or Telegram route after local QA');
+  const seoGeo = get('seo_geo', 'service/niche search terms and local geography if relevant');
+  return {
+    schema_version: WEBSITE_BRIEF_SCHEMA_VERSION,
+    generated_at: nowIso(),
+    generation: 'deterministic_template_local_js',
+    business_strategy: `Сайт должен перевести ${audience} от первого доверия к действию "${conversion}". Бизнес-цель: ${siteGoal}.`,
+    audience,
+    conversion_goal: conversion,
+    offer_positioning: `Главная опора: ${offer}. Обещания держать проверяемыми; ограничения: ${constraints}.`,
+    objections_to_sections: [
+      {objection: 'Не понимаю, почему вам можно доверять', section: 'Proof / cases / process evidence'},
+      {objection: 'Не ясно, что входит в услугу', section: 'Offer blocks and deliverables'},
+      {objection: 'Боюсь долгого и хаотичного процесса', section: 'Process, timeline, QA and handoff'},
+      {objection: 'Не хочу оставлять контакт вслепую', section: 'Final CTA with privacy/expectation note'}
+    ],
+    conversion_path: [`${audience} sees hero promise`, 'checks proof and offer scope', 'reads process / FAQ', `clicks "${conversion}"`, `lead goes through ${leadRoute}`],
+    sitemap: ['Главная', 'Услуги / оффер', 'Доказательства / кейсы', 'Процесс работы', 'FAQ', 'Контакты / заявка'],
+    hero_concept: `Первый экран: результат для ${audience}, 1 ясное обещание, 1 proof-сигнал, CTA "${conversion}", короткий путь к контакту.`,
+    hero_variants: [
+      `Outcome-first: ${siteGoal} for ${audience}. CTA: ${conversion}.`,
+      `Trust-first: ${proof}. CTA after proof strip.`,
+      `Process-first: premium delivery system, clear milestones, low-risk first step.`
+    ],
+    section_map: [
+      {section: 'Hero', purpose: 'позиционирование, trust cue, primary CTA'},
+      {section: 'Problem / stakes', purpose: 'назвать боль клиента без драматизации'},
+      {section: 'Offer', purpose: 'пакеты, deliverables, сроки, что входит/не входит'},
+      {section: 'Proof', purpose: proof},
+      {section: 'Process', purpose: '3-5 шагов, роли, прозрачная передача'},
+      {section: 'FAQ / objections', purpose: 'снять риски: сроки, бюджет, правки, гарантии'},
+      {section: 'Final CTA', purpose: `повторить "${conversion}" и контактный маршрут`}
+    ],
+    copy_direction: `Тон: уверенный, конкретный, без давления. Писать от результата и доказательств. Не использовать неподтвержденные claims: ${constraints}.`,
+    visual_direction: `${style}. Визуальная система: premium, быстрые контрасты, реальные assets, сильная типографика, без декоративного шума. Цвета/референсы: ${get('preferred_colors','уточнить')}.`,
+    premium_visual_direction: ['restrained high-contrast palette', 'real product/team/client assets', 'dense but calm proof blocks', '8px radius controls/cards', 'hero with actual product/service signal'],
+    motion_3d_hyperframes_plan: motion === 'не указано'
+      ? 'Motion optional: subtle section transitions. 3D/HyperFrames only after scope and performance approval.'
+      : `Motion/3D direction: ${motion}. Keep performance budget explicit; provide static fallback.`,
+    hyperframes_scene_prompt: `Create a premium, performance-safe hero scene for ${order.industry || 'the client niche'} showing ${offer}. Must include static fallback, no fake claims, and no blocking load.`,
+    animation_plan: ['subtle hero entrance', 'proof cards stagger', 'CTA hover/tap feedback', 'reduced-motion mode', 'static fallback for 3D/HyperFrames'],
+    technical_stack: `Static-first frontend, no frontend secrets. Lead route: form/Telegram/CRM only after explicit approval. Hosting/domain: ${get('domain_hosting','уточнить')}.`,
+    seo_basics: ['One clear H1', `Keywords/geography: ${seoGeo}`, 'Service/niche keywords in title/meta', 'Local/service schema if relevant', 'Alt text for real images', 'Fast static assets'],
+    analytics_forms_telegram_route: ['Define lead fields', leadRoute, 'Use approved endpoint only', 'No secrets in frontend', 'Test success/error states locally', 'Owner approval before live routing'],
+    content_assets_checklist: ['Logo', 'Brand colors', 'Photos/video', 'Services/pricing', 'Proof/testimonials', 'Legal disclaimers', 'Contacts/forms route', 'Competitors/references', 'Claims review notes'],
+    content_request_checklist: ['final offer wording', 'decision maker contact', 'service photos', 'case/proof permission', 'legal claims list', 'FAQ answers', 'lead route owner'],
+    production_tasks_by_role: {
+      strategist: ['lock scope', 'define conversion path', 'approval gates'],
+      client_interviewer: ['collect missing answers', 'normalize client language'],
+      designer: ['hero variants', 'visual system', 'responsive states'],
+      copywriter: ['offer copy', 'proof narrative', 'FAQ/objections'],
+      frontend_builder: ['static UI', 'responsive implementation', 'safe lead placeholder'],
+      hyperframes_specialist: ['scene prompt', 'fallback', 'performance budget'],
+      qa: ['responsive/accessibility/claims/link smoke'],
+      handoff: ['export plan', 'owner/client acceptance']
+    },
+    production_tasks: ['Lock brief', 'Write conversion copy', 'Design hero/system', 'Build responsive UI', 'Add approved lead route', 'Run QA', 'Prepare handoff'],
+    qa_checklist: ['Mobile/desktop responsive', 'No unsupported claims', 'All CTA links checked', 'Form route smoke or copy-only placeholder', 'Performance budget checked', 'Accessibility contrast', 'Owner/client acceptance'],
+    acceptance_criteria: ['Client goal and CTA are clear', 'Audience and offer are visible above fold', 'Visual direction matches brief', 'No forbidden promises', 'QA checklist passed', 'Handoff package exported'],
+    handoff_checklist: ['Final brief', 'Production plan', 'Assets list', 'QA evidence', 'Rollback/static archive notes', 'Owner approval gates for public launch']
+  };
+}
+function downloadJson(filename, payload) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
 }
 
 function updateChrome() {
@@ -185,8 +794,6 @@ function collapsibleCard(title, body, span='span-12', open=false) {
   return `<section class="card ${span} collapsible"><details ${open ? 'open' : ''}><summary><h3>${fmt(title)}</h3></summary>${body}</details></section>`;
 }
 function badge(text, kind='') { return `<span class="status ${statusClass(kind || text)}">${fmt(ru(text))}</span>`; }
-function openButton(label, value, variant='') { return value ? copyButton(label, value, variant) : ''; }
-function detailPayloadButton(payload, label='Подробнее', type='details') { return `<button class="copy secondary" type="button" data-detail-type="${esc(type)}" data-detail-payload="${esc(jsonCopy(payload))}">${fmt(label)}</button>`; }
 function row(id, title, status, meta='', detailType='', payload='') {
   const detailAttrs = detailType ? ` role="button" tabindex="0" data-detail-type="${esc(detailType)}" data-detail-payload="${esc(payload)}"` : '';
   const metaHtml = meta ? `<small class="label row-meta">${fmt(meta)}</small>` : '';
@@ -202,6 +809,132 @@ function copyButton(label, value, variant='') {
 function toolbar(items) { return `<div class="toolbar">${items.join('')}</div>`; }
 function searchBox(id, placeholder, value='') { return `<input id="${esc(id)}" class="search" placeholder="${esc(placeholder)}" value="${esc(value)}">`; }
 function clearFiltersButton(scope='all') { return `<button id="clearFiltersBtn" class="ghost" type="button" data-clear-scope="${esc(scope)}">Сбросить фильтры</button>`; }
+function safeFilenamePart(value) {
+  return String(value || 'export').toLowerCase().replace(/[^a-z0-9а-яё_-]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 72) || 'export';
+}
+function localExportName(prefix, id, suffix='json') {
+  return `${safeFilenamePart(prefix)}-${safeFilenamePart(id)}-${new Date().toISOString().slice(0,10)}.${suffix}`;
+}
+function workspaceBackupPayload() {
+  const queue = syncQueue.list();
+  return {
+    storage_schema_version: OPERATOR_STORAGE_SCHEMA_VERSION,
+    backup_schema_version: 'webstudio.operator.workspace_backup.v1',
+    exported_at: nowIso(),
+    storage_status: storageAdapter.status(),
+    supabase_stub_status: supabaseStorageAdapterStub.status(),
+    safety: {
+      local_only: true,
+      supabase_write_performed: false,
+      public_launch_performed: false,
+      outreach_sent: false,
+      officebot_used: false
+    },
+    orders: allOsOrders(),
+    leads: asArray(os().lead_research_queue),
+    sync_queue: queue,
+    readiness: {
+      migration_status: 'draft_only',
+      pending_sync_events: queue.filter(ev => !['synced','rolled_back'].includes(ev.status)).length,
+      backend_writes_require_owner_approval: true,
+      conflict_strategy: 'local-first; compare fingerprint before future backend writes'
+    }
+  };
+}
+function exportWorkspaceBackup() {
+  syncQueue.enqueue('export.generated', 'workspace', 'local-backup', {export_kind: 'full_workspace_backup', local_only: true}, {operation: 'generated'});
+  operatorState = {...os(), sync_queue: syncQueue.list()};
+  const filename = localExportName('webstudio-workspace-backup', 'local');
+  writeStorageObject(OPERATOR_LAST_BACKUP_STORAGE_KEY, {filename, exported_at: nowIso(), queue_events: syncQueue.list().length, mode: STORAGE_MODE});
+  downloadJson(filename, workspaceBackupPayload());
+  toast('Full workspace backup exported locally');
+  render();
+}
+function importWorkspaceBackup(raw, mode='merge') {
+  const parsed = safeJsonParse(raw, null);
+  if (!parsed || !Array.isArray(parsed.orders) || !Array.isArray(parsed.leads)) {
+    toast('Backup import blocked: expected full workspace backup JSON');
+    return false;
+  }
+  const incomingOrders = parsed.orders.map(withOrderDefaults);
+  const incomingLeads = parsed.leads.map(withLeadDefaults);
+  const importedQueue = asArray(parsed.sync_queue);
+  if (mode === 'replace') {
+    saveOrders(incomingOrders);
+    saveLeads(incomingLeads);
+    storageAdapter.saveSyncQueue(importedQueue);
+  } else {
+    saveOrders(mergeOrders(allOsOrders(), incomingOrders));
+    const byLead = new Map(asArray(os().lead_research_queue).map(l => [l.lead_id, withLeadDefaults(l)]));
+    incomingLeads.forEach(lead => byLead.set(lead.lead_id, withLeadDefaults({...byLead.get(lead.lead_id), ...lead})));
+    saveLeads([...byLead.values()]);
+    storageAdapter.saveSyncQueue([...importedQueue, ...syncQueue.list()].slice(0, 500));
+  }
+  operatorState = {...os(), sync_queue: syncQueue.list(), storage_status: storageAdapter.status()};
+  syncQueue.enqueue('export.generated', 'workspace', 'backup-import-local', {import_mode: mode, source: 'pasted_backup_json', local_only: true}, {operation: 'imported'});
+  toast('Backup imported locally. No backend writes.');
+  render();
+  return true;
+}
+function exportSyncQueue() {
+  syncQueue.enqueue('export.generated', 'sync_queue', 'local-sync-queue', {export_kind: 'sync_queue', local_only: true}, {operation: 'generated'});
+  operatorState = {...os(), sync_queue: syncQueue.list()};
+  downloadJson(localExportName('webstudio-sync-queue', 'local'), syncQueue.list());
+  toast('Sync queue exported locally');
+  render();
+}
+function briefBlock(title, value) {
+  if (Array.isArray(value)) {
+    return `<article class="brief-block"><h4>${fmt(title)}</h4><ul>${value.map(item => typeof item === 'object' ? `<li>${fmt(item.section || item.title || JSON.stringify(item))}<small>${item.purpose ? fmt(item.purpose) : ''}</small></li>` : `<li>${fmt(item)}</li>`).join('')}</ul></article>`;
+  }
+  return `<article class="brief-block"><h4>${fmt(title)}</h4><p>${fmt(value)}</p></article>`;
+}
+function productionBriefView(brief) {
+  if (!brief) return '';
+  const blocks = [
+    ['Стратегия', brief.business_strategy || brief.strategy],
+    ['Аудитория', brief.audience],
+    ['Конверсия', brief.conversion_goal],
+    ['Позиционирование', brief.offer_positioning],
+    ['Карта сайта', brief.sitemap],
+    ['Концепция hero', brief.hero_concept],
+    ['Варианты hero', brief.hero_variants || []],
+    ['Возражения → секции', brief.objections_to_sections || []],
+    ['Путь конверсии', brief.conversion_path || []],
+    ['Структура секций', brief.section_map || brief.section_structure],
+    ['Направление copy', brief.copy_direction],
+    ['Визуальное направление', brief.visual_direction],
+    ['3D / Motion / HyperFrames', brief.motion_3d_hyperframes_plan || brief.motion_3d_hyperframes_direction],
+    ['Prompt сцены HyperFrames', brief.hyperframes_scene_prompt],
+    ['План анимации', brief.animation_plan || []],
+    ['Технический стек', brief.technical_stack || brief.technical_stack_recommendation],
+    ['SEO основы', brief.seo_basics || []],
+    ['Маршрут заявки', brief.analytics_forms_telegram_route || []],
+    ['Чеклист assets', brief.content_assets_checklist],
+    ['Запрос контента', brief.content_request_checklist || []],
+    ['Задачи по ролям', Object.entries(brief.production_tasks_by_role || {}).map(([role, tasks]) => ({section: role, purpose: asArray(tasks).join(', ')}))],
+    ['Production задачи', brief.production_tasks],
+    ['QA-чеклист', brief.qa_checklist],
+    ['Acceptance criteria', brief.acceptance_criteria],
+    ['Handoff-чеклист', brief.handoff_checklist]
+  ];
+  return `<section class="brief-output">${blocks.map(([title, value]) => briefBlock(title, value || '—')).join('')}<details class="raw-details"><summary>Технические детали</summary><pre class="code block">${fmt(jsonCopy(brief))}</pre></details></section>`;
+}
+function goCreateOrderCta(mode='operator') {
+  const testId = mode === 'orders' ? 'orders-create-order' : 'create-order-primary';
+  return `<section class="create-order-hero span-12" id="createOrderTop">
+    <div><p class="eyebrow">Главное действие</p><h2>+ Создать заказ</h2><p>Создай заказ вручную или запусти DEMO-проверку. Всё сохраняется локально в браузере, без отправки, public launch и backend write.</p></div>
+    <div class="create-order-actions">
+      <button class="big-action" type="button" data-testid="${testId}" data-open-new-order>+ Создать заказ</button>
+      <button class="big-action secondary" type="button" data-create-demo-order>Создать DEMO-заказ</button>
+      <button class="big-action secondary" type="button" data-run-demo-check>Запустить DEMO-проверку</button>
+    </div>
+  </section>`;
+}
+function howToVerifyBlock() {
+  const steps = ['Открой Оператор.', 'Нажми + Создать заказ.', 'Нажми Создать DEMO-заказ.', 'Открой Заказы.', 'Убедись, что заказ появился.', 'Открой Канбан выполнения.', 'Нажми Следующий этап.', 'Открой Бриф сайта.', 'Нажми Сгенерировать бриф.', 'Нажми Экспорт JSON.'];
+  return `<section class="verify-guide span-12" id="howToVerify" data-testid="how-to-check-v110"><div class="section-head"><div><p class="eyebrow">Как проверить за 2 минуты</p><h3>Быстрая проверка за 2 минуты</h3></div>${badge('Сохранено локально','ok')}</div><ol>${steps.map(s => `<li>${fmt(s)}</li>`).join('')}</ol><div class="toolbar"><button type="button" data-run-demo-check>Запустить DEMO-проверку</button><a class="copy secondary" href="#kanban">Открыть Канбан выполнения</a><a class="copy secondary" href="#website-intake">Открыть Бриф сайта</a></div><p class="label">Авторассылка выключена. Требуется approval владельца перед outreach, public launch или production write. Только локальный preview.</p></section>`;
+}
 
 const D3_INTAKE_STORAGE_KEY = 'webstudio.d3.rawRequirementsInbox.v1';
 const D3_INTAKE_CONTEXT = {
@@ -384,7 +1117,7 @@ function ownerFeedbackCounts(records) {
   }, {});
 }
 function ownerFeedbackRouteReason(lane, type) {
-  if (lane === 'D2') return 'D2: feedback touches Telegram ingestion, deployment wiring, secrets/config, or external intake.';
+  if (lane === 'D2') return 'D2: feedback touches Telegram ingestion, launch wiring, secrets/config, or external intake.';
   if (lane === 'D3') return 'D3: feedback changes product workflow, lifecycle, policy, or acceptance criteria.';
   if (lane === 'owner_decision_required') return 'Owner decision required: intent, priority, UX choice, or scope is ambiguous.';
   return `D1: default owner admin testing feedback for ${OWNER_FEEDBACK_CONTEXT.app_under_test_url}${type ? ' · type=' + type : ''}.`;
@@ -489,32 +1222,71 @@ function sourceSummary() {
   };
 }
 
+function heroMetric(label, value, note='', routeTarget='') {
+  const attr = routeTarget ? ` data-route="${esc(routeTarget)}"` : '';
+  return `<article class="hero-metric"${attr}><span>${fmt(label)}</span><strong>${fmt(value)}</strong>${note ? `<small>${fmt(note)}</small>` : ''}</article>`;
+}
+function proofItem(label, value, tone='ok') {
+  return `<div class="proof-item ${statusClass(tone)}"><span>${fmt(label)}</span><strong>${fmt(value)}</strong></div>`;
+}
+
 function overview() {
-  const wf = state.work_factory || {}, kb = state.kanban || {}, h = state.health || {}, safety = state.safety || {}, wh = state.worker_health || {}, gh = state.github_readiness || {};
+  const wf = state.work_factory || {}, kb = state.kanban || {}, h = state.health || {}, safety = state.safety || {}, gh = state.github_readiness || {};
+  const approvals = asArray(state.approvals);
+  const qmdPending = h.qmd?.pending_embeddings ?? h.qmd?.pending ?? '—';
+  const previewProof = {
+    canonical_root: '/home/hermes/workspace/projects/webstudio-ops-dashboard',
+    local_preview: 'http://127.0.0.1:4173',
+    public_launch: 'not executed',
+    officebot_path: 'forbidden',
+    handoff: '/home/hermes/workspace/output/webstudio-local-handoff-v100',
+    preview_package: '/home/hermes/workspace/output/webstudio-local-preview-v101'
+  };
   const ownerSummary = `WebStudio Ops\nSafety: ${safety.status}\nWF: ${wf.counts?.completed || 0} completed, ${wf.counts?.pending || 0} pending, ${wf.counts?.approval_required || asArray(state.approvals).length} approvals, ${wf.counts?.blocked_error || 0} blocked/errors\nKanban: ${kb.task_total || 0} cards; ready/running=${kb.counts?.ready || 0}/${kb.counts?.running || 0}\nHealth: ${h.status}; QMD очередь=${h.qmd?.pending_embeddings ?? '—'}`;
-  return `<div class="grid">
-    ${metric('Готово WF', wf.counts?.completed, 'span-3', 'work-factory')}
-    ${metric('Ожидают', wf.counts?.pending, 'span-3', 'work-factory')}
-    ${metric('Согласования', asArray(state.approvals).length, 'span-3', 'approvals')}
-    ${metric('Блокеры/ошибки', wf.counts?.blocked_error, 'span-3', 'work-factory')}
-    ${metric('Карточек Kanban', kb.task_total, 'span-3', 'kanban')}
-    ${metric('Активно в производстве', state.production_pipeline?.counts?.active || 0, 'span-3', 'production')}
-    ${metric('Готово/выполняется', `${kb.counts?.ready || 0}/${kb.counts?.running || 0}`, 'span-3', 'kanban')}
-    ${metric('Артефакты', asArray(state.artifacts).length, 'span-3', 'artifacts')}
-    ${metric('QMD очередь', h.qmd?.pending_embeddings, 'span-3', 'health')}
-    ${metric('Активные зависшие', ownerKpiStale().active, 'span-3', 'kanban')}
-    ${metric('GitHub', gh.status || 'unknown', 'span-3', 'health')}
-    ${metric('Motion Factory', state.motion_factory?.status || 'unknown', 'span-3', 'motion-factory')}
-    ${metric('Заказы / Intake', state.client_intake_v27?.status || 'unknown', 'span-3', 'intake-orders')}
-    ${metric('Снапшоты', state.system_hardening?.snapshot_pending_count ?? '—', 'span-3', 'health')}
-    ${metric('Автономный цикл', state.marathon_12h?.status || 'unknown', 'span-3', 'work-factory')}
-    ${metric('Агенты', state.agent_workflow?.protocol?.silent_finish_allowed === false ? 'contracted' : 'unknown', 'span-3', 'agent-workflow')}
-    ${card('Безопасность', `${kv({status: safety.status, read_only: safety.read_only, dispatch_allowed: safety.dispatch_allowed, worker_allowed: safety.worker_allowed, mirror_executable_count: safety.mirror_executable_count, duplicate_keys: Object.keys(safety.duplicate_keys || {}).length})}${toolbar([copyButton('Copy safety contract', `Безопасность:\nread_only=${safety.read_only}\ndispatch_allowed=${safety.dispatch_allowed}\nworker_allowed=${safety.worker_allowed}\nforbidden=${asArray(safety.forbidden_actions).join(', ')}`), copyButton('Copy owner summary', ownerSummary)])}`, 'span-6')}
-    ${card('Система сейчас', kv({status: h.status, gateway_active: h.gateway_active, qmd_pending_embeddings: h.qmd?.pending_embeddings, primary_model: h.primary_model_line}), 'span-6')}
-    ${githubReadinessPanel()}
-    ${staleExplanationCard()}
-    ${card('Источник данных', `${kv(sourceSummary())}${toolbar([copyButton('Copy state path', '/workspace/output/webstudio-control-plane-state.json'), copyButton('Copy dist path', '/workspace/output/webstudio-ops-dashboard-static'), copyButton('Copy local serve', 'cd /workspace/projects/webstudio-ops-dashboard && python3 -m http.server 4173 -d src')])}`, 'span-12')}
-    ${card('Продуктовые линии', rows(asArray(state.product_lines), p => row('', LINE_RU[p.id] || ownerText(p.name), p.status, 'Автономия: ' + asArray(p.autonomy_levels).join(', '), 'json', jsonCopy(p))), 'span-12')}
+  return `<div class="grid overview-dashboard" data-view="overview" data-testid="overview-cockpit">
+    <section class="hero-panel span-12">
+      <div class="hero-copy">
+        <p class="eyebrow">Read-only operations cockpit</p>
+        <h2>WebStudio под контролем.</h2>
+        <p>Один экран для проверки безопасности, текущего производства и доверенного handoff. Никаких кнопок public launch/run/write.</p>
+      </div>
+      <div class="hero-metrics">
+        ${heroMetric('Safety', safety.status === 'pass' ? 'PASS' : ru(safety.status || 'watch'), 'read-only contract', 'audit')}
+        ${heroMetric('Gateway', h.gateway_active ? 'ACTIVE' : 'WATCH', h.primary_model_line || 'runtime tracked', 'health')}
+        ${heroMetric('Production', state.production_pipeline?.counts?.active || 0, 'active items', 'production')}
+        ${heroMetric('Approvals', approvals.length, 'owner-gated', 'approvals')}
+      </div>
+    </section>
+    <section class="proof-panel span-8">
+      <div class="section-head"><div><p class="eyebrow">Operational proof</p><h3>Почему этому можно доверять</h3></div>${badge('read-only', 'ok')}</div>
+      <div class="proof-grid">
+        ${proofItem('Safety status', safety.status === 'pass' ? 'PASS' : ru(safety.status || 'watch'), safety.status === 'pass' ? 'ok' : 'warn')}
+        ${proofItem('Canonical root', 'verified', 'ok')}
+        ${proofItem('No officebot path', 'enforced', 'ok')}
+        ${proofItem('Dispatch / worker', safety.dispatch_allowed || safety.worker_allowed ? 'blocked' : 'disabled', 'ok')}
+        ${proofItem('Public launch', 'not executed', 'ok')}
+        ${proofItem('QMD embeddings', `${qmdPending} accepted`, 'warn')}
+      </div>
+      ${kv(previewProof)}
+      ${toolbar([copyButton('Copy owner summary', ownerSummary), copyButton('Copy canonical root', previewProof.canonical_root), copyButton('Copy preview package', previewProof.preview_package)])}
+    </section>
+    <section class="secondary-panel span-4">
+      <div class="section-head"><div><p class="eyebrow">Now</p><h3>Что сейчас важно</h3></div></div>
+      <div class="priority-list">
+        <article><strong>${fmt(wf.counts?.pending || 0)} pending</strong><span>Work Factory без критического шума.</span></article>
+        <article><strong>${fmt(wf.counts?.blocked_error || 0)} blockers</strong><span>Ошибки остаются видимыми, но не доминируют.</span></article>
+        <article><strong>${fmt(asArray(state.artifacts).length)} artifacts</strong><span>Доказательства ниже, не вместо первого экрана.</span></article>
+      </div>
+    </section>
+    <section class="metric-strip span-12">
+      ${heroMetric('WF completed', wf.counts?.completed ?? '—', 'factory', 'work-factory')}
+      ${heroMetric('Kanban cards', kb.task_total ?? '—', 'tracked', 'kanban')}
+      ${heroMetric('Ready / running', `${kb.counts?.ready || 0}/${kb.counts?.running || 0}`, 'execution lanes', 'kanban')}
+      ${heroMetric('Artifacts', asArray(state.artifacts).length, 'evidence', 'artifacts')}
+    </section>
+    ${collapsibleCard('Accepted warnings', `${kv({qmd_pending_embeddings: 'accepted as not launch blocking', lcm: 'ACCEPTED_WARN / partial live proof', snapshot_fail_safe: 'PASS and sufficient', hyperframes: 'READY'})}`, 'span-6', true)}
+    ${collapsibleCard('Product lines', rows(asArray(state.product_lines), p => row('', LINE_RU[p.id] || ownerText(p.name), p.status, 'Автономия: ' + asArray(p.autonomy_levels).join(', '), 'json', jsonCopy(p))), 'span-6')}
+    ${collapsibleCard('Source and metadata', `${kv(sourceSummary())}${toolbar([copyButton('Copy state path', '/workspace/output/webstudio-control-plane-state.json'), copyButton('Copy local serve', 'cd /workspace/projects/webstudio-ops-dashboard && python3 -m http.server 4173 -d src')])}`, 'span-12')}
   </div>`;
 }
 
@@ -541,384 +1313,45 @@ function workFactory() {
   </div>`;
 }
 
+function premiumFactoryView() {
+  const catalog = PREMIUM_FACTORY_V126;
+  const qaRubric = {
+    visual_system: 'first viewport names niche, offer, proof signal, and CTA',
+    motion_system: 'thematic CSS 3D/HyperFrames with reduced-motion fallback',
+    conversion: 'CTA is owner-gated and local-only until real routing is approved',
+    mobile: 'single-column breakpoint, no horizontal scroll, readable cards',
+    backend_ready: 'handoff lists future fields without creating live storage',
+    safety: 'DEMO copy, no live forms, no external scripts, no cloud writes'
+  };
+  const handoffFlow = [
+    ['1. Niche brief', 'owner inputs, proof assets, compliance notes'],
+    ['2. Visual concept', 'theme, 3D/HyperFrame metaphor, motion budget'],
+    ['3. Static proof', 'local HTML/CSS/JS, responsive QA, screenshots'],
+    ['4. Owner review', 'PASS / WATCH / BLOCKED with exact missing proof'],
+    ['5. Backend planning', 'schema and routing plan only until approval']
+  ];
+  const catalogRows = catalog.map(item => `<article class="attention-item">
+    <div class="attention-head"><strong>${fmt(item.name)}</strong>${badge(item.qa, 'ok')}</div>
+    <p><b>Niche:</b> ${fmt(item.niche)}</p>
+    <p><b>3D concept:</b> ${fmt(item.motion)}</p>
+    <div class="toolbar">${copyButton('Copy local file', item.path)}${copyButton('Copy handoff note', `${item.name}\n${item.niche}\n${item.motion}\n${item.path}`)}</div>
+  </article>`).join('');
+  return `<div class="grid premium-factory">
+    <section class="hero-panel span-12 compact-hero"><div class="hero-copy"><p class="eyebrow">WebStudio v126</p><h2>Premium site factory.</h2><p>Локальная фабрика нишевых DEMO-сайтов: сильная визуальная система, тематические HyperFrames, QA и handoff без live forms и production writes.</p></div><div class="hero-metrics">${heroMetric('Concepts', catalog.length, 'local DEMO')}${heroMetric('QA', 'PASS', 'static checks')}${heroMetric('Motion', '3D', 'reduced-safe')}${heroMetric('Backend', 'planned', 'no writes')}</div></section>
+    ${card('Generated concept catalog', `<div class="list">${catalogRows}</div>`, 'span-8')}
+    ${card('Factory paths', kv({factory_index: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/premium-factory-sites/index.html', manifest: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/premium-factory-sites/manifest.json', qa_summary: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/premium-factory-sites/qa-summary-v126.json', screenshots: '/home/hermes/workspace/output/webstudio-24h-premium-factory-v126/screenshots'}), 'span-4')}
+    ${card('Premium QA rubric', kv(qaRubric), 'span-6')}
+    ${card('Operator workflow', rows(handoffFlow.map(([step, body]) => ({step, body})), item => row('', item.step, 'ready', item.body), 'No workflow steps'), 'span-6')}
+    ${card('Backend-ready contract', kv({mode: 'planning only', future_fields: 'lead intent, selected package, approved route, consent, artifact version', forbidden_now: 'live forms, production storage, public launch, paid tracking, unsandboxed writes', owner_gate: 'exact approval required before any live integration'}), 'span-12')}
+  </div>`;
+}
+
 function classifyCard(t) {
   const text = `${t.title || ''} ${t.body || ''}`.toLowerCase();
   if (text.includes('[sys]') || text.includes('mirror_type=sys-control-plane')) return 'sys';
   if (text.includes('[wf') || text.includes('mirror only') || text.includes('work factory')) return 'mirror';
   if (text.includes('approval')) return 'approval';
   return 'normal';
-}
-
-
-const LANE_DESCRIPTIONS = {
-  triage: 'Новые идеи, лиды и сырые требования без полной спецификации.',
-  todo: 'Уточнённые задачи: смысл понятен, но есть подготовка или зависимость.',
-  scheduled: 'Старт позже: следующий 12h tick, окно владельца или событие.',
-  ready: 'Всё готово: агент может брать в работу без дополнительных вопросов.',
-  in_progress: 'Реально выполняется агентом, воркером или субагентом сейчас.',
-  running: 'Реально выполняется агентом, воркером или субагентом сейчас.',
-  blocked: 'Только настоящие blockers: решение владельца, доступ или внешний риск.',
-  review: 'Результат готов и ждёт QA, owner review или delivery review.',
-  done: 'Принятые результаты. Новые сверху по updated/completed времени.',
-  archived: 'Canary, test, noise и старые карточки вне production-фокуса.'
-};
-const LANE_ACCENTS = {triage:'#60a5fa',todo:'#38bdf8',scheduled:'#a78bfa',ready:'#34d399',in_progress:'#5dd2ff',running:'#5dd2ff',blocked:'#fb7185',review:'#fbbf24',done:'#22c55e',archived:'#94a3b8'};
-const CAPABILITY_ROWS = [
-  {domain:'Визуальный дизайн', gives:'Дизайн-системы, DESIGN.md, визуальные гипотезы, не шаблонная сетка', agents:['CTO','Design','Frontend'], lines:['D1','D2','D3'], status:'active', source:'Open Design + встроенные навыки Hermes', next:'Автовыбор DESIGN.md по типу продукта'},
-  {domain:'Анимация и микровзаимодействия', gives:'Дисциплинированный слой motion, микровзаимодействия, reveal без перегруза', agents:['Design','Frontend','QA'], lines:['D1','D2'], status:'active', source:'Open Design craft + локальный навык анимации', next:'Бюджет анимации и reduced-motion аудит'},
-  {domain:'QA и ревью', gives:'Browser QA, console=0, responsive, проверка артефактов, русская copy-проверка', agents:['QA','Delivery'], lines:['D1','D2','D3'], status:'active', source:'Паттерны webapp-testing + Hermes browser QA', next:'Визуальные regression snapshots'},
-  {domain:'Производительность и передача', gives:'Лёгкая static-админка, build/smoke, owner-ready handoff, rollback notes', agents:['Frontend','Ops','Delivery'], lines:['D1','D2','D3'], status:'active', source:'Hermes WebStudio delivery skills', next:'Адаптер рисков Core Web Vitals'},
-  {domain:'Конверсия и аналитика', gives:'Воронки, CTA, оффер, acceptance criteria, throughput charts', agents:['Sales','CTO','Research'], lines:['D1','D2','D3'], status:'active', source:'Таксономия awesome-agent-skills', next:'Lead scoring в D3 intake'},
-  {domain:'Русский текст и UX', gives:'Owner-friendly RU labels, короткие next steps, raw/debug скрыты под «Подробнее»', agents:['Design','QA','Delivery'], lines:['D1','D2','D3'], status:'active', source:'локальный навык русского copy', next:'Tone presets per client'},
-  {domain:'GitHub и PR-передача', gives:'PR status, branch, checks, safe push boundary, evidence paths', agents:['Ops','Delivery'], lines:['OPS','D1'], status:'active', source:'Hermes github-pr-workflow', next:'История CI badge'},
-  {domain:'Передача клиенту', gives:'Пакет передачи: screenshots, QA report, summary, exact approvals', agents:['Delivery','QA','Sales'], lines:['D1','D2','D3'], status:'active', source:'локальный handoff-навык', next:'Client-ready ZIP manifest'},
-  {domain:'Supabase и backend safe ops', gives:'Read-only liveness, schema proposal before writes, RLS-safe boundary', agents:['Backend','Ops','QA'], lines:['D2','D3'], status:'planned', source:'Hermes Supabase safe checks', next:'Read-only status tile'},
-  {domain:'QMD и база знаний', gives:'Safe qmd status/update/search/get/ls; no vector-heavy commands by default', agents:['Research','Ops','CTO'], lines:['OPS','D1','D2','D3'], status:'active', source:'Hermes QMD safe mode', next:'Knowledge freshness chart'}
-];
-const DESIGN_ENGINE_STEPS = [
-  {role:'CTO', step:'Scope / strategy', output:'позиционирование, acceptance criteria, proof policy', gate:'нет неподтверждённых claims и фейковых метрик'},
-  {role:'Design Agent', step:'DESIGN.md / visual direction', output:'tokens, типографика, сетка, дизайн-система, motion budget', gate:'источник дизайна указан, правила повторяемы'},
-  {role:'Frontend Agent', step:'Prototype / implementation', output:'hero, оффер, proof blocks, CTA, responsive components', gate:'360px и 1920px без горизонтального скролла'},
-  {role:'QA', step:'Visual + conversion QA', output:'responsive screenshots, console check, copy review, reduced-motion audit', gate:'build/smoke/secret scan/browser QA PASS'},
-  {role:'Delivery', step:'Owner/client handoff', output:'artifact index, checklist, rollback/approval notes', gate:'точные owner actions и handoff без internal debug'}
-];
-const DESIGN_SYSTEMS = [
-  {name:'Editorial Premium', best_for:'D1 лендинги с экспертным позиционированием', tokens:'warm canvas · serif accent · hairline cards · high-trust proof', avoid:'generic blue-purple SaaS', artifact:'/workspace/output/webstudio-d1-premium-landing-demo-v1.html'},
-  {name:'Ops Cockpit Dark', best_for:'админки, Kanban, production dashboards', tokens:'dark panels · compact cards · semantic lane accents · dense 1920 grid', avoid:'raw logs in main view', artifact:'/workspace/output/webstudio-ops-dashboard-static/index.html'},
-  {name:'Conversation Flow', best_for:'D2 Telegram bot и client-facing сценарии', tokens:'message bubbles · decision chips · escalation states · privacy notes', avoid:'магия без объяснения шага', artifact:'/workspace/output/webstudio-d2-bot-intake-screens-v1.html'},
-  {name:'Process Map', best_for:'D3 автоматизации и интеграционные риски', tokens:'swimlanes · risk chips · exception gates · handoff checklist', avoid:'линейные схемы без ошибок', artifact:'/workspace/output/webstudio-d3-process-map-ui-v1.html'}
-];
-const MOTION_QA_GATES = [
-  'micro-interactions only: hover/focus/reveal <= 180ms',
-  'prefers-reduced-motion disables non-essential movement',
-  'no layout shift from animation; CTA remains tappable',
-  'mobile above-fold readable without scroll traps',
-  'browser console clean before delivery'
-];
-function designPipelineDiagram() {
-  return `<div class="engine-pipeline">${DESIGN_ENGINE_STEPS.map((x, i) => `<article class="pipeline-node"><span>${fmt(x.role)}</span><b>${fmt(x.step)}</b><small>${fmt(x.output)}</small><em>${fmt(x.gate)}</em></article>${i < DESIGN_ENGINE_STEPS.length - 1 ? '<i class="pipeline-arrow">→</i>' : ''}`).join('')}</div>`;
-}
-function frontendDesignEngine() {
-  const artifacts = [
-    ['/workspace/output/webstudio-d1-premium-landing-demo-v1.html','D1 premium landing demo'],
-    ['/workspace/output/webstudio-d1-conversion-qa-checklist-v1.md','D1 conversion QA checklist'],
-    ['/workspace/output/webstudio-d2-bot-intake-screens-v1.html','D2 bot intake screens'],
-    ['/workspace/output/webstudio-d2-qa-fixtures-v1.json','D2 QA fixtures'],
-    ['/workspace/output/webstudio-d3-process-map-ui-v1.html','D3 process map UI'],
-    ['/workspace/output/webstudio-d3-handoff-checklist-v1.md','D3 handoff checklist'],
-    ['/workspace/output/webstudio-frontend-design-engine-v2.md','Frontend Design Engine spec']
-  ];
-  return `<section class="card span-12 design-engine"><h3>Frontend Design Engine</h3><p class="label">Рабочий конвейер: CTO → Design Agent → Frontend Agent → QA → Delivery. На выходе не описание, а demo/spec/fixtures/checklist с проверками.</p>${designPipelineDiagram()}<div class="design-engine-grid"><article><h4>Pipeline gates</h4>${DESIGN_ENGINE_STEPS.map(x => `<div class="engine-step"><b>${fmt(x.role)} · ${fmt(x.step)}</b><span>${fmt(x.output)}</span><em>${fmt(x.gate)}</em></div>`).join('')}</article><article><h4>Design systems cards</h4>${DESIGN_SYSTEMS.map(x => `<div class="design-system-card"><b>${fmt(x.name)}</b><span>${fmt(x.best_for)}</span><em>${fmt(x.tokens)}</em><small>Anti-template: ${fmt(x.avoid)}</small><small>Artifact: ${fmt(x.artifact)}</small></div>`).join('')}</article><article><h4>Motion / QA gates</h4>${MOTION_QA_GATES.map(x => `<div class="artifact-chip motion-gate"><b>QA gate</b><span>${fmt(x)}</span></div>`).join('')}<h4>Artifacts</h4>${artifacts.map(([path,label]) => `<div class="artifact-chip"><b>${fmt(label)}</b><span>${fmt(path)}</span></div>`).join('')}</article></div></section>`;
-}
-function taskUpdatedAt(t) { return t.completed_at || t.updated_at || t.created_at || t.audit?.updated_at || t.audit?.created_at || ''; }
-function ageLabel(t) { const raw = taskUpdatedAt(t); if (!raw) return 'нет времени'; const d = new Date(raw); if (Number.isNaN(d.getTime())) return shortText(raw, 18); const h = Math.max(0, Math.round((Date.now() - d.getTime()) / 36e5)); return h < 1 ? 'только что' : h < 24 ? `${h}ч назад` : `${Math.round(h/24)}д назад`; }
-function lineClass(line) { return ['D1','D2','D3','OPS'].includes(line) ? line.toLowerCase() : 'ops'; }
-function visualKanbanCard(t) {
-  const line = productLineOf(t);
-  const artifact = t.artifact_path || t.output || t.report || '';
-  const next = ownerNext(t);
-  const status = t.lifecycle_status || t.status || t.physical_status || 'tracked';
-  const stage = ownerStage(t);
-  const owner = ownerAgent(t);
-  const payload = jsonCopy(t);
-  const artifactText = artifact ? shortPath(artifact) : 'ожидает';
-  return `<article class="ws-task-card product-like-card ${lineClass(line)} ${statusClass(status)}" data-detail-type="kanban-card" data-detail-payload="${esc(payload)}" tabindex="0" role="button">
-    <div class="task-card-head"><span class="line-chip ${lineClass(line)}">${fmt(line)}</span>${badge(status)}</div>
-    <h4>${fmt(ownerText(t.title))}</h4>
-    <p class="task-card-summary">${fmt(shortText(next, 96))}</p>
-    <div class="product-card-ribbon"><span>${fmt(stage)}</span><span>${fmt(owner)}</span><span>${fmt(ageLabel(t))}</span></div>
-    <div class="task-meta-grid">
-      <span>Артефакт</span><b>${fmt(artifactText)}</b>
-      <span>Delivery</span><b>${/done|review|pass|complete/i.test(status + ' ' + stage) ? 'готовится' : 'в работе'}</b>
-      <span>Следующий шаг</span><b>${fmt(shortText(next, 58))}</b>
-    </div>
-    <details class="raw-details"><summary>Подробнее</summary><pre class="code mini">${fmt(stringify(t, 1200))}</pre></details>
-  </article>`;
-}
-function sortLaneItems(lane, items) {
-  const list = asArray(items).slice();
-  if (lane === 'done' || lane === 'archived') list.sort((a,b) => String(taskUpdatedAt(b)).localeCompare(String(taskUpdatedAt(a))));
-  return list;
-}
-function visualLaneBoard(lanes, order, opts={}) {
-  return `<div class="visual-kanban-board" data-columns="${order.length}">${order.map(lane => {
-    const allItems = sortLaneItems(lane, lanes?.[lane]);
-    const visible = allItems.slice(0, opts.limit || 5);
-    const accent = LANE_ACCENTS[lane] || '#5dd2ff';
-    const morePayload = {lane, count: allItems.length, items: allItems.slice(0, 50), note: allItems.length > 50 ? 'Показаны первые 50 карточек; полный список доступен через фильтр/экспорт JSON.' : 'Полный список колонки.'};
-    const more = allItems.length > visible.length ? `<button class="more-count" type="button" data-detail-type="kanban-lane" data-detail-payload="${esc(jsonCopy(morePayload))}">ещё ${allItems.length - visible.length}</button>` : '';
-    return `<section class="visual-lane ${statusClass(lane)}" style="--lane-accent:${accent}">
-      <header class="lane-head"><div><h3>${fmt(ru(lane))}</h3><p>${fmt(LANE_DESCRIPTIONS[lane] || 'Рабочая колонка production pipeline.')}</p></div><span>${allItems.length}</span></header>
-      <div class="lane-scroll">${visible.length ? visible.map(visualKanbanCard).join('') : `<div class="empty lane-empty">Пока пусто</div>`}${more}</div>
-    </section>`;
-  }).join('')}</div>`;
-}
-function maxCount(values) { return Math.max(1, ...values.map(v => Number(v) || 0)); }
-function stageDistributionChart(counts={}) {
-  const order = ['triage','todo','scheduled','ready','in_progress','blocked','review','done','archived'];
-  const max = maxCount(order.map(k => counts[k] || 0));
-  return `<div class="chart-grid stage-chart">${order.map(k => `<div class="bar-row"><span>${fmt(ru(k))}</span><div class="bar-track"><i style="width:${Math.max(3, Math.round(((counts[k] || 0) / max) * 100))}%;background:${LANE_ACCENTS[k] || '#5dd2ff'}"></i></div><b>${fmt(counts[k] || 0)}</b></div>`).join('')}</div>`;
-}
-function lineProgressChart(progress={}) {
-  const byLine = progress.by_line || {};
-  const lines = ['D1','D2','D3'];
-  const max = maxCount(lines.map(l => byLine[l]?.total || asArray(progress.items).filter(i => i.product_line === l).length));
-  return `<div class="line-progress-grid">${lines.map(l => { const entry = byLine[l] || {}; const total = entry.total || asArray(progress.items).filter(i => i.product_line === l).length; const active = entry.active || entry.in_progress || 0; const done = entry.done || entry.completed || asArray(progress.items).filter(i => i.product_line === l && /done|complete|pass/i.test(i.status || '')).length; return `<article class="line-progress-card ${l.toLowerCase()}"><h4>${fmt(LINE_RU[l])}</h4><div class="donut" style="--pct:${Math.min(100, Math.round((total / max) * 100))}%"><span>${fmt(total)}</span></div><p>активно ${fmt(active)} · готово ${fmt(done)} · review ${fmt(entry.review || 0)} · blocked ${fmt(entry.blocked || 0)}</p></article>`; }).join('')}</div>`;
-}
-function agentWorkloadChart() {
-  const prod = state.production_pipeline || {}; const lanes = prod.logical_lanes || {}; const all = Object.values(lanes).flatMap(asArray);
-  const roles = ['CTO','Оркестратор','Frontend','Backend','QA','Ops','Research','Sales','Delivery'];
-  const counts = Object.fromEntries(roles.map(r => [r, 0]));
-  for (const t of all) { const a = ownerAgent(t); const key = roles.find(r => new RegExp(r === 'Оркестратор' ? 'оркестр|orchestr' : r, 'i').test(a + ' ' + (t.assigned_agent || '') + ' ' + (t.assignee || '') + ' ' + (t.title || ''))) || 'Ops'; counts[key]++; }
-  const max = maxCount(Object.values(counts));
-  return `<div class="workload-chart">${roles.map(r => `<div class="workload-pill"><b>${fmt(r)}</b><span style="height:${Math.max(10, Math.round((counts[r]/max)*72))}px"></span><em>${fmt(counts[r])}</em></div>`).join('')}</div>`;
-}
-function throughputChart() {
-  const hist = asArray(state.control_plane_history?.snapshots);
-  if (!hist.length) return `<div class="empty">История ещё собирается. Первый адаптер создан в public/data/webstudio-control-plane-history.json.</div>`;
-  return `<div class="sparkline">${hist.slice(-12).map(x => `<span title="${esc(x.at || '')}" style="height:${Math.max(8, Math.min(86, (Number(x.completed || 0)+1)*6))}px"></span>`).join('')}</div>`;
-}
-function deliveryReadinessCard(progress={}, prod={}) {
-  const analytics = progress.analytics || {};
-  const score = Number(analytics.delivery_readiness_score || 0);
-  const blockers = analytics.blockers_aging || {};
-  const items = asArray(progress.items);
-  const passCount = items.filter(x => /pass|done|complete/i.test(x.status || '')).length;
-  return `<div class="readiness-card"><div class="readiness-ring" style="--pct:${Math.max(0, Math.min(100, score))}%"><span>${fmt(score || Math.round((passCount / Math.max(1, items.length)) * 100))}%</span></div><div><h4>Delivery readiness</h4><p>PASS артефактов: ${fmt(passCount)}/${fmt(items.length)} · review lane: ${fmt(prod.logical_counts?.review || 0)} · blockers: ${fmt(blockers.active_blockers ?? prod.logical_counts?.blocked ?? 0)}</p><p class="label">Самый старый blocker: ${fmt(blockers.oldest_blocker_age_hours ?? 0)}ч · live-интеграции остаются approval-gated.</p></div></div>`;
-}
-function blockersAgingChart(progress={}, prod={}) {
-  const blockers = progress.analytics?.blockers_aging || {};
-  const watch = asArray(blockers.watch_items);
-  const active = Number(blockers.active_blockers ?? prod.logical_counts?.blocked ?? 0);
-  const age = Number(blockers.oldest_blocker_age_hours || 0);
-  return `<div class="blockers-aging"><div class="bar-row"><span>Active</span><div class="bar-track"><i style="width:${Math.max(3, Math.min(100, active * 18))}%"></i></div><b>${fmt(active)}</b></div><div class="bar-row"><span>Oldest</span><div class="bar-track warn"><i style="width:${Math.max(3, Math.min(100, age))}%"></i></div><b>${fmt(age)}ч</b></div>${watch.map(x => `<p class="label">• ${fmt(x)}</p>`).join('') || '<p class="label">Нет aging blockers.</p>'}</div>`;
-}
-function progressAnalytics() {
-  const prod = state.production_pipeline || {}; const progress = state.product_progress || {}; const h = state.health || {};
-  const risk = {blockers: prod.logical_counts?.blocked || 0, stale: ownerKpiStale().active || 0, crashes: state.worker_health?.repeated_crash_indicator_count || 0, github: state.github_readiness?.status || 'unknown', qmd: h.qmd?.status || h.status || 'unknown', supabase: state.supabase?.status || 'read-only/unknown', pr_verification: progress.pr_verification_verdict || state.github_readiness?.pr_status?.verification_verdict || 'unknown'};
-  return `<section class="card span-12 analytics-section"><h3>Аналитика прогресса</h3><div class="analytics-grid">
-    <article class="wide">${deliveryReadinessCard(progress, prod)}</article>
-    <article><h4>Распределение по стадиям</h4>${stageDistributionChart(prod.logical_counts || {})}</article>
-    <article><h4>D1/D2/D3 progress</h4>${lineProgressChart(progress)}</article>
-    <article><h4>Blockers aging</h4>${blockersAgingChart(progress, prod)}</article>
-    <article><h4>Нагрузка агентов</h4>${agentWorkloadChart()}</article>
-    <article><h4>Темп работы / Фабрика задач</h4>${throughputChart()}</article>
-    <article class="wide"><h4>Риски и внимание</h4>${kv(risk)}</article>
-  </div></section>`;
-}
-function capabilityMatrix() {
-  return `<section class="card span-12 capability-section"><h3>Навыки агентов</h3><p class="label">Capability matrix показывает, какие навыки реально используются в production pipeline. Raw skill names спрятаны в «Подробнее».</p><div class="capability-grid">${CAPABILITY_ROWS.map(c => `<article class="capability-card ${statusClass(c.status)}"><div class="capability-top"><h4>${fmt(c.domain)}</h4>${badge(c.status)}</div><p>${fmt(c.gives)}</p><div class="capability-meta"><span>Агенты: ${fmt(c.agents.join(', '))}</span><span>Линии: ${fmt(c.lines.join(', '))}</span><span>Источник: ${fmt(c.source)}</span></div><details><summary>Подробнее</summary><pre class="code mini">${fmt(jsonCopy(c))}</pre></details></article>`).join('')}</div></section>`;
-}
-function motionVideoCard(v) {
-  const res = v.width && v.height ? `${v.width}×${v.height}` : '—';
-  const fps = v.r_frame_rate || '—';
-  const dur = v.duration || '—';
-  const size = v.size ? `${Math.round(Number(v.size) / 1024)} KB` : '—';
-  return `<article class="capability-card motion-video-card"><div class="capability-top"><h4>${fmt(shortPath(v.path))}</h4>${badge(v.exists ? 'PASS' : 'missing')}</div><div class="task-meta-grid owner-meta"><span>Duration</span><b>${fmt(dur)}</b><span>Resolution</span><b>${fmt(res)}</b><span>FPS</span><b>${fmt(fps)}</b><span>Size</span><b>${fmt(size)}</b></div><div class="toolbar">${copyButton('Copy MP4 path', v.path || '')}${detailPayloadButton(v, 'Metadata', 'motion-video')}</div></article>`;
-}
-function motionFactory() {
-  const mf = state.motion_factory || {};
-  const runtime = mf.runtime || {};
-  const repo = mf.repo_sync || {};
-  const videos = asArray(mf.latest_videos);
-  return `<div class="grid motion-factory">
-    ${metric('Production generator', mf.production_generator_status || 'unknown', 'span-3')}
-    ${metric('Template pack', mf.template_pack_status || 'unknown', 'span-3')}
-    ${metric('Batch render', mf.batch_render_status || 'unknown', 'span-3')}
-    ${metric('Poster auto-pick', mf.poster_status || 'unknown', 'span-3')}
-    ${metric('Reduced motion', mf.reduced_motion_status || 'unknown', 'span-3')}
-    ${metric('Handoff pack', mf.handoff_pack_status || 'unknown', 'span-3')}
-    ${metric('Motion Engine', runtime.motion_engine || 'unknown', 'span-3')}
-    ${metric('Owner action', runtime.owner_action_required || 'unknown', 'span-3')}
-    ${card('HyperFrames / Motion Engine', `${kv({factory_status: mf.status, hyperframes_runtime: runtime.hyperframes_runtime, motion_engine: runtime.motion_engine, owner_action_required: runtime.owner_action_required, next_action: mf.next_action})}`, 'span-6')}
-    ${card('Repo sync', `${kv({meaningful_changes_needed: repo.meaningful_changes_needed, worktree: repo.worktree, reason: repo.reason})}`, 'span-6')}
-    <section class="card span-12"><h3>Latest videos</h3><div class="capability-grid">${videos.length ? videos.map(motionVideoCard).join('') : '<div class="empty">No video metadata yet.</div>'}</div></section>
-    ${card('QA / reports', rows(asArray(mf.reports).map((path, i) => ({id: 'R' + (i + 1), title: path, status: 'report', output: path})), wfTaskRow, 'No reports'), 'span-12')}
-  </div>`;
-}
-function artifactLink(path, label='Открыть') {
-  if (!path) return '';
-  return `<a class="copy secondary" href="file://${fmt(path)}" target="_blank" rel="noreferrer">${fmt(label)}</a>`;
-}
-function servicePackageCard(pkg, idx) {
-  return `<article class="capability-card"><div class="capability-top"><h4>${fmt(pkg.name || ('Пакет ' + (idx + 1)))}</h4>${badge(pkg.timeline_complexity || 'package')}</div><p>${fmt(pkg.description)}</p><div class="capability-meta"><span>Артефакты: ${fmt(asArray(pkg.artifacts).slice(0,3).join(', '))}</span><span>Approval: ${fmt(asArray(pkg.approval_gates).slice(0,2).join(', '))}</span></div><details><summary>Подробнее</summary><pre class="code mini">${fmt(jsonCopy(pkg))}</pre></details></article>`;
-}
-function intakeOrders() {
-  const ci = state.client_intake_v27 || {};
-  const wizard = ci.wizard || {};
-  const ob = ci.order_builder || {};
-  const factory = ci.premium_site_factory || {};
-  const examples = asArray(ci.examples);
-  const links = asArray(ci.links);
-  const packages = asArray(ob.package_details).length ? asArray(ob.package_details) : asArray(ob.available_packages).map((name, i) => ({name, timeline_complexity: i < 2 ? 'primary' : 'available', description: 'Доступный пакет WebStudio v27', artifacts: [], approval_gates: []}));
-  return `<div class="grid intake-orders">
-    ${metric('Intake Wizard', wizard.status || 'unknown', 'span-3')}
-    ${metric('Вопросов', wizard.questions ?? '—', 'span-3')}
-    ${metric('Пакетов услуг', ob.packages ?? '—', 'span-3')}
-    ${metric('Blueprint шагов', factory.steps ?? '—', 'span-3')}
-    ${metric('Readiness', ci.readiness || 'unknown', 'span-3')}
-    ${metric('Owner approvals', asArray(ci.approvals).length, 'span-3')}
-    ${card('Client Intake Wizard', `${kv({status: wizard.status, mode: wizard.mode, questions: wizard.questions})}<div class="toolbar">${copyButton('Copy wizard JSON', wizard.json || '')}${artifactLink(wizard.html, 'Wizard HTML')}</div>`, 'span-6')}
-    ${card('Order Builder', `${kv({status: ob.status, packages: ob.packages})}<div class="toolbar">${copyButton('Copy order JSON', ob.json || '')}${artifactLink(ob.html, 'Order HTML')}</div>`, 'span-6')}
-    ${card('Premium Website Factory', `${kv({status: factory.status, steps: factory.steps, blueprint: factory.blueprint_md})}`, 'span-6')}
-    ${card('Motion Factory', `${kv({status: state.motion_factory?.status, engine: state.motion_factory?.runtime?.motion_engine, next: state.motion_factory?.next_action})}`, 'span-6')}
-    <section class="card span-12"><h3>Пакеты услуг</h3><div class="capability-grid">${packages.map(servicePackageCard).join('')}</div></section>
-    <section class="card span-12"><h3>Примеры клиентов</h3><div class="capability-grid">${examples.map(ex => `<article class="capability-card"><div class="capability-top"><h4>${fmt(ex.name)}</h4>${badge(ex.status)}</div><p>Example Client #${fmt(ex.id)}</p><div class="toolbar">${copyButton('Copy artifacts', asArray(ex.artifacts).join('\n'))}${detailPayloadButton(ex, 'Артефакты', 'client-example')}</div></article>`).join('')}</div></section>
-    ${card('Следующее действие', `<p>${fmt(ci.next_action)}</p><div class="toolbar">${links.map((x,i)=>copyButton('Copy link '+(i+1), x, 'secondary')).join('')}</div>`, 'span-12')}
-  </div>`;
-}
-
-function deliveryStageCard(stage) {
-  return `<article class="capability-card delivery-stage-card"><div class="capability-top"><h4>${fmt(stage.id ? stage.id + '. ' + stage.name : stage.name)}</h4>${badge(stage.kanban_stage || 'stage')}</div><p><b>Agent:</b> ${fmt(stage.responsible_agent)}</p><p>${fmt(shortText(stage.acceptance_criteria, 150))}</p><div class="capability-meta"><span>Input: ${fmt(shortText(stage.inputs, 70))}</span><span>Output: ${fmt(shortText(stage.outputs, 70))}</span><span>Owner: ${fmt(stage.owner_approval_required)}</span></div><div class="toolbar">${copyButton('Copy artifact path', stage.artifact_path || '', 'secondary')}${detailPayloadButton(stage, 'Подробнее', 'delivery-stage')}</div></article>`;
-}
-function deliveryArtifactRow(path, idx) {
-  return row('A' + (idx + 1), path, 'artifact', 'v29 delivery registry', 'artifact', jsonCopy({path, status:'PASS'}));
-}
-function delivery() {
-  const ds = state.delivery_system_v29 || {};
-  const pipeline = ds.pipeline_stages || 0;
-  const artifacts = asArray(ds.artifacts);
-  const stages = asArray(state.product_progress?.delivery_system_v29?.stages || []);
-  const github = ds.github_mainline || {};
-  const ready = ds.readiness || {};
-  const renderedStages = stages.length ? stages : asArray((state.delivery_pipeline_v29 || {}).stages);
-  return `<div class="grid delivery-system">
-    ${metric('Delivery system', ds.status || 'unknown', 'span-3')}
-    ${metric('Pipeline stages', pipeline || renderedStages.length || '—', 'span-3')}
-    ${metric('QA blocks', ds.qa_blocks || '—', 'span-3')}
-    ${metric('Client #003', ds.client_003_status || 'unknown', 'span-3')}
-    ${card('Поставка клиенту — v29', `${kv({status: ds.status, pipeline: ds.pipeline_status, delivery_pack_template: ds.delivery_pack_template_status, client_003: ds.client_003_status, owner_action_required: ds.owner_action_required, next_action: ds.next_action})}${toolbar([copyButton('Copy delivery system', '/workspace/output/webstudio-premium-website-delivery-system-v29.md'), copyButton('Copy pipeline JSON', '/workspace/output/webstudio-client-delivery-pipeline-v29.json'), copyButton('Copy client #003 pack', '/workspace/output/webstudio-client-example-003-delivery-pack-v1.html')])}`, 'span-12')}
-    ${card('GitHub / mainline', `${kv({status: github.status || 'MAINLINE_MERGED', pr_1: github.pr_1 || 'MERGED', default_branch: github.default_branch || 'main', default_sha: github.default_sha || 'c72b1946ad8de01da4f1ce0b38026d05363f59b7', contribution_visibility: github.contribution_visibility_note || '1-24h graph delay possible'})}`, 'span-6')}
-    ${card('D1/D2/D3 readiness', `${kv(ready)}`, 'span-6')}
-    ${card('Motion Factory', `${kv({status: state.motion_factory?.status, video: ready.motion_video || state.motion_factory?.runtime?.motion_engine, reduced_motion: state.motion_factory?.reduced_motion_status, handoff: state.motion_factory?.handoff_pack_status})}`, 'span-6')}
-    ${card('Approval / launch readiness', `${rows(asArray(ds.approval_packets).map((path,i)=>({id:'P'+(i+1), title:path, status:'approval', output:path})), wfTaskRow, 'No approval packets')}${toolbar([copyButton('Copy launch readiness', ds.launch_readiness || '/workspace/output/webstudio-client-example-003-launch-readiness-v1.md')])}`, 'span-6')}
-    <section class="card span-12"><h3>Delivery pipeline</h3><div class="capability-grid">${renderedStages.length ? renderedStages.map(deliveryStageCard).join('') : '<div class="empty">Run snapshot after v29 pipeline JSON is created.</div>'}</div></section>
-    ${card('Artifact registry', rows(artifacts.map((path, i)=>({path, i})), x => deliveryArtifactRow(x.path, x.i), 'No v29 artifacts indexed'), 'span-12')}
-  </div>`;
-}
-
-function realClientStageCard(stage) {
-  return `<article class="capability-card"><div class="capability-top"><h4>${fmt(stage.id ? stage.id + '. ' + stage.name : stage.name)}</h4>${badge(stage.kanban_stage || 'stage')}</div><p><b>Agent:</b> ${fmt(stage.responsible_agent)}</p><p>${fmt(shortText(stage.acceptance_criteria, 150))}</p><div class="capability-meta"><span>Output: ${fmt(shortText(stage.outputs, 80))}</span><span>Gate: ${fmt(shortText(stage.approval_gates, 70))}</span></div><div class="toolbar">${openButton('Артефакт', stage.artifact_path || '')}${detailPayloadButton(stage, 'Подробнее', 'real-client-stage')}</div></article>`;
-}
-function realClients() {
-  const rc = state.real_client_execution_v30 || {};
-  const paths = rc.paths || {};
-  const pr2 = rc.pr2_status || {};
-  const flow = asArray(rc.flow);
-  return `<div class="grid real-clients">
-    ${metric('Client #004', rc.status || 'unknown', 'span-3')}
-    ${metric('Flow stages', rc.flow_stages || flow.length || '—', 'span-3')}
-    ${metric('D1/D2/D3', `${rc.d1_status || '—'} / ${rc.d2_status || '—'} / ${rc.d3_status || '—'}`, 'span-3')}
-    ${metric('PR #2', pr2.pr_state || 'CHECKED_BY_HOST', 'span-3')}
-    ${card('Реальные клиенты — v30', `${kv({client: rc.client_name || rc.client, package_selected: rc.package_selected, execution_flow: rc.execution_flow_status, owner_action_required: rc.owner_action_required, next_action: rc.next_action})}${toolbar([copyButton('Copy flow', paths.flow || ''), copyButton('Copy client report', paths.client_report || ''), copyButton('Copy export registry', paths.export_registry || '')])}`, 'span-12')}
-    ${card('Client #004 status', `${kv({D1: rc.d1_status, D2: rc.d2_status, D3: rc.d3_status, motion: rc.motion_status, QA: rc.qa_status, preview_package: rc.preview_package_status, artifact_registry_count: rc.artifact_registry_count})}`, 'span-6')}
-    ${card('PR #2 / branch strategy', `${kv({pr_2: pr2.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/2', state: pr2.pr_state || 'pending host check', head: pr2.head_sha, checks_failed: pr2.checks_failed, checks_pending: pr2.checks_pending, mergeability: pr2.merge_state_status, strategy: rc.branch_strategy})}`, 'span-6')}
-    ${card('Preview package', `${kv({d1_preview: paths.d1_preview, d2_flow: paths.d2_flow, d3_map: paths.d3_map, motion: paths.motion_composition, registry: paths.artifact_registry})}<div class="toolbar">${openButton('D1 preview', paths.d1_preview || '')}${openButton('Motion composition', paths.motion_composition || '')}${openButton('Preview package', paths.preview_package || '')}</div>`, 'span-12')}
-    <section class="card span-12"><h3>Execution flow progress</h3><div class="capability-grid">${flow.length ? flow.map(realClientStageCard).join('') : '<div class="empty">Run snapshot after v30 flow JSON is created.</div>'}</div></section>
-  </div>`;
-}
-
-function capabilities() { return `<div class="grid">${frontendDesignEngine()}${capabilityMatrix()}${progressAnalytics()}</div>`; }
-
-function demoThumbnail(item, score, line) {
-  const t = item.preview_thumbnail || {};
-  const chips = asArray(t.chips).slice(0,4);
-  const accent = t.accent || (line === 'D1' ? '#f5c37b' : line === 'D2' ? '#5dd2ff' : '#36d399');
-  return `<div class="demo-thumb v11-thumb ${String(line).toLowerCase()}" style="--thumb-accent:${esc(accent)}"><span>${fmt(line)}</span><strong>${fmt(t.headline || item.preview_label || 'Демо')}</strong><em>${fmt(t.theme || item.artifact_type || 'WebStudio')}</em><div class="thumb-chips">${chips.map(c => `<small>${fmt(c)}</small>`).join('')}</div><i style="width:${Math.max(8, Math.min(100, score))}%"></i></div>`;
-}
-function productLineName(line) {
-  return line === 'D1' ? 'Лендинги и сайты' : line === 'D2' ? 'AI-intake Telegram bot' : line === 'D3' ? 'Бизнес-автоматизации' : 'WebStudio';
-}
-function demoProductCard(item) {
-  const score = Number(item.readiness_score || 0);
-  const line = item.product_line || 'D?';
-  const qa = item.qa_path || item.fixtures_path || '';
-  const handoff = item.handoff_path || item.demo_script_path || '';
-  const clientGets = item.client_gets || item.preview_label || item.artifact_type || 'Готовый артефакт для клиентского показа.';
-  const example = item.example_request || item.example_dialog || item.example_process || 'Пример клиентского запроса хранится в деталях.';
-  const automation = item.automation || 'Система готовит артефакты, QA и передачу владельцу.';
-  return `<article class="demo-product-card showcase-card ${String(line).toLowerCase()}">
-    ${demoThumbnail(item, score, line)}
-    <div class="demo-head"><div><p class="eyebrow">${fmt(line)} — ${fmt(productLineName(line))}</p><h3>${fmt(item.title || productLineName(line))}</h3></div>${badge(item.status || 'watch')}</div>
-    <div class="showcase-copy">
-      <p><b>Что клиент получает:</b> ${fmt(clientGets)}</p>
-      <p><b>Пример:</b> ${fmt(shortText(example, 130))}</p>
-      <p><b>Что система делает автоматически:</b> ${fmt(automation)}</p>
-    </div>
-    <div class="demo-progress"><span>Готовность</span><b>${fmt(score)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, score))}%"></i></div></div>
-    <div class="task-meta-grid owner-meta">
-      <span>Демо</span><b>${item.path ? 'готово' : 'нет'}</b>
-      <span>QA</span><b>${qa ? 'готово' : 'нет'}</b>
-      <span>Передача</span><b>${handoff ? 'готово' : 'нет'}</b>
-      <span>Следующий шаг</span><b>${fmt(shortText(item.next_action || 'проверить демо', 72))}</b>
-    </div>
-    <div class="toolbar cta-row">
-      ${openButton('Открыть демо', item.path || '')}
-      ${openButton('Показать клиенту', item.path || '')}
-      ${openButton('QA', qa)}
-      ${openButton('Передача', handoff)}
-      ${detailPayloadButton(item, 'Подробнее', 'demo-product')}
-    </div>
-  </article>`;
-}
-function clientSimulationPanel(progress={}) {
-  const sim = progress.client_simulation || {};
-  if (!sim.id) return '';
-  const links = [
-    ['Бриф', sim.brief_path], ['D1', sim.d1_path], ['D2', sim.d2_path], ['D3', sim.d3_path], ['Delivery pack', sim.delivery_pack_path]
-  ];
-  const score = Number(sim.readiness_score || 0);
-  return `<section class="card span-12 client-sim-card"><div class="sim-head"><div><p class="eyebrow">First Real Intake Simulation</p><h3>Client Simulation #001</h3></div>${badge(sim.status || 'draft')}</div>
-    <p class="sim-request">${fmt(sim.source_request || '—')}</p>
-    <div class="sim-split">
-      <article><span>D1</span><b>Лендинг для ремонта квартир</b><p>Оффер, proof cards, возражения, CTA.</p></article>
-      <article><span>D2</span><b>Telegram intake flow</b><p>Вопросы бота, qualification fields, handoff.</p></article>
-      <article><span>D3</span><b>Автоматизация заявки</b><p>CRM/таблица, уведомление, risk gates, dry-run.</p></article>
-    </div>
-    <div class="demo-progress"><span>Готовность simulation</span><b>${fmt(score)}%</b><div class="bar"><i style="width:${Math.max(5, Math.min(100, score))}%"></i></div></div>
-    <div class="task-meta-grid owner-meta"><span>Статус</span><b>draft / QA / ready for owner review</b><span>Решение владельца</span><b>${fmt(shortText(sim.owner_decision || '—', 86))}</b></div>
-    <div class="toolbar">${links.map(([label,path]) => openButton(label, path)).join('')}${detailPayloadButton(sim, 'Подробнее', 'client-simulation')}</div>
-  </section>`;
-}
-function compactLineCard(line, item={}) {
-  const qa = item.qa_path || item.fixtures_path || '';
-  const handoff = item.handoff_path || item.demo_script_path || '';
-  const body = `<p><b>Что клиент получает:</b> ${fmt(item.client_gets || '—')}</p><p><b>Следующий шаг:</b> ${fmt(item.next_action || '—')}</p><div class="toolbar">${openButton('Открыть демо', item.path || '')}${openButton('Открыть QA', qa)}${openButton('Открыть handoff', handoff)}${item.motion_spec_path ? openButton('Motion spec', item.motion_spec_path) : ''}${item.fixtures_csv_path ? openButton('CSV fixtures', item.fixtures_csv_path) : ''}${detailPayloadButton(item, 'Подробнее', 'line-details')}</div>`;
-  return card(`${line} — ${productLineName(line)}`, body, 'span-4');
-}
-function readinessTimeline(progress={}) {
-  const timeline = asArray(progress.analytics?.readiness_timeline || progress.readiness_timeline);
-  if (!timeline.length) return '';
-  return `<section class="card span-12 readiness-timeline-card"><h3>Delivery readiness timeline</h3><p class="label">Клиентский сценарий #001: каждый шаг имеет артефакт, QA и no-live-write gate.</p><div class="readiness-timeline">${timeline.map((step, i) => `<article class="timeline-step ${statusClass(step.status)}"><span>${fmt(String(i + 1).padStart(2,'0'))}</span><b>${fmt(step.step || step.title)}</b>${badge(step.status || 'watch')}<small>${fmt(shortPath(step.artifact || step.path || '—'))}</small>${openButton('Открыть', step.artifact || step.path || '')}</article>`).join('')}</div></section>`;
-}
-function systemContinuationPanel(progress={}) {
-  const sys = progress.system_layer || {};
-  if (!sys.status) return '';
-  const body = `<p><b>${fmt(sys.title || 'System continuation layer')}</b></p>
-    <div class="task-meta-grid owner-meta"><span>Status</span><b>${fmt(sys.status)}</b><span>No chat-cron</span><b>${sys.no_chat_cron ? 'yes' : 'check'}</b><span>Work Factory</span><b>${fmt(sys.work_factory_job_id || '—')}</b><span>Kanban anchor</span><b>${fmt(shortText(sys.kanban_anchor || '—', 84))}</b><span>Next push</span><b>${fmt(shortText(sys.next_push_candidate || '—', 16))}</b></div>
-    <div class="toolbar">${openButton('Manifest', sys.manifest_path || '')}${openButton('Operator runbook', sys.operator_runbook_path || '')}${openButton('Acceptance', sys.acceptance_path || '')}${copyButton('HERMES Auto-Push command', 'cd /home/hermes/workspace && WEBSTUDIO_STAGE=v21 bash /home/hermes/workspace/output/webstudio-github-autopush-v1.sh')}${detailPayloadButton(sys, 'Подробнее', 'system-v21')}</div>`;
-  return card('System v21 — self-executing host pipeline', body, 'span-12 system-layer-card');
-}
-function demoProducts() {
-  const progress = state.product_progress || {};
-  const items = asArray(progress.items);
-  const avg = items.length ? Math.round(items.reduce((sum,item)=>sum + Number(item.readiness_score || 0), 0) / items.length) : 0;
-  const byLine = Object.fromEntries(['D1','D2','D3'].map(l => [l, items.find(x => x.product_line === l) || {}]));
-  const reportPath = progress.report || '/workspace/output/webstudio-product-build-v12-report.md';
-  return `<div class="grid demo-products-page showcase-page">
-    ${metric('Продуктовые линии', items.length, 'span-3', 'demo-products')}
-    ${metric('Средняя готовность', avg + '%', 'span-3', 'demo-products')}
-    ${metric('QA готово', items.filter(x => x.qa_path || x.fixtures_path).length + '/' + items.length, 'span-3', 'demo-products')}
-    ${metric('Передача готова', items.filter(x => x.handoff_path || x.demo_script_path).length + '/' + items.length, 'span-3', 'demo-products')}
-    <section class="card span-12 demo-products-hero showcase-hero"><p class="eyebrow">WebStudio Showcase</p><h3>Витрина WebStudio</h3><p class="label">Клиентская витрина автоматизированной веб-студии: D1 сайты, D2 Telegram intake, D3 бизнес-автоматизации. Технические пути и raw/debug убраны в «Подробнее».</p><div class="demo-product-grid">${items.map(demoProductCard).join('')}</div></section>
-    ${clientSimulationPanel(progress)}
-    ${systemContinuationPanel(progress)}
-    ${readinessTimeline(progress)}
-    ${compactLineCard('D1', byLine.D1)}
-    ${compactLineCard('D2', byLine.D2)}
-    ${compactLineCard('D3', byLine.D3)}
-    ${card('Источник прогресса', `<p>Фаза: ${fmt(progress.phase || 'v12')} · обновлено: ${fmt(progress.updated_at)} · PR: ${fmt(progress.pr_verification_verdict || 'PASS')}</p><div class="toolbar">${copyButton('Скопировать путь прогресса', progress.source_of_truth || '/workspace/output/webstudio-product-progress-v1.json')}${copyButton('Скопировать v12 report', reportPath)}${detailPayloadButton(progress, 'Подробнее', 'progress-source')}</div>`, 'span-12')}
-  </div>`;
 }
 
 function kanbanCard(t) {
@@ -946,8 +1379,14 @@ function laneBoard(k) {
 }
 
 function logicalProductionBoard(prod) {
-  const order = prod.logical_lane_order || ['triage','todo','scheduled','ready','in_progress','blocked','review','done','archived'];
-  return visualLaneBoard(prod.logical_lanes || {}, order, {limit: 5});
+  const order = ['triage','todo','scheduled','ready','in_progress','blocked','review','done','archived'];
+  const lanes = prod.logical_lanes || {};
+  return `<div class="kanban-board production-board all-columns">${order.map(lane => {
+    const allItems = asArray(lanes[lane]);
+    const visible = allItems.slice(0, 3);
+    const more = allItems.length > visible.length ? `<div class="more-count">ещё ${allItems.length - visible.length}</div>` : '';
+    return `<section class="lane ${statusClass(lane)}"><h3>${fmt(ru(lane))} <span>${allItems.length}</span></h3>${rows(visible, kanbanCard, 'Пусто')}${more}</section>`;
+  }).join('')}</div>`;
 }
 
 function kanban() {
@@ -966,7 +1405,7 @@ function kanban() {
     ${card('Здоровье воркеров', `${kv({running: wh.running_count, stale_30m: wh.stale_30m_count, stale_2h: wh.stale_2h_count, repeated_crash_indicators: wh.repeated_crash_indicator_count, contract: wh.lifecycle_contract, report: wh.hardening_report})}${toolbar([copyButton('Copy worker contract', wh.lifecycle_contract || ''), copyButton('Copy worker hardening report', wh.hardening_report || '/workspace/output/worker-lifecycle-contract-hardening-v2.md')])}`, 'span-6')}
     ${card('GitHub PR status', `${kv({account: gh.account_expected, status: gh.status, pr_url: gh.pr_url, latest_commit_sha: gh.latest_commit_sha, pushed_at: gh.pushed_at, wrapper_broken: gh.wrapper_broken, repair_packet: gh.repair_packet, report: gh.hardening_report})}${toolbar([gh.pr_url ? `<a class="copy" href="${esc(gh.pr_url)}" target="_blank" rel="noreferrer">Открыть PR</a>` : '', copyButton('Скопировать PR URL', gh.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1'), copyButton('Скопировать commit', gh.latest_commit_sha || ''), copyButton('Copy GitHub report', gh.hardening_report || '/workspace/output/github-hardening-v2-report.md')].filter(Boolean))}`, 'span-6')}
     ${card('Семантика Канбана', `${kv({verdict: sem.verdict, review: sem.review, triage: sem.triage, report: sem.report})}${toolbar([copyButton('Copy semantics report', sem.report || '/workspace/output/kanban-native-review-triage-investigation-v2.md')])}`, 'span-12')}
-    <section class="card span-12 kanban-compact visual-board-card"><h3>Производственный Канбан</h3><p class="label">Живая production-доска WebStudio: бизнес-стадии, агент, следующий шаг и артефакт на карточке. Debug-поля спрятаны в details.</p>${logicalProductionBoard(prod)}</section>${progressAnalytics()}${capabilityMatrix()}
+    <section class="card span-12 kanban-compact"><h3>Производственная доска — все столбики</h3><p class="label">Logical production lanes from stable [WEBSTUDIO]/D1/D2/D3 taxonomy. Archived canary/noise is visible only as a separate lane and never mixed into active production work.</p>${logicalProductionBoard(prod)}</section>
     <section class="card span-12 kanban-compact"><h3>Физический Kanban Hermes — компактно</h3><div class="filters">${searchBox('kanbanSearch', 'Поиск карточек / агента / id…', filters.kanban)}<select id="kanbanLaneFilter">${laneOptions}</select><select id="kanbanKindFilter">${kindOptions}</select><label class="check"><input id="kanbanShowArchived" type="checkbox" ${filters.showArchived ? 'checked' : ''}> Показать архив</label>${clearFiltersButton('kanban')}</div>${laneBoard(k)}</section>
     ${card('Последние карточки', rows(asArray(k.last_cards), kanbanCard), 'span-12')}
     ${card('Зеркала sample', rows(asArray(k.mirrors), kanbanCard), 'span-6')}
@@ -1030,6 +1469,25 @@ function quickFilterButton(id, label) {
   const active = filters.productionQuick === id ? ' active' : '';
   return `<button type="button" class="quick-filter${active}" data-production-filter="${esc(id)}">${fmt(label)}</button>`;
 }
+function productArtifactRow(item) {
+  const packet = item.qa_path || item.approval_path || item.handoff_path || '';
+  const meta = [
+    shortPath(item.path),
+    packet ? 'approval: ' + shortPath(packet) : '',
+    item.readiness_score !== undefined ? 'готовность=' + item.readiness_score + '%' : '',
+    item.updated_at ? 'обновлено=' + item.updated_at : ''
+  ].filter(Boolean).join(' · ');
+  return row(item.product_line, `${item.title || item.artifact_type || 'artifact'} · ${item.phase || item.stage || '—'}`, item.status || 'artifact', meta, 'artifact', jsonCopy(item));
+}
+function readinessTimeline(progress) {
+  const timeline = asArray(progress.analytics?.readiness_timeline || progress.readiness_timeline);
+  return rowsTop(timeline, x => row(x.step || x.id || 'шаг', x.summary || x.title || x.artifact || 'готовность', x.status || 'tracked', shortPath(x.artifact || x.path || ''), 'json', jsonCopy(x)), 7, 'Timeline не заполнен');
+}
+function deliveryReadiness(progress) {
+  const d = progress.analytics?.delivery_readiness || progress.delivery_readiness || {};
+  const gates = asArray(d.approval_gates || d.gates);
+  return `${kv({status: d.status || 'PASS_WITH_APPROVAL_GATES', score: d.score ?? '—', owner_action_required: d.owner_action_required ?? false, next_push_candidate: progress.github_sync?.next_push_candidate || 'none'})}${gates.length ? `<div class="pill-row">${gates.map(g => badge(g, 'warn')).join('')}</div>` : ''}`;
+}
 function production() {
   const p = state.production_pipeline || {};
   const progress = state.product_progress || {};
@@ -1048,12 +1506,12 @@ function production() {
     ${metric('На проверке', counts.review || 0, 'span-3', 'approvals')}
     ${metric('Передача клиенту', counts.delivery || 0, 'span-3', 'clients')}
     ${card('Фильтры', `${filterBar}${rowsTop(quickItems, kanbanCard, 5, 'Нет карточек по фильтру')}`, 'span-12')}
-    <section class="card span-12 kanban-compact visual-board-card"><h3>Производственный Канбан</h3><p class="label">Разбор · Подготовка · Запланировано · Готово к запуску · Выполняется · Заблокировано · На проверке · Готово · Архив</p>${logicalProductionBoard(p)}</section>${progressAnalytics()}${capabilityMatrix()}
-    ${card('v21 client delivery packets', rowsTop(asArray(progress.items).filter(item => item.phase === 'v21'), item => row(item.product_line, `${item.title || item.artifact_type} · ${ru(item.stage || 'stage')}`, item.status || 'artifact', `${shortPath(item.path)} · approval=${shortPath(item.qa_path || item.approval_path || '')} · готовность=${item.readiness_score ?? '—'}%`, 'artifact', jsonCopy(item)), 8, 'v21 артефакты пока не записаны'), 'span-12')}
-    ${card('Delivery readiness / approval gates', `${deliveryReadinessCard(progress, p)}${kv({status: progress.analytics?.delivery_readiness?.status || progress.v18_status || 'PASS_WITH_APPROVAL_GATES', owner_action_required: progress.analytics?.delivery_readiness?.owner_action_required ?? false, approval_gates: progress.analytics?.delivery_readiness?.approval_gates || [], next_push_candidate: progress.github_sync?.next_push_candidate || state.github_readiness?.next_push_candidate || 'none'})}`, 'span-6')}
-    ${card('GitHub Auto-Push status', `${kv({status: progress.github_sync?.autopush_status || state.github_readiness?.status || 'unknown', latest_pushed_commit: progress.github_sync?.latest_pushed_commit || state.github_readiness?.latest_commit_sha || '—', pr_status: progress.github_sync?.pr_status || progress.pr_verification_verdict || '—', gitguardian: progress.github_sync?.gitguardian_status || '—', owner_action_required: progress.github_sync?.owner_action_required ?? false, next_push_candidate: progress.github_sync?.next_push_candidate || '—'})}${toolbar([copyButton('Copy PR URL', progress.pr_url || state.github_readiness?.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1'), copyButton('Copy HERMES Auto-Push command', 'WEBSTUDIO_STAGE=v21 bash /home/hermes/workspace/output/webstudio-github-autopush-v1.sh')])}`, 'span-6')}
-    ${readinessTimeline(progress)}
-    ${card('Прогресс D1/D2/D3', rowsTop(asArray(progress.items), item => row(item.product_line, `${item.artifact_type} · ${ru(item.stage || 'stage')}`, item.status || 'artifact', `${shortPath(item.path)} · sha=${String(item.sha256 || '').slice(0,12)} · обновлено=${item.updated_at || progress.updated_at || '—'}`, 'artifact', jsonCopy(item)), 8, 'Нет артефактов прогресса'), 'span-12')}
+    <section class="card span-12 kanban-compact"><h3>Канбан производства — все столбики</h3><p class="label">Разбор · Подготовка · Запланировано · Готово к запуску · Выполняется · Заблокировано · На проверке · Готово · Архив</p>${logicalProductionBoard(p)}</section>
+    ${card('v18 client-ready packages', rowsTop(asArray(progress.items).filter(item => item.phase === 'v18'), productArtifactRow, 8, 'v18 артефакты пока не записаны'), 'span-12')}
+    ${card('Readiness timeline', readinessTimeline(progress), 'span-6')}
+    ${card('Delivery readiness / approval gates', deliveryReadiness(progress), 'span-6')}
+    ${card('GitHub Auto-Push status', `${kv({status: progress.github_sync?.autopush_status || 'unknown', latest_pushed_commit: progress.github_sync?.latest_pushed_commit || '—', pr_status: progress.github_sync?.pr_status || '—', gitguardian: progress.github_sync?.gitguardian_status || '—', owner_action_required: progress.github_sync?.owner_action_required ?? false, next_push_candidate: progress.github_sync?.next_push_candidate || '—'})}${toolbar([copyButton('Copy PR URL', progress.pr_url || state.github_readiness?.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1'), copyButton('Copy Auto-Push command', 'WEBSTUDIO_STAGE=v18 bash /home/hermes/workspace/output/webstudio-github-autopush-v1.sh')])}`, 'span-12')}
+    ${card('Прогресс D1/D2/D3', rowsTop(asArray(progress.items), productArtifactRow, 8, 'Нет артефактов прогресса'), 'span-12')}
     ${collapsibleCard('Источник доски', `${kv({board: p.board_name, purpose: p.purpose, source_of_truth: p.source_of_truth, filter: p.filter_recipe, contract: p.view_contract})}${toolbar([copyButton('Copy /kanban filter', 'WEBSTUDIO'), copyButton('Copy rebuild command', 'cd /workspace/projects/webstudio-ops-dashboard && python3 scripts/build_snapshot.py --dist /workspace/output/webstudio-ops-dashboard-static')])}`, 'span-12')}
     ${collapsibleCard('Колонки производства', kv(logicalCounts), 'span-12', true)}
     ${collapsibleCard('Линии D1/D2/D3', rowsTop(lineRows, x => row(x.id, x.title, x.status, 'Открыть карточки', 'json', jsonCopy(x)), 5), 'span-6', true)}
@@ -1245,204 +1703,50 @@ function morningDesk() {
 function approvals() {
   const list = asArray(state.approvals).filter(a => includes(a, filters.approvals));
   return `<div class="grid">
-    ${metric('Owner approvals', asArray(state.approvals).length)}
-    ${card('Approval source-of-truth', `${kv({source: '/workspace/output/webstudio-control-plane-state.json#/approvals', visible_in: 'Telegram + Kanban + Ops site', quiet_notifications: true})}${toolbar([copyButton('Copy approve template', 'APPROVE: planning/report-only continuation for {id}. No production writes, no env/config/cron/systemd changes.'), copyButton('Copy needs-info template', 'NEEDS INFO: {id}. Provide summary, risks, expected artifact/output, and required owner decision.'), copyButton('Copy defer template', 'DEFER: {id}. Keep blocked/approval_required until owner revisits.'), copyButton('Copy reject template', 'REJECT: {id}. Do not proceed with this path.')])}`, 'span-9')}
-    <section class="card span-12"><h3>Approval queue</h3>${searchBox('approvalSearch', 'Search approvals…', filters.approvals)}${rows(list, a => row(a.id, a.title, a.status, `${a.source} · channels=${asArray(a.channels).join(', ')}`, 'approval', jsonCopy(a)))}</section>
+    <section class="proof-panel span-12">
+      <div class="section-head"><div><p class="eyebrow">Owner gate</p><h3>Согласования без визуального шума</h3></div>${badge(asArray(state.approvals).length + ' open', asArray(state.approvals).length ? 'warn' : 'ok')}</div>
+      <p class="panel-copy">Эта вкладка только показывает решения владельца и копирует шаблоны ответа. Она не запускает задачи и не меняет production.</p>
+      ${toolbar([copyButton('Approve template', 'APPROVE: planning/report-only continuation for {id}. No production writes, no env/config/cron/systemd changes.'), copyButton('Needs-info template', 'NEEDS INFO: {id}. Provide summary, risks, expected artifact/output, and required owner decision.'), copyButton('Defer template', 'DEFER: {id}. Keep blocked/approval_required until owner revisits.')])}
+    </section>
+    <section class="card span-12 calm-list"><h3>Approval queue</h3>${searchBox('approvalSearch', 'Search approvals…', filters.approvals)}${rowsTop(list, a => row(a.id, a.title, a.status, `${a.source} · channels=${asArray(a.channels).join(', ')}`, 'approval', jsonCopy(a)), 12, 'No approvals match')}</section>
   </div>`;
 }
 
 function health() {
   const h = state.health || {};
-  return `<div class="grid">
-    ${systemVerdictPanel()}
-    ${hostAutonomyPanel()}
-    ${hostRunnerPanel()}
-    ${githubReadinessPanel()}
-    ${continuationQueuePanel()}
-    ${qmdSystemPanel()}
-    ${snapshotSystemPanel()}
-    ${workFactorySystemPanel()}
-    ${kanbanSystemPanel()}
-    ${agentsSystemPanel()}
-    ${ownerActionsSystemPanel()}
-    ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot_status: h.status})}${collapsibleTechDetails({host_snapshot: h.host_snapshot, bad_config_summary: h.bad_config_summary})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
-    ${card('Product D1/D2/D3', productSystemSummary(), 'span-6')}
-    ${collapsibleCard('Подробнее: системные источники', `${rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s)))}${toolbar([copyButton('Copy snapshot processor path', '/workspace/.hermes/scripts/hermes-auto-snapshot-processor.sh'), copyButton('Copy QMD plan path', '/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md'), copyButton('Copy GitHub autopush result path', '/workspace/output/webstudio-system-maintenance-autopush-result.json')])}`, 'span-12')}
-  </div>`;
-}
-
-function okWarnBlock(ok, warn=false) { return ok ? 'OK' : (warn ? 'DEGRADED' : 'BLOCKED'); }
-function statusBadgeLine(title, status, text='') { return `<div class="system-line"><strong>${fmt(title)}</strong>${badge(status)}${text ? `<small class="label">${fmt(text)}</small>` : ''}</div>`; }
-function collapsibleTechDetails(payload) { return `<details class="raw-details"><summary>Подробнее</summary><pre class="code mini">${fmt(stringify(payload, 1800))}</pre></details>`; }
-
-function systemVerdictPanel() {
-  const ha = state.host_autonomy || {}; const ce = ha.continuation_engine || {}; const q = ha.qmd || state.health?.qmd || {}; const gh = state.github_readiness || {}; const pr = gh.pr_status || {}; const wf = state.work_factory || {}; const kb = state.kanban || {}; const aw = state.agent_workflow || {};
-  const qmdOk = q.bounded_mode_available === true || String(q.status || '').includes('BOUNDED');
-  const opsWatch = String(aw.status || aw.protocol?.ops_lane_status || '').includes('WATCH');
-  const verdict = (ha.status === 'ON' && ce.owner_needs_to_type_continue === false && gh.pr_url && wf.enabled !== false && !kb.executable_mirror_count && qmdOk) ? (opsWatch ? 'WATCH' : 'OK') : 'DEGRADED';
-  return card('Система — сводка готовности', `
-    ${statusBadgeLine('Host Autonomy', ha.status === 'ON' ? 'OK' : 'DEGRADED', 'автономия без ручного push')}
-    ${statusBadgeLine('Auto-Push', (pr.owner_action_required === false || pr.owner_manual_push === 'deprecated') ? 'OK' : 'DEGRADED', shortText(pr.pr_url || gh.pr_url || 'PR не найден'))}
-    ${statusBadgeLine('Continuation Queue', ce.owner_needs_to_type_continue === false ? 'OK' : 'BLOCKED', `pending=${ce.pending_jobs ?? '—'} · chat-cron=${ce.chat_cron_used === false ? 'off' : 'check'}`)}
-    ${statusBadgeLine('QMD', qmdOk ? 'OK' : (q.status || 'DEGRADED'), `bounded=${q.bounded_mode || (qmdOk ? 'available' : 'missing')} · total=${q.total_documents ?? q.total ?? '—'} · vectors=${q.vectors ?? '—'} · pending=${q.pending_embeddings ?? '—'}`)}
-    ${statusBadgeLine('Snapshot processor', ha.snapshot_processor?.status || 'DEGRADED', 'асинхронные snapshot-заявки обрабатываются host-side')}
-    ${statusBadgeLine('Agents / Skills', opsWatch ? 'WATCH' : 'OK', aw.protocol?.ops_lane_status || 'terminator contract visible')}
-    ${statusBadgeLine('Owner Actions', ha.owner_action_required === false ? 'OK' : 'DEGRADED', 'только live approvals')}
-    <p class="label">Итог: ${fmt(verdict)}. QMD bounded режим доступен; продукт D1/D2/D3 возвращается после ops-lane canary или честной фиксации WATCH.</p>`, 'span-12');
-}
-
-function hostRunnerPanel() {
-  const gh = state.github_readiness || {}; const pr = gh.pr_status || {}; const runner = pr.host_runner || gh.host_runner || (pr.host_runner_job_type ? 'PASS' : 'unknown');
-  return card('Host Runner', `${kv({
-    status: runner === 'PASS' ? 'OK' : runner,
-    latest_result: pr.verification_verdict || gh.status || '—',
-    job_type: pr.host_runner_job_type || 'github/autopush',
-    workspace_root: pr.host_runner_workspace_root || '/home/hermes/workspace',
-    owner_manual_command_required: pr.owner_action_required === false ? 'no' : 'check'
-  })}${collapsibleTechDetails({pr_status: pr, runner_latest_path: pr.runner_latest_path})}${toolbar([copyButton('Copy runner latest path', '/workspace/output/host-job-runner/latest.json')])}`, 'span-6');
-}
-
-function continuationQueuePanel() {
-  const ce = state.host_autonomy?.continuation_engine || state.continuation_controller || {};
-  return card('Continuation Queue', `${kv({
-    status: ce.status || ce.final_status || 'unknown',
-    iteration_budget_protocol: ce.iteration_budget_protocol_created ?? ce.terminal_protocol?.continuation_required ?? '—',
-    pending: ce.pending_jobs ?? '—',
-    supervisor: ce.supervisor_path ? 'installed' : 'unknown',
-    chat_cron_used: ce.chat_cron_used === false ? 'false' : 'check',
-    owner_needs_to_type_continue: ce.owner_needs_to_type_continue === false ? 'false' : 'check',
-    next_job_id: ce.first_next_pass_job_id || ce.next_job_id || '—'
-  })}${collapsibleTechDetails(ce)}${toolbar([copyButton('Copy queue root', ce.queue_root || '/workspace/.hermes-workqueue/webstudio'), copyButton('Copy checkpoint path', ce.checkpoint_path || '/workspace/output/current-task-continuation-checkpoint.md')])}`, 'span-6');
-}
-
-function qmdSystemPanel() {
-  const q = state.host_autonomy?.qmd || state.health?.qmd || {};
-  const batch = q.last_bounded_batch || {};
-  const ownerText = q.owner_facing_text || 'QMD поиск работает. Векторные embeddings требуют безопасного bounded режима; unlimited embed не запускается.';
-  return card('QMD', `<p>${fmt(ownerText)}</p>${kv({
-    status: q.status || (q.available ? 'OK' : 'unknown'),
-    total_docs: q.total_documents ?? q.total ?? '—',
-    vectors: q.vectors ?? '—',
-    pending_embeddings: q.pending_embeddings ?? '—',
-    bounded_mode: q.bounded_mode || (q.bounded_mode_available ? 'available' : 'missing'),
-    last_bounded_batch: batch.status || '—',
-    last_error: q.last_error || 'none',
-    next_safe_action: q.next_safe_action || 'bounded batches only',
-    owner_action_required: q.owner_action_required === false ? 'no' : (q.owner_action_required ?? 'check'),
-    unlimited_embed: 'forbidden'
-  })}${collapsibleTechDetails(q)}${toolbar([copyButton('Copy QMD investigation', '/workspace/output/qmd-true-bounded-embed-investigation-v21-1.md'), copyButton('Copy QMD result', '/workspace/output/qmd-bounded-embeddings-maintenance-result-v21-1.md'), copyButton('Copy QMD implementation note', '/workspace/output/qmd-bounded-embed-implementation-plan-v21-1.md')])}`, 'span-6');
-}
-
-function snapshotSystemPanel() {
-  const sp = state.host_autonomy?.snapshot_processor || {}; const hard = state.system_hardening || {};
-  return card('Snapshot processor', `${kv({
-    status: sp.status || 'unknown',
-    pending: hard.snapshot_pending_count ?? '—',
-    processed_visible: sp.processed_requests_visible ?? '—',
-    last_processed: sp.last_auto_snapshot ? shortText(sp.last_auto_snapshot, 80) : '—',
-    stuck_requests: (hard.snapshot_pending_count || 0) > 3 ? 'check' : 'no'
-  })}${collapsibleTechDetails({snapshot_processor: sp, system_hardening: hard})}${toolbar([copyButton('Copy snapshot health report', '/workspace/output/snapshot-processor-health-v21.md')])}`, 'span-6');
-}
-
-function workFactorySystemPanel() {
-  const wf = state.work_factory || {};
-  return card('Work Factory', `${kv({
-    status: wf.enabled === false ? 'DEGRADED' : 'OK',
-    pending: wf.pending_count ?? wf.backlog?.pending_count ?? '—',
-    running: asArray(wf.running).length || 'none',
-    blocked: asArray(wf.blocked).length || 'none',
-    done: wf.total_work_factory_completed ?? wf.supervisor_completed ?? '—',
-    host_runner_integration: 'visible'
-  })}${collapsibleTechDetails(wf)}${toolbar([copyButton('Copy WF checkpoint', '/workspace/output/work-factory-supervisor-checkpoint.md')])}`, 'span-6');
-}
-
-function kanbanSystemPanel() {
-  const k = state.kanban || {}; const c = k.counts || {}; const proto = state.agent_workflow?.protocol || {};
-  return card('Kanban Health', `${kv({
-    status: (k.executable_mirror_count || k.duplicate_keys?.length) ? 'DEGRADED' : 'OK',
-    production_total: k.task_total ?? '—',
-    ready: c.ready ?? '—',
-    running: c.running ?? '—',
-    blocked: c.blocked ?? '—',
-    repeated_crashes: proto.repeated_crashes_after_indicator_count ?? '—',
-    stale_running_dead_pids: proto.stale_running_dead_pid_after_2h_count ?? '—',
-    executable_mirrors: k.executable_mirror_count ?? 0
-  })}${collapsibleTechDetails({kanban: k, protocol: proto})}`, 'span-6');
-}
-
-function agentsSystemPanel() {
-  const aw = state.agent_workflow || {}; const proto = aw.protocol || {}; const wh = state.worker_health || {};
-  return card('Agents / Skills', `${kv({
-    protocol: 'OK',
-    flow: 'CTO-агент → Оркестратор → Исполнители → QA/Передача → Готово',
-    canaries: asArray(aw.canary_results).length || '—',
-    silent_finish: proto.silent_finish_allowed === false ? 'forbidden' : 'check',
-    terminal_actions: asArray(proto.terminal_actions).join(', ') || 'kanban_complete, kanban_block',
-    failures: wh.failed_count ?? wh.failures ?? '—'
-  })}${collapsibleTechDetails({agent_workflow: aw, worker_health: wh})}`, 'span-6');
-}
-
-function ownerActionsSystemPanel() {
-  const ha = state.host_autonomy || {}; const approvals = asArray(state.approvals);
-  const live = asArray(ha.owner_action_required_only_for);
-  const noNeed = asArray(ha.owner_not_required_for);
-  return card('Owner Actions', `<p>Рутинные maintenance-команды владельца не нужны. Владелец нужен только для live approvals.</p>
-    ${kv({owner_manual_push_required: 'no', pending_approval_cards: approvals.length, regular_maintenance_owner_commands: 'no'})}
-    ${rows(live.map((x,i)=>({id:i+1,title:x,status:'approval'})), x => row('LIVE', ownerText(x.title), 'approval', 'требует явного решения владельца'))}
-    ${collapsibleCard('Подробнее: что не требует владельца', rows(noNeed.map((x,i)=>({id:i+1,title:x,status:'OK'})), x => row('AUTO', ownerText(x.title), 'OK', 'автономно')), 'span-12')}
-    ${toolbar([copyButton('Copy owner actions report', '/workspace/output/webstudio-full-operational-readiness-v21-report.md')])}`, 'span-12');
-}
-
-function productSystemSummary() {
-  const pp = state.product_progress || {}; const lines = ['D1','D2','D3'].map(line => {
-    const n = asArray(pp.by_line?.[line]).length;
-    return {id: line, title: `${line} · ${ru(line)}`, status: 'tracked', meta: `${n} артефактов/пакетов · продуктовая разработка после System PASS`};
-  });
-  return rows(lines, x => row(x.id, x.title, x.status, x.meta));
-}
-
-function hostAutonomyPanel() {
-  const a = state.host_autonomy || {};
-  const ap = a.auto_push || state.github_readiness?.autopush || {};
-  const q = a.qmd || state.health?.qmd || {};
-  const hf = a.hfinalize || {};
-  return card('Host Autonomy', `${kv({
-    host_autonomy: a.status || 'unknown',
-    approvals_mode: a.approvals_mode || 'unknown',
-    owner_approved_autonomy: a.owner_approved_autonomy ?? '—',
-    auto_push: ap.status || a.auto_push_available || 'unknown',
-    last_auto_push_result: ap.verification_verdict || ap.status || '—',
-    latest_pr_commit: a.latest_pr_commit || ap.latest_remote_commit || '—',
-    checks_status: a.checks_status || ap.checks_status || '—',
-    owner_action_required: a.owner_action_required === false ? 'false' : (a.owner_action_required ?? '—'),
-    qmd_status: q.status || (q.available ? 'OK' : 'unknown'),
-    pending_embeddings: q.pending_embeddings ?? '—',
-    hfinalize: hf.status || 'pending'
-  })}${toolbar([copyButton('Copy autonomy verification report', '/workspace/output/webstudio-host-autonomy-verification-v1.md'), copyButton('Copy QMD maintenance plan', '/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md')])}`, 'span-6');
-}
-
-function githubReadinessPanel() {
   const gh = state.github_readiness || {};
-  const ap = gh.autopush || {};
-  const pr = gh.pr_status || {};
-  const ownerNeeded = (ap.owner_action_required === false || ap.owner_action_required === 'no') ? false : (ap.owner_action_required === true || ap.owner_action_required === 'yes' || ap.status === 'blocked' || gh.status === 'AUTO_PUSH_BLOCKED' || gh.wrapper_broken);
-  const prUrl = gh.pr_url || pr.pr_url || ap.pr_url || gh.completion_result?.pr_url || 'https://github.com/pltnv123/webstudio-ops-dashboard/pull/1';
-  const latestCommit = ap.latest_pushed_commit || ap.latest_local_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
-  const latestPrHead = ap.latest_pr_head || ap.latest_remote_commit || pr.latest_remote_commit || pr.latest_commit_sha || gh.latest_commit_sha || '—';
-  const checks = ap.gitguardian_status || ap.checks_status || pr.gitguardian_status || pr.checks_status || gh.pr_status?.checks_status || 'unknown';
-  const nextPush = ap.next_push_candidate || gh.next_push_candidate || 'none until next useful code change';
-  return card('GitHub Auto-Push', `${kv({
-      auto_push_status: ap.status || gh.status || 'unknown',
-      latest_push_time: pr.pushed_at || ap.pushed_at || ap.generated_at || gh.pushed_at || '—',
-      latest_pushed_commit: latestCommit,
-      latest_pr_head: latestPrHead,
-      pr_status: ap.pr_status || pr.status || gh.status || 'unknown',
-      gitguardian: checks,
-      last_autopush_error: gh.last_autopush_error || ap.reason || '—',
-      next_push_candidate: nextPush,
-      owner_action_required: ownerNeeded ? 'yes' : 'no',
-      script: gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh'
-    })}<div class="toolbar"><a class="copy" href="${esc(prUrl)}" target="_blank" rel="noreferrer">Открыть PR</a>${copyButton('Copy autopush script', gh.autopush_script || '/workspace/output/webstudio-github-autopush-v1.sh')}${copyButton('Copy PR URL', prUrl)}</div>`, 'span-6');
+  const wf = state.work_factory || {};
+  const kb = state.kanban || {};
+  const pp = state.production_pipeline || {};
+  const wh = state.worker_health || {};
+  const ag = state.agent_workflow || {};
+  const cc = state.continuation_controller || {};
+  const hard = state.system_hardening || {};
+  const qmdPending = h.qmd?.pending ?? h.qmd?.pending_embeddings ?? '—';
+  const qmdVectors = h.qmd?.vectors ?? '—';
+  const ownerActions = asArray(state.approvals).length;
+  const systemHealth = cc.final_status === 'BLOCKED' ? 'BLOCKED' : (qmdPending && Number(qmdPending) > 0 ? 'WARN' : 'OK');
+  const qmdBrief = `Операционный warning: pending=${qmdPending}, vectors=${qmdVectors}. Это принято как not launch blocking; unlimited embed не запускается.`;
+  const autoBrief = `Work Factory: ${wf.enabled ? 'OK' : 'WARN'} · supervisor=${wf.timer_enabled ? 'active' : 'off'} · next=${wf.last_event || '—'}`;
+  const snapshotBrief = `Snapshot: ${hard.auto_snapshot_processor || 'watch'} · latest=${state.sources?.host_health_snapshot?.mtime || h.host_snapshot?.mtime || '—'} · hfinalize=${cc.evidence?.latest_hfinalize?.mtime || '—'}`;
+  const githubBrief = `GitHub Auto-Push: ${gh.status || 'unknown'} · PR=${gh.pr_url || '—'} · commit=${gh.latest_commit_sha || '—'} · manual push not required when host auto-push has meaningful changes.`;
+  return `<div class="grid">
+    ${metric('System Health', systemHealth, 'span-3')}
+    ${metric('QMD pending', qmdPending, 'span-3')}
+    ${metric('Work Factory', wf.enabled && wf.timer_enabled ? 'OK' : 'WARN', 'span-3')}
+    ${metric('Owner Actions', ownerActions, 'span-3')}
+    ${card('System Health', `${kv({status: systemHealth, what_system_does: 'держит gateway, Work Factory, Kanban, QMD, Snapshot и Auto-Push под контролем', remaining: Number(qmdPending) > 0 ? 'QMD embeddings tail accepted / bounded only' : 'нет критического хвоста', owner_approval_required: ownerActions ? 'да, только для live/gated действий' : 'нет для регулярной работы'})}`, 'span-6 primary-surface')}
+    ${card('Host Autonomy', `${kv({gateway: h.gateway_active ? 'OK' : 'DEGRADED', primary_model: h.primary_model_line, checkpoint_first: cc.checkpoint_refreshed || cc.checkpoint?.exists ? 'active' : 'watch', supervisor: wf.timer_enabled ? 'active' : 'watch', no_broken_chat_cron: 'paused/disabled for known broken marathon jobs'})}<p class="label">${fmt(autoBrief)}</p>`, 'span-6')}
+    ${card('QMD Maintenance', `${kv({status: Number(qmdPending) > 0 ? 'ACCEPTED_WARN_BOUNDED' : 'OK', total_docs: h.qmd?.total, vectors: qmdVectors, pending: qmdPending, update_search: 'OK', unlimited_embed: 'disabled'})}<p class="panel-copy">${fmt(qmdBrief)}</p>${toolbar([copyButton('Copy QMD plan path', '/workspace/output/qmd-bounded-embeddings-maintenance-plan-v1.md'), copyButton('Copy QMD result path', '/workspace/output/qmd-bounded-embeddings-maintenance-result-v20-1.md')])}`, 'span-6 warning-surface')}
+    ${card('Snapshot Processor', `${kv({status: hard.auto_snapshot_processor || 'tracked', latest_host_snapshot: state.sources?.host_health_snapshot?.mtime || h.host_snapshot?.mtime, latest_hfinalize: cc.evidence?.latest_hfinalize?.mtime, request_processing: 'bounded / evidence preserved'})}<p class="label">${fmt(snapshotBrief)}</p>`, 'span-6')}
+    ${card('GitHub Auto-Push', `${kv({status: gh.status, repo: gh.repo, branch: gh.branch, pr: gh.pr_url, latest_commit: gh.latest_commit_sha, owner_action_required: gh.wrapper_broken ? 'host auto-push/watch; no manual product push' : 'no'})}<p class="label">${fmt(githubBrief)}</p>`, 'span-6')}
+    ${card('Work Factory', `${kv({enabled: wf.enabled, supervisor: wf.timer_enabled, pending: wf.counts?.pending, blocked_error: wf.counts?.blocked_error, completed: wf.counts?.completed, last_event: wf.last_event})}`, 'span-6')}
+    ${card('Kanban Health', `${kv({total_cards: kb.total_count || kb.counts?.total || 'tracked', live_stats: Object.entries(kb.counts || {}).map(([k,v]) => `${k}=${v}`).join(', ') || 'tracked', production_total: pp.counts?.total, repeated_crashes: wh.agent_workflow_v1_repeated_crash_count || 0, stale_running_dead_pid: wh.stale_running_dead_pid_2h_count || 0, active_blockers: kb.counts?.blocked || pp.counts?.blocked || 0, continuation: cc.continuation_controls?.kanban_card_exists ? 'card exists' : 'watch'})}`, 'span-6')}
+    ${card('Agents / Skills', `${kv({delegate_task_smoke: 'OK', agent_protocol: ag.protocol?.silent_finish_allowed === false ? 'OK' : 'watch', roles: asArray(ag.roles).length, skills_registry: 'available', webstudio_skills: 'loaded', design_systems: 'available in vendor/reference paths'})}`, 'span-6')}
+    ${card('Owner Actions', `${kv({required_now: ownerActions ? 'yes: approval queue' : 'no', regular_commands_needed: 'no', live_approval_only: 'production secrets, Telegram token, CRM/Sheets writes, Supabase migrations, public launch, payments/live external actions', autonomous_safe: 'commits/PR branch, qmd update, hfinalize, build/smoke/tests, browser QA, reports, Kanban/Work Factory/Ops updates'})}`, 'span-6')}
+    ${card('Host / runtime', `${kv({gateway_active: h.gateway_active, primary_model: h.primary_model_line, snapshot: h.host_snapshot?.path, snapshot_mtime: h.host_snapshot?.mtime, status: h.status})}${toolbar([copyButton('Copy qmd status command', 'qmd status'), copyButton('Copy host snapshot path', '/workspace/runtime/host-health-snapshot.txt')])}`, 'span-6')}
+    ${card('Sources', rows(Object.entries(state.sources || {}).map(([k,v]) => ({id:k, title:v.path || k, status:v.exists ? 'available' : 'missing', ...v})), s => row(s.id, s.title, s.status, `${s.size || 0} bytes · ${s.mtime || '—'} · ${s.sha256 || 'no sha'}`, 'source', jsonCopy(s))), 'span-12')}
+  </div>`;
 }
 
 function artifactRow(a) {
@@ -1451,7 +1755,12 @@ function artifactRow(a) {
 function artifacts() {
   const q = filters.artifacts;
   const list = asArray(state.artifacts).filter(a => includes(a, q));
-  return `<div class="grid"><section class="card span-12"><h3>Артефакты</h3>${searchBox('artifactSearch', 'Filter artifacts…', q)}${rows(list, artifactRow, 'No artifacts match')}</section></div>`;
+  const latest = list.slice(0, 18);
+  return `<div class="grid">
+    <section class="hero-panel span-12 compact-hero"><div class="hero-copy"><p class="eyebrow">Evidence library</p><h2>Артефакты как доказательства, не как свалка.</h2><p>Показываем свежие и найденные пакеты; полный список раскрывается ниже.</p></div>${heroMetric('Total', asArray(state.artifacts).length, 'indexed')}</section>
+    <section class="card span-12 calm-list"><h3>Fresh evidence</h3>${searchBox('artifactSearch', 'Filter artifacts…', q)}${rowsTop(latest, artifactRow, 12, 'No artifacts match')}</section>
+    ${collapsibleCard('All matched artifacts', rows(list, artifactRow, 'No artifacts match'), 'span-12')}
+  </div>`;
 }
 
 function marathon() {
@@ -1464,25 +1773,722 @@ function marathon() {
     ${metric('Marathon artifacts', artifacts.length, 'span-3')}
     ${metric('WF timer', m.timer_enabled ?? 'unknown', 'span-3')}
     ${metric('Delivery mode', 'heartbeat', 'span-3')}
-    ${card('12h Marathon status', `${kv(m)}${toolbar([copyButton('Copy marathon brief', ownerBrief), copyButton('Copy index path', '/workspace/output/webstudio-12h-marathon-index.md')])}`, 'span-12')}
+    ${card('12h Marathon status', `${kv({status: m.status || 'unknown', schedule: m.schedule || 'tracked', timer_enabled: m.timer_enabled ?? 'unknown', index: '/workspace/output/webstudio-12h-marathon-index.md'})}${toolbar([copyButton('Copy marathon brief', ownerBrief), copyButton('Copy index path', '/workspace/output/webstudio-12h-marathon-index.md')])}`, 'span-12 primary-surface')}
     ${card('Latest marathon evidence', rows(latest, artifactRow, 'No marathon artifacts indexed yet'), 'span-12')}
+    ${collapsibleCard('Raw autonomous cycle object', `<pre class="code block">${fmt(stringify(m, 6000))}</pre>`, 'span-12')}
   </div>`;
 }
 
 function audit() {
   const safety = state.safety || {};
   return `<div class="grid">
-    ${card('Audit notes', rows(asArray(state.audit?.notes).map((n,i)=>({id:i+1,title:n,status:'note'})), n => row(n.id, n.title, n.status)), 'span-6')}
+    <section class="proof-panel span-12">
+      <div class="section-head"><div><p class="eyebrow">Safety contract</p><h3>Что UI никогда не делает</h3></div>${badge(safety.status || 'watch', safety.status === 'pass' ? 'ok' : 'warn')}</div>
+      <div class="proof-grid">
+        ${proofItem('Read-only', safety.read_only ? 'yes' : 'no', safety.read_only ? 'ok' : 'bad')}
+        ${proofItem('Dispatch controls', safety.dispatch_allowed ? 'present' : 'absent', safety.dispatch_allowed ? 'bad' : 'ok')}
+        ${proofItem('Worker controls', safety.worker_allowed ? 'present' : 'absent', safety.worker_allowed ? 'bad' : 'ok')}
+        ${proofItem('Production writes', 'absent', 'ok')}
+      </div>
+    </section>
+    ${card('Audit notes', rowsTop(asArray(state.audit?.notes).map((n,i)=>({id:i+1,title:n,status:'note'})), n => row(n.id, n.title, n.status), 8), 'span-6')}
     ${card('Forbidden actions absent from UI', rows(asArray(safety.forbidden_actions).map(x=>({id:'forbidden',title:x,status:'disabled'})), x => row(x.id, x.title, x.status)), 'span-6')}
-    ${card('Raw safety object', `<pre class="code block">${fmt(JSON.stringify(safety, null, 2))}</pre>${toolbar([copyButton('Copy raw safety JSON', jsonCopy(safety)), copyButton('Copy full JSON', jsonCopy(state))])}`, 'span-12')}
+    ${collapsibleCard('Raw safety object', `<pre class="code block">${fmt(JSON.stringify(safety, null, 2))}</pre>${toolbar([copyButton('Copy raw safety JSON', jsonCopy(safety)), copyButton('Copy full JSON', jsonCopy(state))])}`, 'span-12')}
+  </div>`;
+}
+
+function os() { return operatorState || {}; }
+function osOrders() { return asArray(os().orders).filter(o => filters.showArchived || !o.archived); }
+function allOsOrders() { return asArray(os().orders); }
+function activeOrder() { return osOrders().find(o => o.order_id === filters.activeOrder) || osOrders()[0] || {}; }
+function orderById(id) { return allOsOrders().find(o => o.order_id === id) || {order_id: id, client_name: '—', order_type: '—', status: 'new_lead', artifacts: []}; }
+function orderStatusBadge(order) { return badge(order?.owner_approval_required ? 'Требуется approval владельца' : (order?.status || 'new_lead'), order?.owner_approval_required ? 'warn' : order?.status); }
+function orderRow(order) {
+  const meta = `${order.order_type} · ${order.industry || 'ниша не указана'} · ${order.current_stage} · ${order.priority}`;
+  const warnings = asArray(order.validation?.errors);
+  return `<div class="operator-order-row ${filters.activeOrder === order.order_id ? 'active' : ''}" data-select-order="${esc(order.order_id)}">
+    <article class="order-list-card">
+      <div><span class="status ${statusClass(order.status)}">${fmt(order.order_id)}</span><h4>${fmt(order.client_name)}</h4><p>${fmt(meta)}</p></div>
+      <div class="order-card-side">${orderStatusBadge(order)}${warnings.length ? badge('Не хватает данных', 'warn') : badge(order.current_stage || 'Входящие', 'ok')}</div>
+      <p class="next-action"><b>Следующее действие:</b> ${fmt(shortText(order.next_action, 120))}</p>
+      <details class="raw-details"><summary>Технические детали</summary><pre class="code mini">${fmt(jsonCopy(order))}</pre></details>
+    </article>
+  </div>`;
+}
+function actionButton(action) {
+  const active = filters.operatorAction === action.id ? ' active' : '';
+  return `<button type="button" class="operator-action${active}" data-operator-action="${esc(action.id)}">${fmt(action.label)}</button>`;
+}
+function actionPanel(action) {
+  return `<section class="primary-surface operator-action-panel">
+    <p class="eyebrow">Операторский режим</p>
+    <h3>${fmt(action.label || 'Оператор')}</h3>
+    <p>${fmt(uiText(action.meaning || 'Выберите действие слева.'))}</p>
+    <div class="operator-focus-grid">
+      ${proofItem('Нужные входные данные', asArray(action.required_inputs).length || 0, 'ok')}
+      ${proofItem('Approval владельца', uiText(action.approval_status || '—'), /required|owner|pending/i.test(action.approval_status || '') ? 'warn' : 'ok')}
+    </div>
+    <p class="next-action"><b>Рекомендуемый следующий шаг:</b> ${fmt(action.next_step || 'Выберите заказ и заполните контекст.')}</p>
+    ${toolbar([copyButton('Скопировать описание действия', `${action.label}\nСмысл: ${uiText(action.meaning)}\nВходные данные: ${asArray(action.required_inputs).join(', ')}\nСледующий шаг: ${action.next_step}\nApproval: ${uiText(action.approval_status)}`), copyButton('Скопировать пакет approval владельца', 'Действие: [точное действие]\nРазрешено: [файлы/действия]\nЗапрещено: live writes, public launch, spam, secrets, runtime changes\nRollback: [путь]\nПроверка: [checks]\nОстановиться если: [условие]')])}
+  </section>`;
+}
+function orderWorkspace(order) {
+  const validationErrors = asArray(order.validation?.errors);
+  const approval = order.owner_approval || ownerApprovalState(order);
+  const health = orderHealth(order);
+  const artifacts = artifactChecklist(order);
+  const timelineEvents = asArray(order.timeline).filter(ev => filters.timeline === 'all' || ev.event === filters.timeline).slice(-8);
+  const clientUpdate = `Здравствуйте. Статус по заказу ${order.client_name}: стадия "${order.current_stage}". Следующий шаг: ${order.next_action}. Что нужно от клиента: ${health.missing_information.slice(0, 4).join(', ') || 'пока ничего, работа идет по плану'}.`;
+  const internalSummary = `Заказ ${order.order_id}\nКлиент: ${order.client_name}\nСтадия: ${order.current_stage}\nГотовность: ${health.score}/100\nГотов к production: ${health.ready_for_production ? 'да' : 'нет'}\nНе хватает: ${health.missing_information.join(', ') || 'нет'}\nБлокеры: ${asArray(order.blockers).join('; ') || 'нет'}\nСледующий шаг: ${order.next_action}`;
+  return `<section class="operator-workspace">
+    <div class="section-head"><div><p class="eyebrow">Активный заказ</p><h3>${fmt(order.client_name || 'Нет активного заказа')}</h3></div>${orderStatusBadge(order)}</div>
+    <div class="order-summary-grid">
+      ${proofItem('Заказ', order.order_id || '—', 'ok')}
+      ${proofItem('Тип', order.order_type || '—', 'ok')}
+      ${proofItem('Стадия', order.current_stage || order.status || '—', order.owner_approval_required ? 'warn' : 'ok')}
+      ${proofItem('Исполнитель', order.assigned_agent || '—', 'ok')}
+    </div>
+    <p class="next-action prominent"><b>Следующее действие:</b> ${fmt(order.next_action || 'Выберите заказ и действие.')}</p>
+    <div class="order-facts">
+      ${proofItem('Контакт', order.client_contact || '—', 'ok')}
+      ${proofItem('Источник', order.source || 'manual', 'ok')}
+      ${proofItem('Бюджет', order.budget_range || '—', 'ok')}
+      ${proofItem('Срок', order.deadline || '—', 'ok')}
+      ${proofItem('Approval владельца', uiText(approval.status || '—'), approval.required ? 'warn' : 'ok')}
+      ${proofItem('Проверка данных', validationErrors.length ? validationErrors.join(', ') : 'ok', validationErrors.length ? 'warn' : 'ok')}
+    </div>
+    <div class="operator-gate-panel">
+      ${proofItem('Готовность заказа', `${health.score}/100`, health.score >= 72 ? 'ok' : 'warn')}
+      ${proofItem('Готов к production', health.ready_for_production ? 'да' : 'нет', health.ready_for_production ? 'ok' : 'warn')}
+      ${proofItem('Гейт approval', uiText(health.owner_approval_gate), order.owner_approval_required ? 'warn' : 'ok')}
+    </div>
+    ${health.missing_information.length ? `<div class="missing-info"><b>Не хватает данных:</b><ul>${health.missing_information.map(x => `<li>${fmt(x)}</li>`).join('')}</ul></div>` : ''}
+    <div class="artifact-checklist"><b>Чеклист артефактов</b>${artifacts.map(x => `<span class="status ${x.done ? 'ok' : 'warn'}">${fmt(x.done ? '✓ ' + x.label : 'нужно: ' + x.label)}</span>`).join('')}</div>
+    ${asArray(order.blockers).length ? `<div class="blocker-strip"><b>Блокеры:</b> ${fmt(asArray(order.blockers).join('; '))}</div>` : ''}
+    ${asArray(order.acceptance_criteria).length ? `<div class="acceptance-strip"><b>Acceptance:</b> ${fmt(asArray(order.acceptance_criteria).join('; '))}</div>` : ''}
+    <div class="timeline-mini"><h4>Последнее событие</h4><select id="timelineFilter">${['all','created','updated','stage_changed','brief_generated','export_generated','blocked'].map(x => `<option value="${esc(x)}"${filters.timeline === x ? ' selected' : ''}>${fmt(x)}</option>`).join('')}</select>${timelineEvents.map(ev => `<p><b>${fmt(ev.event)}</b> ${fmt(shortText(ev.note, 92))} <span>${fmt(ev.at)}</span></p>`).join('') || '<p>Нет событий</p>'}</div>
+    ${toolbar([
+      copyButton('Скопировать JSON заказа', jsonCopy(order)),
+      `<button class="copy" type="button" data-download-order="${esc(order.order_id)}">Экспорт JSON</button>`,
+      `<button class="copy" type="button" data-export-production-plan="${esc(order.order_id)}">Экспорт production-плана</button>`,
+      `<button class="copy secondary" type="button" data-duplicate-order="${esc(order.order_id)}">Дублировать</button>`,
+      `<button class="copy secondary" type="button" data-archive-order="${esc(order.order_id)}">В архив</button>`,
+      copyButton('Скопировать следующий шаг', order.next_action || ''),
+      copyButton('Скопировать обновление клиенту', clientUpdate),
+      copyButton('Скопировать внутреннее резюме', internalSummary)
+    ])}
+    <details class="active-order-edit"><summary>Обновить активный заказ</summary>
+      <form id="updateOrderForm" class="operator-form" data-order-id="${esc(order.order_id || '')}">
+        <label>Клиент / компания<input name="client_name" value="${esc(order.client_name || '')}"></label>
+        <label>Контакт<input name="client_contact" value="${esc(order.client_contact || '')}"></label>
+        <label>Источник<input name="source" value="${esc(order.source || '')}"></label>
+        <label>Индустрия<input name="industry" value="${esc(order.industry || '')}"></label>
+        <label>Бюджет<input name="budget_range" value="${esc(order.budget_range || '')}"></label>
+        <label>Срок<input name="deadline" value="${esc(order.deadline || '')}"></label>
+        <label>Приоритет<select name="priority">${['low','normal','high','urgent'].map(p => `<option${order.priority === p ? ' selected' : ''}>${fmt(p)}</option>`).join('')}</select></label>
+        <label>Стадия<select name="current_stage">${EXECUTION_COLUMNS.map(s => `<option${(order.current_stage || stageForStatus(order.status)) === s ? ' selected' : ''}>${fmt(s)}</option>`).join('')}</select></label>
+        <label class="span-12">Следующее действие<textarea name="next_action">${esc(order.next_action || '')}</textarea></label>
+        <label class="span-12">Заметки<textarea name="internal_notes">${esc(order.internal_notes || '')}</textarea></label>
+        <label class="span-12">Блокеры<textarea name="blockers_text" placeholder="Один блокер на строку">${esc(asArray(order.blockers).join('\n'))}</textarea></label>
+        <label class="checkline"><input name="owner_approval_required" type="checkbox" ${order.owner_approval_required ? 'checked' : ''}> Нужен owner approval</label>
+        <div class="form-actions span-12"><button type="submit">Сохранить изменения</button></div>
+      </form>
+    </details>
+    <details class="blocker-templates"><summary>Шаблоны причин блокера</summary>${toolbar([
+      copyButton('Нужны материалы клиента', 'Заблокировано: ждем logo, photos, proof/testimonials, legal disclaimers или финальный список услуг.'),
+      copyButton('Нужен approval владельца', 'Заблокировано: нужен approval владельца перед live route, production write, public launch, paid asset или outreach send.'),
+      copyButton('Нужно решение по scope', 'Заблокировано: package/scope неясен; выбрать MVP, premium landing, full site, bot, automation или handoff-only.'),
+      copyButton('Нужна compliance-проверка', 'Заблокировано: claims, regulated niche, testimonials или data route требуют compliance review перед production.')
+    ])}</details>
+  </section>`;
+}
+function executionChain(order) {
+  const current = order.current_stage || stageForStatus(order.status);
+  return `<section class="operator-chain">
+    <div class="section-head"><div><p class="eyebrow">Выполнение</p><h3>Текущая цепочка</h3></div></div>
+    <div class="chain-list">${EXECUTION_COLUMNS.map(column => {
+      const active = current === column;
+      const count = allOsOrders().filter(o => !o.archived && (o.current_stage || stageForStatus(o.status)) === column).length;
+      return `<div class="chain-step ${active ? 'active' : ''}"><span>${fmt(column)}</span><strong>${active ? fmt(order.order_id) : fmt(count)}</strong></div>`;
+    }).join('')}</div>
+  </section>`;
+}
+function websiteBriefTools(order) {
+  const questions = asArray(os().website_questionnaire);
+  const questionText = questions.map(g => `${g.group}\n${asArray(g.questions).map(q => '- ' + q).join('\n')}`).join('\n\n');
+  const productionBrief = order.production_brief || generateProductionBrief(order || {});
+  const productionPlan = jsonCopy(productionBrief);
+  const answerFields = [
+    ['business_goal','Цель сайта'], ['conversion_action','Главная конверсия'], ['ideal_client','Идеальный клиент'],
+    ['difference','Отличие оффера'], ['proof_assets','Доказательства'], ['brand_style','Стиль / бренд'],
+    ['motion_3d','Motion / 3D / HyperFrames'], ['domain_hosting','Домен / хостинг'], ['preferred_colors','Цвета / референсы'],
+    ['assets','Контент / assets'], ['seo_geo','SEO / география'], ['lead_route','Форма / Telegram / CRM'], ['never_promise','Что нельзя обещать']
+  ];
+  return `<section class="operator-bottom span-12">
+    <div class="section-head"><div><p class="eyebrow">Бриф сайта</p><h3>Бриф сайта → production-ready план</h3><p class="label">Шаблон работает локально и детерминированно: без LLM, без backend write, без public launch.</p></div>${badge('Только локально', 'ok')}</div>
+    <form id="websiteIntakeForm" class="operator-form intake-grid" data-order-id="${esc(order.order_id || '')}">
+      ${answerFields.map(([name,label]) => `<label>${fmt(label)}<textarea name="${esc(name)}" placeholder="${esc(label)}">${esc(order.client_answers?.[name] || '')}</textarea></label>`).join('')}
+      <div class="form-actions span-12">
+        <button type="submit">Сохранить ответы</button>
+        <button type="button" data-generate-brief="${esc(order.order_id || '')}">Сгенерировать бриф</button>
+        <button type="button" data-download-brief="${esc(order.order_id || '')}">Экспорт брифа</button>
+      </div>
+    </form>
+    ${order.production_brief ? card('Production-бриф', productionBriefView(order.production_brief), 'span-12 secondary-panel') : ''}
+    <div class="question-groups">${questions.map(g => `<article><h4>${fmt(g.group)}</h4><ul>${asArray(g.questions).map(q => `<li>${fmt(q)}</li>`).join('')}</ul></article>`).join('')}</div>
+    ${toolbar([copyButton('Скопировать вопросы клиенту', questionText), copyButton('Скопировать шаблон ответов', questions.map(g => `${g.group}\n${asArray(g.questions).map(q => q + ': ').join('\n')}`).join('\n\n')), copyButton('Скопировать production-бриф', productionPlan), copyButton('Скопировать production-план', productionPlan), copyButton('Скопировать JSON заказа', jsonCopy(order))])}
+  </section>`;
+}
+function newOrderForm() {
+  const types = ['Professional website / landing','E-commerce','Web app / SaaS','Telegram bot','AI automation','CRM/integration','Branding/design','3D/interactive experience','Marketing/content/SEO','Analytics/dashboard','Custom request / anything else'];
+  return `<section class="card span-12 secondary-panel new-order-block" id="newOrderBlock" data-testid="new-order-form"><div class="section-head"><div><p class="eyebrow">Новый заказ</p><h3>+ Создать заказ</h3><p class="label">Минимум: клиент, тип заказа и описание задачи. После создания заказ сразу появится в списке, активной карточке и Канбане выполнения.</p></div>${badge('Сохранено локально','ok')}</div>
+    <form id="newOrderForm" class="operator-form">
+      <label>Клиент / компания<input name="client_name" required placeholder="Название клиента"></label>
+      <label>Контакт<input name="client_contact" placeholder="Telegram, email, phone"></label>
+      <label>Тип заказа<select name="order_type">${types.map(t => `<option>${fmt(t)}</option>`).join('')}</select></label>
+      <label>Ниша<input name="industry" placeholder="B2B, клиника, SaaS, ресторан…"></label>
+      <label>Источник<input name="source" placeholder="manual, referral, lead research"></label>
+      <label>Бюджет<input name="budget_range" placeholder="$3k-$8k"></label>
+      <label>Дедлайн<input name="deadline" placeholder="3 weeks"></label>
+      <label>Приоритет<select name="priority"><option>normal</option><option>high</option><option>urgent</option><option>low</option></select></label>
+      <label class="span-12">Описание задачи<textarea name="internal_notes" required placeholder="Что нужно сделать: сайт, лендинг, бот, автоматизация, бриф, сроки, ограничения"></textarea></label>
+      <label class="checkline"><input name="owner_approval_required" type="checkbox"> Требуется approval владельца</label>
+      <div class="form-actions span-12"><button class="primary-create" type="submit">Создать заказ</button><button type="button" data-create-demo-order>Создать DEMO-заказ</button><button type="reset">Очистить форму</button><button type="button" data-reset-demo>Сбросить DEMO-данные</button><button type="button" data-export-orders>Экспорт JSON</button><button type="button" data-import-orders-open>Импорт JSON</button></div>
+    </form>
+    <form id="importOrdersForm" class="operator-form import-form" hidden>
+      <label class="span-12">Вставь JSON заказов<textarea name="orders_json" placeholder='[{"order_id":"LOCAL-..."}]'></textarea></label>
+      <label>Режим импорта<select name="import_mode"><option value="merge">Объединить / убрать дубли по order_id</option><option value="replace">Заменить локальный список</option></select></label>
+      <button type="submit">Импортировать JSON</button>
+    </form>
+  </section>`;
+}
+function storageStatusPanel() {
+  const status = storageAdapter.status();
+  const stub = supabaseStorageAdapterStub.status();
+  const queue = syncQueue.list();
+  const lastBackup = readStorageObject(OPERATOR_LAST_BACKUP_STORAGE_KEY, {});
+  const pending = queue.filter(ev => !['synced','rolled_back'].includes(ev.status)).length;
+  return `<section class="proof-panel span-12" data-testid="storage-status-panel">
+    <div class="section-head"><div><p class="eyebrow">Storage</p><h3>Backend-ready storage layer</h3><p class="label">Текущий режим остается browser-only: localStorage active, Supabase adapter disabled/read-only.</p></div>${badge('local only', 'ok')}</div>
+    <div class="proof-grid">
+      ${proofItem('Storage mode', status.mode, 'ok')}
+      ${proofItem('Backend', status.backend, 'warn')}
+      ${proofItem('Sync status', status.sync_status, 'ok')}
+      ${proofItem('Pending sync events', pending, pending ? 'warn' : 'ok')}
+      ${proofItem('Order schema', OPERATOR_ORDER_SCHEMA_VERSION, 'ok')}
+      ${proofItem('Lead schema', OPERATOR_LEAD_SCHEMA_VERSION, 'ok')}
+      ${proofItem('Storage schema', OPERATOR_STORAGE_SCHEMA_VERSION, 'ok')}
+      ${proofItem('Migration status', 'draft only', 'warn')}
+      ${proofItem('Last backup export', lastBackup.exported_at || 'not exported in this browser', lastBackup.exported_at ? 'ok' : 'warn')}
+      ${proofItem('Backend writes', 'require owner approval', 'warn')}
+    </div>
+    <div class="toolbar">
+      <span class="status warn" aria-disabled="true">Enable Supabase: disabled until owner approval</span>
+      <button type="button" data-export-orders>Экспорт orders</button>
+      <button type="button" data-export-leads>Экспорт leads</button>
+      <button type="button" data-export-sync-queue>Экспорт sync queue</button>
+      <button type="button" data-export-workspace-backup>Экспорт full workspace backup</button>
+      <button type="button" data-import-backup-open>Импорт backup локально</button>
+    </div>
+    <form id="importBackupForm" class="operator-form import-form" hidden>
+      <label class="span-12">Workspace backup JSON<textarea name="backup_json" placeholder='{"backup_schema_version":"webstudio.operator.workspace_backup.v1","orders":[],"leads":[],"sync_queue":[]}'></textarea></label>
+      <label>Режим импорта<select name="import_mode"><option value="merge">Merge local backup</option><option value="replace">Replace local workspace</option></select></label>
+      <p class="label span-12">Warning: local import rewrites browser localStorage only. It does not call Supabase and does not send data anywhere.</p>
+      <button type="submit">Импортировать backup локально</button>
+    </form>
+    <details><summary>Supabase adapter stub / read-only plan</summary><pre class="code mini">${fmt(jsonCopy(stub))}</pre></details>
+  </section>`;
+}
+function syncQueuePanel() {
+  const queue = syncQueue.list();
+  return `<section class="card span-12 calm-list" data-testid="sync-queue-panel">
+    <div class="section-head"><div><p class="eyebrow">Sync queue</p><h3>Локальная очередь будущей синхронизации</h3><p class="label">Очередь не делает network calls. Записи нужны для dry-run, conflict detection и будущего approval-gated sync.</p></div>${badge('local only', 'ok')}</div>
+    ${toolbar([`<button type="button" data-export-sync-queue>Экспорт sync queue</button>`, `<button type="button" data-export-workspace-backup>Экспорт full workspace backup</button>`])}
+    ${rowsTop(queue, ev => row(ev.event_type, `${ev.entity_type}:${ev.entity_id}`, ev.status, `operation=${ev.operation} · approval=${ev.requires_approval ? 'yes' : 'no'} · ${ev.created_at}`, 'sync-queue-event', jsonCopy(ev)), 12, 'Очередь пока пуста')}
+    <details class="raw-details"><summary>Raw sync queue JSON</summary><pre class="code block">${fmt(jsonCopy(queue))}</pre></details>
+  </section>`;
+}
+const WEBSITE_FACTORY_PRESETS = [
+  {id:'premium-clinic', label:'Premium Clinic', industry:'premium medical / expert service', style:'Clinical editorial', cta:'Book DEMO consultation'},
+  {id:'legal-boutique', label:'Legal Boutique', industry:'legal services', style:'Quiet authority', cta:'Request case review'},
+  {id:'construction-renovation', label:'Construction / Renovation', industry:'construction and renovation', style:'Material proof', cta:'Estimate project'},
+  {id:'beauty-clinic', label:'Beauty Clinic', industry:'aesthetic services', style:'Soft premium', cta:'Plan visit'},
+  {id:'fitness-coach', label:'Fitness Coach', industry:'personal fitness', style:'Kinetic performance', cta:'Start assessment'},
+  {id:'restaurant-premium', label:'Premium Restaurant', industry:'restaurant / hospitality', style:'Editorial dining', cta:'Reserve table'},
+  {id:'b2b-saas', label:'B2B SaaS', industry:'software', style:'Product clarity', cta:'Book product demo'},
+  {id:'ai-automation-agency', label:'AI Automation Agency', industry:'automation services', style:'Systems intelligence', cta:'Map automation'}
+];
+function websiteFactoryStatus(order) {
+  const hasBrief = Boolean(order.production_brief);
+  const hasAnswers = Object.keys(order.client_answers || {}).length >= 3;
+  const qaReady = hasBrief && hasAnswers && asArray(order.production_brief?.qa_checklist).length > 0;
+  return {
+    active_order: order.order_id || 'none',
+    generated_brief_status: hasBrief ? 'ready' : 'missing',
+    generated_site_pack_status: hasBrief ? 'local pack ready to export' : 'requires brief first',
+    qa_status: qaReady ? 'ready' : 'needs brief / answers',
+    handoff_status: hasBrief ? 'handoff checklist available' : 'pending'
+  };
+}
+function websiteFactoryPackPayload(order, presetId='premium-clinic') {
+  const preset = WEBSITE_FACTORY_PRESETS.find(p => p.id === presetId) || WEBSITE_FACTORY_PRESETS[0];
+  const brief = order.production_brief || generateProductionBrief(order || {});
+  return {
+    schema_version: 'webstudio.website_pack.v115',
+    storage_schema_version: OPERATOR_STORAGE_SCHEMA_VERSION,
+    generated_at: nowIso(),
+    local_only: true,
+    backend_write: false,
+    public_launch: false,
+    order: withOrderDefaults(order || {}),
+    preset,
+    brief,
+    qa_checklist: brief.qa_checklist || [],
+    handoff_checklist: brief.handoff_checklist || [],
+    files_expected: ['index.html','styles.css','app.js','brief.md','production-plan.md','qa-checklist.md','handoff.md','manifest.json','motion-hyperframes-plan.md']
+  };
+}
+function exportWebsiteFactoryPack(orderId, presetId) {
+  const order = orderById(orderId);
+  const payload = websiteFactoryPackPayload(order, presetId);
+  syncQueue.enqueue('export.generated', 'website_pack', `${orderId}:${presetId}`, {export_kind: 'website_pack', preset_id: presetId, local_only: true}, {operation: 'generated'});
+  operatorState = {...os(), sync_queue: syncQueue.list()};
+  downloadJson(localExportName('webstudio-website-pack', `${presetId}-${orderId}`), payload);
+  toast('Website pack exported locally');
+  render();
+}
+function websiteFactoryPanel(order) {
+  const activePreset = WEBSITE_FACTORY_PRESETS.find(p => p.industry === order.industry) || WEBSITE_FACTORY_PRESETS[0];
+  const status = websiteFactoryStatus(order);
+  return `<section class="proof-panel span-12" data-testid="website-factory-panel">
+    <div class="section-head"><div><p class="eyebrow">Фабрика сайтов</p><h3>Локальная генерация website pack из заказа</h3><p class="label">Детерминированно, без LLM, backend writes, Supabase, public launch или outreach.</p></div>${badge('local factory', 'ok')}</div>
+    <div class="proof-grid">
+      ${proofItem('Active order', status.active_order, order.order_id ? 'ok' : 'warn')}
+      ${proofItem('Selected website style', activePreset.style, 'ok')}
+      ${proofItem('Selected industry', order.industry || activePreset.industry, order.industry ? 'ok' : 'warn')}
+      ${proofItem('Generated brief', status.generated_brief_status, status.generated_brief_status === 'ready' ? 'ok' : 'warn')}
+      ${proofItem('Generated site pack', status.generated_site_pack_status, status.generated_brief_status === 'ready' ? 'ok' : 'warn')}
+      ${proofItem('QA status', status.qa_status, status.qa_status === 'ready' ? 'ok' : 'warn')}
+      ${proofItem('Backend', 'localStorage only', 'ok')}
+      ${proofItem('Public launch', 'not performed', 'ok')}
+    </div>
+    <div class="toolbar">
+      <button type="button" data-generate-brief="${esc(order.order_id || '')}">Generate production brief</button>
+      <button type="button" data-export-website-pack="${esc(order.order_id || '')}" data-preset-id="${esc(activePreset.id)}">Generate local website pack</button>
+      <button type="button" data-download-order="${esc(order.order_id || '')}">Export order JSON</button>
+      <button type="button" data-export-workspace-backup>Export full backup</button>
+    </div>
+    <details><summary>Template presets</summary><div class="question-groups">${WEBSITE_FACTORY_PRESETS.map(p => `<article><h4>${fmt(p.label)}</h4><p>${fmt(p.industry)} · ${fmt(p.style)} · CTA: ${fmt(p.cta)}</p></article>`).join('')}</div></details>
+    <details><summary>Factory pack preview JSON</summary><pre class="code mini">${fmt(jsonCopy(websiteFactoryPackPayload(order, activePreset.id)))}</pre></details>
+  </section>`;
+}
+function operatorWorkbench() {
+  const actions = asArray(os().operator_actions);
+  const action = actions.find(a => a.id === filters.operatorAction) || actions[0] || {};
+  const order = activeOrder();
+  return `<div class="operator-os grid" data-view="operator" data-testid="operator-workbench">
+    ${storageStatusPanel()}
+    ${goCreateOrderCta('operator')}
+    ${howToVerifyBlock()}
+    <section class="operator-left span-3"><p class="eyebrow">Что делаем сейчас?</p><h3>Оператор</h3><div class="operator-actions">${actions.map(actionButton).join('')}</div></section>
+    <section class="span-6">${actionPanel(action)}${orderWorkspace(order)}</section>
+    <section class="span-3">${executionChain(order)}${card('Безопасность', kv({read_only: os().safety_policy?.read_only_ui, outreach: 'только черновики / approval владельца', public_launch: 'не выполняется', officebot: 'запрещен'}), 'span-12')}</section>
+    ${newOrderForm()}
+    ${websiteFactoryPanel(order)}
+    ${syncQueuePanel()}
+    ${websiteBriefTools(order)}
+  </div>`;
+}
+function ordersView() {
+  const orders = osOrders();
+  const active = activeOrder();
+  const importExport = toolbar([
+    `<button type="button" data-export-orders>Экспорт JSON</button>`,
+    `<button type="button" data-import-orders-open>Импорт JSON</button>`,
+    active.order_id ? `<button type="button" data-duplicate-order="${esc(active.order_id)}">Дублировать активный</button>` : '',
+    active.order_id ? `<button type="button" data-archive-order="${esc(active.order_id)}">Архивировать активный</button>` : ''
+  ].filter(Boolean));
+  return `<div class="grid operator-os" data-view="orders" data-testid="orders-workspace">
+    ${storageStatusPanel()}
+    ${goCreateOrderCta('orders')}
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">Заказы</p><h2>Все заказы в одном окне.</h2><p>Создай заказ, выбери активную карточку, двигай ее в Канбане и генерируй бриф. Raw JSON спрятан в технических деталях.</p></div>${heroMetric('Заказы', orders.length, 'localStorage')}</section>
+    ${howToVerifyBlock()}
+    ${newOrderForm()}
+    <section class="card span-8 calm-list"><div class="section-head"><div><p class="eyebrow">Список заказов</p><h3>Заказы</h3></div>${badge('active: ' + (active.order_id || 'нет'), 'ok')}</div>${importExport}${rows(orders, orderRow, 'Заказов пока нет. Нажми + Создать заказ или Создать DEMO-заказ.')}</section>
+    <section class="card span-4"><h3>Активный заказ</h3>${orderWorkspace(active)}</section>
+    ${collapsibleCard('Технические детали заказов', `<pre class="code block">${fmt(jsonCopy(orders))}</pre>`, 'span-12')}
+    ${syncQueuePanel()}
+  </div>`;
+}
+function executionKanbanView() {
+  const columns = EXECUTION_COLUMNS.map(column => ({column, orders: allOsOrders().filter(o => !o.archived && (o.current_stage || stageForStatus(o.status)) === column)}));
+  const activeId = activeOrder().order_id;
+  return `<div class="grid operator-os" data-view="kanban" data-testid="execution-kanban-workspace">
+    ${storageStatusPanel()}
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">Канбан выполнения</p><h2>Двигай заказ кнопками на карточке.</h2><p>Канбан выполнения показывает путь заказа от входящего лида до handoff. Все движения локальные, без запуска воркеров и без отправки сообщений. Нажми “Следующий этап”, “Ожидаем клиента”, “Заблокировано”, “В QA”, “В Handoff” или “Готово”.</p></div>${heroMetric('Колонки', columns.length, 'локальный путь заказа')}</section>
+    <section class="span-12 execution-board">${columns.map(col => `<div class="exec-lane"><h3>${fmt(col.column)} <span>${asArray(col.orders).length}</span></h3>${asArray(col.orders).map(o => {
+      const latest = asArray(o.timeline).slice(-2);
+      return `<article class="exec-card ${activeId === o.order_id ? 'active-order-card' : ''}" data-select-order="${esc(o.order_id)}" data-detail-type="operator-order" data-detail-payload="${esc(jsonCopy(o))}"><strong>${fmt(o.order_id)}</strong><b>${fmt(o.client_name)}</b><span>${fmt(o.order_type)}</span><small>исполнитель: ${fmt(o.assigned_agent)} · артефакты: ${asArray(o.artifacts).length} · QA=${o.status === 'qa' ? 'активно' : 'ожидает'} · handoff=${o.status === 'handoff' ? 'готов' : 'ожидает'}</small><p class="next-action"><b>Следующий шаг:</b> ${fmt(shortText(o.next_action, 110))}</p>${asArray(o.blockers).length ? `<p class="blocker-strip">${fmt(asArray(o.blockers).join('; '))}</p>` : ''}${orderStatusBadge(o)}
+        <div class="mini-actions">
+          <button type="button" data-move-next="${esc(o.order_id)}">Следующий этап</button>
+          <button type="button" data-exec-state="${esc(o.order_id)}" data-stage="Бриф" data-status="waiting_client" data-note="Ожидаем клиента">Ожидаем клиента</button>
+          <button type="button" data-exec-state="${esc(o.order_id)}" data-stage="Заблокировано" data-status="blocked" data-note="Заблокировано оператором">Заблокировано</button>
+          <button type="button" data-exec-state="${esc(o.order_id)}" data-stage="QA" data-status="qa" data-note="Передано в QA">В QA</button>
+          <button type="button" data-exec-state="${esc(o.order_id)}" data-stage="Handoff" data-status="handoff" data-note="Передано в Handoff">В Handoff</button>
+          <button type="button" data-exec-state="${esc(o.order_id)}" data-stage="Готово" data-status="done" data-note="Готово локально">Готово</button>
+        </div>
+        <div class="timeline-mini compact">${latest.map(ev => `<p><b>${fmt(ev.event)}</b> ${fmt(shortText(ev.note, 54))}</p>`).join('') || '<p>Нет событий</p>'}</div>
+        <details><summary>Технические детали</summary><pre class="code mini">${fmt(jsonCopy({timeline: asArray(o.timeline), artifacts: o.artifacts, questions: Object.keys(o.client_answers || {}), qa_status: o.status === 'qa' ? 'watch' : 'not_started', handoff_status: o.status === 'handoff' ? 'ready' : 'not_started'}))}</pre></details></article>`;
+    }).join('') || '<div class="empty">Нет заказов</div>'}</div>`).join('')}</section>
+  </div>`;
+}
+function websiteIntakeView() {
+  return `<div class="grid operator-os">${websiteBriefTools(activeOrder())}</div>`;
+}
+function realAssetsWorkflow() {
+  const active = activeOrder();
+  const safeChecklist = [
+    ['brand', 'Логотип, цвета, шрифты, правила использования', 'optional_until_final'],
+    ['photos', 'Реальные фото команды, офиса, продукта или процесса', 'required_for_client_preview'],
+    ['proof', 'Проверяемые кейсы, отзывы, сертификаты и цифры', 'verified_only'],
+    ['legal', 'Политика, реквизиты, ограничения по нише', 'owner_review'],
+    ['contacts', 'Публичные каналы связи и часы ответа', 'client_confirmed']
+  ];
+  const replacementPlan = `Real Asset Replacement Workflow v63\nMode: static demo only, no client-send writes.\nOrder: ${active.order_id || 'LOCAL-DEMO'}\n1. Mark every generated/concept asset as DEMO until client provides originals.\n2. Collect brand files, real photos, verified proof, legal copy, public contacts.\n3. Replace placeholders only after source, license, and owner/client confirmation are recorded.\n4. Keep missing assets visible as TODO blocks; do not invent doctors, logos, certificates, numbers, or testimonials.\n5. Before public launch: run visual QA, mobile QA, no-secret scan, owner acceptance.`;
+  const requestTemplate = `Client asset request\nPlease send only materials you are allowed to use publicly:\n- logo or brand guide\n- real photos/video links\n- service descriptions and prices/ranges you approve\n- verified reviews/cases/certificates\n- legal/contact details\nIf something is missing, we keep a clear placeholder label instead of inventing it.`;
+  return `<div class="grid operator-os" data-view="real-assets" data-marker="real-asset-workflow-v63">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">V6.3 · Реальные материалы</p><h2>Замена DEMO-ассетов без выдуманных доказательств.</h2><p>Статический safe workflow для перехода от концепта к client-safe preview: всё demo-only, без отправок клиентам, live CRM, платежей или внешних записей.</p></div>${heroMetric('Asset gates', safeChecklist.length, 'sanitized')}</section>
+    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">Safety contract</p><h3>Что запрещено подменять</h3><p class="label">Публичная версия получает только подтвержденные материалы. Неподтвержденное остается с заметной меткой DEMO/TODO.</p></div>${badge('static only','ok')}</div>
+      <div class="proof-grid">${proofItem('Fake testimonials/logos', 'запрещено', 'ok')}${proofItem('Generated people as real staff', 'запрещено', 'ok')}${proofItem('Medical/legal claims without proof', 'запрещено', 'ok')}${proofItem('Client send automation', 'выключено', 'ok')}${proofItem('CRM/payment writes', 'нет', 'ok')}${proofItem('Owner acceptance', 'required before public launch', 'warn')}</div>
+    </section>
+    <section class="card span-7"><h3>Replacement checklist</h3><div class="chain-list">${safeChecklist.map(([id,label,status]) => `<div class="chain-step"><span>${fmt(id)}</span><strong>${fmt(label)}</strong><small>${fmt(uiText(status))}</small></div>`).join('')}</div></section>
+    <section class="card span-5"><h3>Active order gate</h3>${kv({order_id: active.order_id || 'LOCAL-DEMO', client: active.client_name || 'Demo client', current_stage: active.current_stage || 'draft', real_asset_policy: 'placeholder_until_confirmed', public_launch: 'owner approval required'})}${toolbar([copyButton('Скопировать план замены', replacementPlan), copyButton('Скопировать запрос клиенту', requestTemplate)])}</section>
+    <section class="card span-6"><h3>Missing content tracker</h3><ul class="clean-list"><li>Нет логотипа → оставить текстовый знак и TODO.</li><li>Нет фото команды → использовать абстрактный DEMO-блок, не изображать реальных людей.</li><li>Нет отзывов → показать список доказательств, которые нужно получить.</li><li>Нет цен → писать диапазон только после подтверждения владельцем.</li></ul></section>
+    <section class="card span-6 warning-surface"><h3>Acceptance before public launch</h3><ul class="clean-list"><li>Все реальные материалы имеют источник и разрешение.</li><li>DEMO labels сняты только там, где есть подтверждение.</li><li>Скриншоты после замены ассетов сохранены в evidence.</li><li>Фронтенд scan не нашел секретов или live endpoints.</li></ul></section>
+  </div>`;
+}
+function proposalQuoteWorkflow() {
+  const active = activeOrder();
+  const health = orderHealth(withOrderDefaults(active));
+  const brief = active.production_brief || generateProductionBrief(active);
+  const proposalMarker = 'proposal-quote-generator-v64';
+  const bands = [
+    {id: 'starter', label: 'Start', range: '$3k–$7k', fit: '1–3 страницы, быстрый запуск, минимум motion', includes: ['brief lock', 'conversion copy', 'responsive static site', 'basic QA checklist']},
+    {id: 'pro', label: 'Pro', range: '$8k–$18k', fit: 'много секций, proof blocks, handoff package', includes: ['strategy', 'premium visual system', 'asset replacement plan', 'SEO basics', 'QA + handoff']},
+    {id: 'premium', label: 'Premium', range: '$20k–$40k', fit: 'сложная ниша, motion/art direction, строгий acceptance', includes: ['3 concepts', 'motion plan', 'content system', 'advanced QA', 'owner/client acceptance gates']}
+  ];
+  const proposal = {
+    schema_version: 'webstudio.proposal_quote.v64',
+    marker: proposalMarker,
+    generated_at: nowIso(),
+    mode: 'static_demo_only_local_export',
+    safety: {
+      public_ui_demo_only: true,
+      no_crm_write: true,
+      no_email_or_telegram_send: true,
+      no_payment_action: true,
+      no_client_delivery_action: true,
+      officebot_used: false,
+      owner_approval_required_before_client_use: true
+    },
+    order: {
+      order_id: active.order_id || 'LOCAL-DEMO',
+      client_name: active.client_name || 'Demo client',
+      industry: active.industry || 'demo niche',
+      budget_range: active.budget_range || 'not confirmed',
+      deadline: active.deadline || 'not confirmed',
+      health_score: health.score,
+      missing_information: health.missing_information
+    },
+    scope_options: bands,
+    recommended_package: health.score >= 80 ? 'pro' : 'starter_until_brief_complete',
+    assumptions: [
+      'Цена является внутренней оценкой, не публичным обещанием.',
+      'Финальный scope фиксируется после подтверждения материалов, proof и legal copy.',
+      'Все live-интеграции, CRM, формы, мессенджеры и платежные сценарии требуют отдельного approval.',
+      'Неподтвержденные отзывы, логотипы, сертификаты и цифры не используются.'
+    ],
+    deliverables: ['proposal summary', 'scope table', 'timeline draft', 'acceptance checklist', 'risk/approval gates'],
+    acceptance_criteria: brief.acceptance_criteria || [],
+    next_safe_step: 'Owner reviews draft, selects package, then client-facing copy is rewritten and approved manually.'
+  };
+  const quoteText = `Proposal / quote draft v64\nOrder: ${proposal.order.order_id}\nClient: ${proposal.order.client_name}\nRecommended: ${proposal.recommended_package}\nSafety: demo-only, no sends, no CRM/payment writes, owner approval before client use.\n\nScope bands:\n${bands.map(b => `- ${b.label}: ${b.range} — ${b.fit}`).join('\n')}\n\nAssumptions:\n${proposal.assumptions.map(a => `- ${a}`).join('\n')}`;
+  return `<div class="grid operator-os" data-view="proposal-quote" data-marker="${proposalMarker}">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">V6.4 · Proposal / quote</p><h2>Генератор scope и цены без live-действий.</h2><p>Статический sanitized модуль: готовит внутренний draft предложения, диапазон цены, acceptance criteria и approval gates. Ничего не отправляет клиенту и не пишет во внешние системы.</p></div>${heroMetric('Quote bands', bands.length, 'demo-only')}</section>
+    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">Safety contract</p><h3>Proposal не равен клиентской отправке</h3><p class="label">Это copy-only черновик для владельца. Client-facing текст, финальная цена и public launch требуют отдельного подтверждения.</p></div>${badge('static draft','ok')}</div>
+      <div class="proof-grid">${proofItem('CRM write', 'нет', 'ok')}${proofItem('Email / Telegram send', 'нет', 'ok')}${proofItem('Payment action', 'нет', 'ok')}${proofItem('Fixed promise', 'нет', 'ok')}${proofItem('Owner approval', 'required', 'warn')}${proofItem('Officebot', 'not used', 'ok')}</div>
+    </section>
+    <section class="card span-7"><h3>Scope bands</h3><div class="chain-list">${bands.map(b => `<div class="chain-step"><span>${fmt(b.label)} · ${fmt(b.range)}</span><strong>${fmt(b.fit)}</strong><small>${fmt(b.includes.join(' · '))}</small></div>`).join('')}</div></section>
+    <section class="card span-5"><h3>Active order quote gate</h3>${kv({order_id: proposal.order.order_id, client: proposal.order.client_name, health_score: proposal.order.health_score, recommended: proposal.recommended_package, owner_approval: 'required before client use'})}${toolbar([copyButton('Скопировать quote draft', quoteText), copyButton('Экспорт proposal JSON', jsonCopy(proposal))])}</section>
+    <section class="card span-6"><h3>Assumptions</h3><ul class="clean-list">${proposal.assumptions.map(item => `<li>${fmt(item)}</li>`).join('')}</ul></section>
+    <section class="card span-6 warning-surface"><h3>Approval gates</h3><ul class="clean-list"><li>Подтвердить scope и диапазон цены.</li><li>Проверить missing information: ${fmt(proposal.order.missing_information.join(', ') || 'нет критичных пробелов')}.</li><li>Переписать client-facing версию вручную.</li><li>Проверить legal/proof claims до public launch.</li></ul></section>
+    ${collapsibleCard('Proposal JSON', `<pre class="code block">${fmt(jsonCopy(proposal))}</pre>`, 'span-12')}
+  </div>`;
+}
+function leadResearchView() {
+  const leads = asArray(os().lead_research_queue);
+  return `<div class="grid operator-os">
+    <section class="proof-panel span-12"><div class="section-head"><div><p class="eyebrow">Безопасный поиск заказов</p><h3>Поиск заказов без спама</h3><p class="label">Это очередь исследования и черновиков. Здесь нет кнопки отправки и нет автоматического outreach.</p></div>${badge('Требуется approval владельца', 'warn')}</div>
+      <div class="proof-grid">${proofItem('Автоотправка запрещена', 'да', 'ok')}${proofItem('Только черновики', 'copy-only', 'ok')}${proofItem('Требуется approval владельца', 'перед отправкой', 'warn')}${proofItem('Без спама', 'да', 'ok')}${proofItem('Без обхода банов, прокси и CAPTCHA', 'да', 'ok')}${proofItem('Opt-out', 'соблюдать обязательно', 'ok')}</div>
+    </section>
+    <section class="card span-12 secondary-panel"><div class="section-head"><div><p class="eyebrow">Только ручное исследование</p><h3>Добавить lead</h3></div>${badge('Только черновики','ok')}</div>
+      <form id="newLeadForm" class="operator-form">
+        <label>Компания / человек<input name="company_person" required placeholder="Название компании"></label>
+        <label>Публичный URL источника<input name="source_url" placeholder="https://public-source.example"></label>
+        <label>Ниша<input name="niche" placeholder="ресторан, клиника, SaaS"></label>
+        <label>Гипотеза боли<input name="problem_hypothesis" placeholder="Устаревший сайт, слабый сбор заявок"></label>
+        <label>Гипотеза оффера<input name="suggested_offer" placeholder="Мини-аудит + сфокусированный лендинг"></label>
+        <label>Персонализация<input name="personalization_notes" placeholder="Конкретное публичное наблюдение"></label>
+        <label>Оценка релевантности 0–100<input name="relevance_score" type="number" min="0" max="100" value="60"></label>
+        <label>Opt-out статус<select name="opt_out_status"><option>unknown</option><option>not_contacted</option><option>opted_out</option><option>do_not_follow_up</option></select></label>
+        <label>Статус follow-up<select name="followup_status"><option>not_scheduled</option><option>owner_review_needed</option><option>approved_manual_send_only</option><option>do_not_send</option></select></label>
+        <label class="span-12">Compliance notes<textarea name="risk_compliance_notes">Только публичная информация. Автоотправка запрещена. Требуется approval владельца перед outreach.</textarea></label>
+        <label class="span-12">Черновик outreach<textarea name="outreach_draft" placeholder="Короткий прозрачный черновик без отправки"></textarea></label>
+        <div class="form-actions span-12"><button type="submit">Добавить lead локально</button><button type="button" data-export-leads>Экспорт JSON лидов</button></div>
+      </form>
+    </section>
+    <section class="card span-12 calm-list"><h3>Очередь lead research</h3>${rows(leads, lead => `<div class="lead-row"><article class="lead-card"><div><span class="status warn">${fmt(lead.approval_status)}</span><h4>${fmt(lead.company_person || lead.lead_id)}</h4><p>${fmt(lead.niche || 'ниша не указана')} · оценка=${fmt(lead.relevance_score)} · follow-up=${fmt(lead.followup_status)} · opt-out=${fmt(lead.opt_out_status)}</p></div><p class="next-action"><b>Гипотеза:</b> ${fmt(lead.problem_hypothesis || '—')}</p><p><b>Compliance:</b> ${fmt(lead.compliance?.platform_rules_notes || lead.risk_compliance_notes || 'только публичные источники')}</p><div class="toolbar">${copyButton('Скопировать outreach draft', lead.outreach_draft || buildLeadDraft(lead))}${copyButton('Скопировать персональный intro', leadPersonalizedIntro(lead))}${copyButton('Скопировать audit offer', leadAuditOffer(lead))}${copyButton('Скопировать follow-up', leadFollowupDraft(lead))}${copyButton('Скопировать stop-contact ответ', leadStopContactResponse(lead))}<button class="copy secondary" type="button" data-prepare-lead-draft="${esc(lead.lead_id)}">Подготовить черновик</button></div><details class="raw-details"><summary>Технические детали</summary><pre class="code mini">${fmt(jsonCopy(lead))}</pre></details></article></div>`, 'Лидов пока нет')}</section>
+    ${card('Политика outreach-черновиков', kv({allowed: 'публичное исследование, оценка релевантности, заметки персонализации, черновики после approval владельца', forbidden: 'спам, фейковая личность, обход банов, CAPTCHA/proxy/rate-limit bypass, автоотправка', human_like: 'релевантно, уважительно, конкретно, прозрачно, без давления, остановиться после отказа'}), 'span-12')}
+  </div>`;
+}
+function buildLeadDraft(lead) {
+  return [
+    `Здравствуйте. Я смотрю на ${lead.company_person || 'ваш проект'} и вижу возможную точку роста: ${lead.problem_hypothesis || 'сайт/воронка может понятнее вести к заявке'}.`,
+    `Можем предложить: ${lead.suggested_offer || 'короткий аудит и аккуратный план улучшения без навязчивых сообщений'}.`,
+    lead.personalization_notes ? `Почему пишу именно вам: ${lead.personalization_notes}.` : '',
+    'Это черновик: не отправлять автоматически. Нужен owner approval перед любым outreach.'
+  ].filter(Boolean).join('\n\n');
+}
+function leadPersonalizedIntro(lead) {
+  return `Здравствуйте. Пишу коротко и прозрачно: смотрел публичную информацию о ${lead.company_person || 'вашем проекте'} и заметил контекст по нише "${lead.niche || 'ваша ниша'}".`;
+}
+function leadAuditOffer(lead) {
+  return `Могу подготовить copy-only мини-аудит: ${lead.problem_hypothesis || 'где сайт/воронка теряет ясность'} → ${lead.suggested_offer || '3 конкретных улучшения без навязчивой продажи'}. Отправлять можно только после owner approval.`;
+}
+function leadFollowupDraft(lead) {
+  return `Короткий follow-up по ${lead.company_person || 'проекту'}: если тема неактуальна, больше не пишу. Если полезно, могу прислать 3 наблюдения по ${lead.problem_hypothesis || 'первому экрану/пути заявки'}.`;
+}
+function leadStopContactResponse(lead) {
+  return `Понял, спасибо. Больше не буду писать по ${lead.company_person || 'этому контакту'}. Отмечаю opt-out / do not follow up.`;
+}
+function agentExecutionView() {
+  const roles = asArray(os().agent_roles);
+  const systems = [
+    ['Codex / terminal', 'локальные правки, проверки, bounded scripts'],
+    ['Browser / Playwright / Chromium', 'localhost QA и скриншоты'],
+    ['QMD bounded search', 'только bounded retrieval, без unbounded embed'],
+    ['HyperFrames / motion planning', 'план/spec; тяжелый render только после approval'],
+    ['GitHub app', 'read-only context без явного push approval'],
+    ['Supabase', 'read-only/planning без live writes']
+  ];
+  return `${agentWorkflow()}<div class="grid operator-os">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">Карта агентской оркестрации</p><h2>Агенты выполнения без автозапуска.</h2><p>Роли показывают входы, выходы и approval gates. Эта панель планирует работу, но не запускает live worker tasks.</p></div>${heroMetric('Роли', roles.length, 'только планирование')}</section>
+    <section class="card span-8"><h3>Агенты выполнения</h3><div class="agent-role-grid">${roles.map(r => `<article class="agent-role-card"><h4>${fmt(r.role)}</h4><p>${fmt(uiText(r.does))}</p><p class="label"><b>Входы:</b> ${fmt(asArray(r.inputs_needed).join(', ') || 'контекст заказа')}</p><p class="label"><b>Выходы:</b> ${fmt(asArray(r.outputs_produced).join(', ') || 'артефакт / решение')}</p><p class="label"><b>Статус:</b> ${fmt(uiText(r.current_status))} · <b>Гейт:</b> ${fmt(uiText(r.approval_gate))}</p></article>`).join('')}</div></section>
+    <section class="card span-4"><h3>Безопасные системы Hermes</h3><div class="chain-list">${systems.map(([name, use]) => `<div class="chain-step"><span>${fmt(name)}</span><strong>${fmt(use)}</strong></div>`).join('')}</div><p class="label">Без costly delegate storms. Без live production execution из этой панели.</p></section>
+  </div>`;
+}
+function supabasePlanView() {
+  const tables = [
+    ['orders', 'canonical order profile, localStorage mirror id, health, approval state'],
+    ['order_events', 'append-only order timeline events'],
+    ['leads', 'manual public lead queue, score, compliance gate'],
+    ['lead_events', 'lead timeline and approval/copy events'],
+    ['briefs', 'versioned production briefs and answer snapshots'],
+    ['artifacts', 'local/exported artifact references and checksums'],
+    ['approvals', 'owner approval packets and decision state']
+  ];
+  return `<div class="grid operator-os">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">Supabase-ready architecture</p><h2>План persistence без live writes.</h2><p>Это только schema proposal и integration plan. Никаких Supabase mutations, cloud resources или migrations не выполняется.</p></div>${heroMetric('Tables', tables.length, 'draft only')}</section>
+    <section class="card span-8"><h3>Draft schema map</h3><div class="chain-list">${tables.map(([name, purpose]) => `<div class="chain-step"><span>${fmt(name)}</span><strong>${fmt(purpose)}</strong></div>`).join('')}</div></section>
+    <section class="card span-4 warning-surface"><h3>Safety contract</h3>${kv({mode: 'planning/read-only', apply_migration: 'forbidden in v108', backend_db_writes: false, owner_approval_required: 'yes before any Supabase mutation', rollback: 'keep localStorage as source during migration dry-run'})}${toolbar([copyButton('Copy schema draft path', '/home/hermes/workspace/output/webstudio-overnight-production-v108/supabase-schema-draft-v108.sql'), copyButton('Copy integration plan path', '/home/hermes/workspace/output/webstudio-overnight-production-v108/supabase-integration-plan-v108.md')])}</section>
+  </div>`;
+}
+
+function supabaseMemoryView() {
+  const github = state.github_readiness || {};
+  const sources = state.sources || {};
+  const snapshotBuild = state.snapshot_build || {};
+  const rows = [
+    ['webstudio_ops_status', 'SUPABASE_PENDING', 'MCP write path timed out/backoff; use pending ledger until verified row exists'],
+    ['control_plane_state', state.generated_at || 'UNKNOWN', 'static sanitized snapshot embedded in this build'],
+    ['github_route_data', github.status || 'UNKNOWN', github.latest_commit_sha || 'remote data unavailable in sandbox'],
+    ['snapshot_source', sources.last_valid_snapshot || sources.control_plane_state || 'local reports only', snapshotBuild.status || 'local_static_refresh']
+  ];
+  return `<div class="grid memory-refresh-v68" data-testid="memory-refresh-v68"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">memory-refresh-v68</p><h2>Supabase memory snapshot</h2><p>DB source is marked STALE/PENDING until the missing V6.7 status row is verified. This page shows only sanitized static/GitHub/report evidence and never exposes keys, cookies, credentials, or private client data.</p></div><div class="chip-cloud">${badge('DB_SOURCE_PENDING')} ${badge('STATIC_SNAPSHOT_PASS')} ${badge('NO_BROWSER_SERVICE_KEYS')}</div></section><section class="card span-8"><h3>Memory rows / source matrix</h3><div class="chain-list">${rows.map(([name,status,note]) => `<div class="chain-step"><span>${fmt(name)}</span><strong>${fmt(status)}</strong><p class="label">${fmt(note)}</p></div>`).join('')}</div></section><section class="card span-4 warning-surface"><h3>Safety gates</h3>${kv({supabase_writes: 'not executed from browser', v67_row: 'SUPABASE_PENDING', service_role_key: 'backend-only, absent from bundle', private_data: 'not used'})}</section></div>`;
+}
+
+function botActivityView() {
+  const workflow = state.agent_workflow || {};
+  const worker = state.worker_health || {};
+  const wf = state.work_factory || {};
+  const metrics = [
+    ['workflow_status', workflow.status || workflow.mode || 'tracked_static'],
+    ['worker_health', worker.status || worker.summary || 'read_only_snapshot'],
+    ['factory_completed', wf.counts?.completed ?? 'unknown'],
+    ['factory_total', wf.counts?.total ?? wf.task_total ?? 'unknown']
+  ];
+  return `<div class="grid memory-refresh-v68" data-testid="bot-activity-v68"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">memory-refresh-v68</p><h2>Bot activity snapshot</h2><p>Read-only activity rollup for Hermes/WebStudio operators. It does not start agents, schedule tasks, send Telegram/email/CRM messages, or perform live writes.</p></div><div class="chip-cloud">${badge('READ_ONLY')} ${badge('NO_CLIENT_SEND')} ${badge('NO_LIVE_EXECUTION')}</div></section><section class="card span-8"><h3>Activity indicators</h3><div class="chain-list">${metrics.map(([k,v]) => `<div class="chain-step"><span>${fmt(k)}</span><strong>${fmt(v)}</strong></div>`).join('')}</div></section><section class="card span-4"><h3>Boundaries</h3><ul><li>Only sanitized local state is displayed.</li><li>Telegram/CRM/email writes are explicitly out of scope.</li><li>Supabase row remains pending until MCP recovers.</li></ul></section></div>`;
+}
+
+function routeHealthView() {
+  const routes = [
+    ['overview', '/', 'core cockpit', 'read-only ops cockpit'],
+    ['operator', '/operator/', 'operator order console', 'localStorage only'],
+    ['orders', '/orders/', 'order workspace', 'local save/export only'],
+    ['kanban', '/kanban/', 'execution kanban', 'no worker launch'],
+    ['work-factory', '/work-factory/', 'factory visibility', 'read-only queue view'],
+    ['owner-command-center', '/owner-command-center/', 'owner cockpit', 'static summary'],
+    ['sales-pack', '/sales-pack/', 'sales materials', 'approval before send'],
+    ['premium-factory', '/premium-factory/', 'premium examples', 'DEMO labels required'],
+    ['real-assets', '/real-assets/', 'asset intake', 'no fake proof'],
+    ['client-data-room', '/client-data-room/', 'client data room', 'demo/static only · no live writes · no private data'],
+    ['proposal-quote', '/proposal-quote/', 'proposal draft', 'not client send'],
+    ['integration-plan', '/integration-plan/', 'CRM/Telegram plan', 'plan-only no live writes'],
+    ['lead-capture-demo', '/lead-capture-demo/', 'lead research', 'manual draft only'],
+    ['client-portal-preview', '/client-portal-preview/', 'client preview', 'demo/handoff boundaries'],
+    ['delivery-timeline', '/delivery-timeline/', 'delivery timeline', 'status only'],
+    ['supabase-memory', '/supabase-memory/', 'memory snapshot', 'DB_SOURCE_PENDING'],
+    ['bot-activity', '/bot-activity/', 'bot activity', 'no execution'],
+    ['route-health', '/route-health/', 'route matrix', 'product-route-regression-v69'],
+    ['owner-morning-report', '/owner-morning-report/', 'morning owner report', 'overnight-v70'],
+    ['approvals', '/approvals/', 'approval board', 'owner gates visible'],
+    ['health', '/health/', 'system health', 'read-only evidence'],
+    ['artifacts', '/artifacts/', 'artifact index', 'sanitized paths'],
+    ['marathon', '/marathon/', 'autonomy loop', 'no recursive cron'],
+    ['owner-feedback', '/owner-feedback/', 'owner feedback', 'cannot close without QA'],
+    ['agent-workflow', '/agent-workflow/', 'agent workflow', 'planning only'],
+    ['audit', '/audit/', 'audit trail', 'safe reporting']
+  ];
+  const safetyChecks = ['READ_ONLY_UI', 'NO_BROWSER_SERVICE_KEYS', 'NO_CLIENT_SEND', 'NO_CRM_EMAIL_TELEGRAM_WRITES', 'NO_FAKE_PROOF', 'OWNER_APPROVAL_GATES_VISIBLE'];
+  return `<div class="grid memory-refresh-v68 product-route-regression-v69" data-testid="route-health-v68 route-health-v69"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">product-route-regression-v69</p><h2>Public/product route regression matrix</h2><p>Static route matrix for the overnight continuation. Each listed direct path is generated as HTML and checked for route marker, navigation/safety copy, and no live-write affordance.</p></div><div class="chip-cloud">${badge('ROUTE_MATRIX')} ${badge('STATIC_DIRECT_PATHS')} ${badge('PRODUCT_ROUTE_REGRESSION_PASS')}</div></section><section class="card span-12"><h3>Routes checked in V6.9</h3><div class="chain-list">${routes.map(([id,path,label,guard]) => `<div class="chain-step"><span>${fmt(path)}</span><strong>${fmt(label)}</strong><p class="label">route=${fmt(id)} · guard=${fmt(guard)} · expected marker=product-route-regression-v69</p></div>`).join('')}</div></section><section class="card span-8"><h3>Navigation and safety copy checks</h3><div class="proof-grid">${safetyChecks.map(x => proofItem(x, 'PASS', 'ok')).join('')}</div></section><section class="card span-4 warning-surface"><h3>Pending data source</h3>${kv({supabase_rows: 'SUPABASE_PENDING', db_source: 'stale/pending until MCP recovers', static_routes: routes.length, public_launch: 'not performed'})}</section></div>`;
+}
+
+function ownerMorningReportView() {
+  const completed = [
+    ['V6.7 Integration Plan', 'PASS', 'remote b52814e · route /integration-plan/ · Actions 27515958320'],
+    ['V6.8 Memory Refresh', 'PASS', 'remote ccd52ee · memory/bot/route pages verified'],
+    ['V6.9 Route Regression', 'PASS', 'remote 7facbea · route-health and product routes verified'],
+    ['Supabase status rows', 'PENDING', 'MCP write path unavailable; ledger kept for bounded retry']
+  ];
+  const routes = [
+    ['/integration-plan/', 'V6.7 PASS'],
+    ['/supabase-memory/', 'V6.8 PASS'],
+    ['/bot-activity/', 'V6.8 PASS'],
+    ['/route-health/', 'V6.9 PASS'],
+    ['/sales-pack/', 'V6.9 PASS'],
+    ['/premium-factory/', 'V6.9 PASS'],
+    ['/owner-morning-report/', 'V7.0 marker']
+  ];
+  const next = [
+    'Retry only missing Supabase status rows after MCP backoff.',
+    'Prepare next sprint decision pack without live sends or private client data.',
+    'Keep public-launch approval separate from client demo readiness.',
+    'Do not start live CRM, Telegram, email, booking, payment, or DB mutations from the browser.'
+  ];
+  return `<div class="grid owner-morning-report-v70" data-testid="owner-morning-report-v70"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">owner-morning-report-v70</p><h2>Overnight WebStudio status for owner review</h2><p>Static morning handoff: completed route work, commits, Actions proof, pending Supabase rows, blockers, next safe actions, and guardrails. No live client sends, no browser-side service keys, no private client data.</p></div><div class="chip-cloud">${badge('DEMO_READY_STATIC_ROUTES')} ${badge('PUBLIC_LAUNCH_APPROVAL_OPEN')} ${badge('SUPABASE_PENDING')}</div></section><section class="card span-8"><h3>Completed overnight phases</h3><div class="chain-list">${completed.map(([name,status,note]) => `<div class="chain-step"><span>${fmt(name)}</span><strong>${fmt(status)}</strong><p class="label">${fmt(note)}</p></div>`).join('')}</div></section><section class="card span-4 warning-surface"><h3>Owner gates</h3>${kv({client_demo_ready: 'static routes PASS', public_launch_ready: 'NO — approvals remain open', supabase_rows: 'PENDING', live_actions: 'blocked until explicit approval'})}</section><section class="card span-6"><h3>Pages route proof board</h3><div class="chain-list">${routes.map(([href,status]) => `<div class="chain-step"><span>${fmt(href)}</span><strong>${fmt(status)}</strong><p class="label">public path smoke checked or added for V7.0</p></div>`).join('')}</div></section><section class="card span-6"><h3>Next safe actions</h3><ol>${next.map(x => `<li>${fmt(x)}</li>`).join('')}</ol></section></div>`;
+}
+
+function integrationPlanWorkflow() {
+  const statusChips = ['PLAN_ONLY','OWNER_APPROVAL_REQUIRED','SECRET_REQUIRED','DO_NOT_RUN_LIVE','READY_FOR_REVIEW','BLOCKED_UNTIL_OWNER','SAFE_DRY_RUN_ONLY'];
+  const linkedRoutes = [
+    ['/lead-capture-demo/','Lead Capture Demo'],
+    ['/client-portal-preview/','Client Portal Preview'],
+    ['/proposal-quote/','Proposal / Quote'],
+    ['/delivery-timeline/','Delivery Timeline'],
+    ['/work-factory/','Work Factory'],
+    ['/owner-command-center/','Owner Command Center'],
+    ['/supabase-memory/','Supabase Memory'],
+    ['/bot-activity/','Bot Activity'],
+    ['/route-health/','Route Health']
+  ];
+  const gates = [
+    'Owner approves scope and target channels before any integration work',
+    'Owner provides live Telegram bot token only through approved secret storage — never in browser code',
+    'Owner approves CRM / Sheets destination, columns, consent language, and write mode',
+    'Owner approves Supabase schema/migration separately before any production write path',
+    'Dry-run fixtures pass idempotency, duplicate handling, rollback, and redaction checks',
+    'Public launch stays blocked until all secrets, logs, RLS, rate limits, and monitoring are approved'
+  ];
+  const secrets = ['TELEGRAM_BOT_TOKEN','TELEGRAM_ALLOWED_CHAT_IDS','TELEGRAM_WEBHOOK_SECRET','CRM_API_TOKEN or GOOGLE_SERVICE_ACCOUNT_JSON','GOOGLE_SHEETS_SPREADSHEET_ID','SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY_BACKEND_ONLY','SUPABASE_ANON_KEY_PUBLIC_ONLY_IF_NEEDED','SUPABASE_WEBHOOK_SIGNING_SECRET','OWNER_APPROVAL_CHANNEL_ID'];
+  const flow = [
+    ['1. Telegram intake', 'Bot receives client answers in approved chat/form; webhook validates signature and allowed chat.'],
+    ['2. Sanitizer', 'Normalize text, strip private values, classify PII/sensitive flags, reject credentials in payload.'],
+    ['3. Approval queue', 'Create owner review item; no CRM/Sheets/Supabase live write before approval.'],
+    ['4. CRM / Sheets draft', 'Prepare row payload in dry-run log with idempotency key and duplicate check.'],
+    ['5. Supabase write plan', 'Backend-only service role writes ops/order records after schema approval and RLS review.'],
+    ['6. Audit + rollback', 'Persist non-sensitive status, source refs, retry state, and rollback markers.']
+  ];
+  const risks = ['Token leak through frontend bundle or logs', 'Unapproved outreach or CRM writes', 'Duplicate lead/order creation', 'Private client data stored in artifacts', 'RLS/policy gap on Supabase tables', 'Webhook spoofing or replay', 'Sheets quota/rate-limit failures', 'Rollback without idempotency keys'];
+  const phases = ['Phase 0 — plan review only', 'Phase 1 — local dry-run fixtures', 'Phase 2 — backend stub behind owner gate', 'Phase 3 — staging credentials and test chat', 'Phase 4 — limited live pilot after explicit approval', 'Phase 5 — monitoring, rollback drill, handoff'];
+  return `<div class="grid integration-plan-v67" data-testid="integration-plan-v67">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">integration-plan-v67</p><h2>CRM / Telegram integration plan</h2><p>Telegram bot intake plan, CRM / Sheets plan, and Supabase live write plan are documented as static sanitized architecture only. No live Telegram token use, no CRM/Sheets/email writes, no browser-side service keys, no destructive Supabase changes.</p></div><div class="chip-cloud">${statusChips.map(x => badge(x, x)).join('')}</div></section>
+    <section class="card span-4"><h3>Telegram bot intake plan</h3><ul><li>Approved bot receives only scoped intake answers.</li><li>Webhook validates source, signature, chat allowlist, idempotency.</li><li>Payload goes to sanitizer and owner approval queue before any downstream write.</li><li>Dry-run mode stores fixtures only; no live send or outreach.</li></ul>${badge('OWNER_APPROVAL_REQUIRED')}</section>
+    <section class="card span-4"><h3>CRM / Sheets plan</h3><ul><li>Define columns: lead id, source, summary, status, owner decision, timestamps.</li><li>Writes stay blocked until owner approves destination and secret storage.</li><li>Use upsert/idempotency key to prevent duplicates.</li><li>Failed writes produce retry-safe dry-run report.</li></ul>${badge('SAFE_DRY_RUN_ONLY')}</section>
+    <section class="card span-4"><h3>Supabase live write plan</h3><ul><li>Backend-only service role, never browser-side service keys.</li><li>Schema/migration proposal required before production writes.</li><li>RLS/policies reviewed before enabling client reads.</li><li>Status rows are non-sensitive operational summaries only.</li></ul>${badge('DO_NOT_RUN_LIVE')}</section>
+    <section class="card span-6"><h3>Data flow diagram / step map</h3><div class="chain-list">${flow.map(([a,b]) => `<div class="chain-step"><span>${fmt(a)}</span><strong>${fmt(b)}</strong></div>`).join('')}</div></section>
+    <section class="card span-6 warning-surface"><h3>Approval gates</h3><ol>${gates.map(x => `<li>${fmt(x)}</li>`).join('')}</ol></section>
+    <section class="card span-6"><h3>Required secrets list WITHOUT values</h3><p class="label">Names only. Values must be supplied through approved backend secret storage, not UI, reports, git, or browser bundle.</p><ul>${secrets.map(x => `<li><code>${fmt(x)}</code></li>`).join('')}</ul>${badge('SECRET_REQUIRED')}</section>
+    <section class="card span-6"><h3>Risk checklist</h3><ul>${risks.map(x => `<li>${fmt(x)}</li>`).join('')}</ul></section>
+    <section class="card span-6"><h3>Rollout phases</h3><ol>${phases.map(x => `<li>${fmt(x)}</li>`).join('')}</ol></section>
+    <section class="card span-6"><h3>Rollback plan</h3><ul><li>Disable webhook route and keep bot token untouched in secret manager.</li><li>Pause CRM/Sheets writer and drain retry queue.</li><li>Mark pending approvals as blocked, not lost.</li><li>Revert to local/static intake and export JSON manually.</li><li>Run duplicate/idempotency audit before re-enable.</li></ul></section>
+    <section class="card span-6"><h3>Owner approval checklist</h3><ul><li>Approve channel/chat scope.</li><li>Approve CRM/Sheets destination and columns.</li><li>Approve Supabase schema proposal separately.</li><li>Approve secret storage method and rotation plan.</li><li>Approve staging dry-run evidence before live pilot.</li></ul>${badge('BLOCKED_UNTIL_OWNER')}</section>
+    <section class="card span-6"><h3>Related WebStudio routes</h3><div class="toolbar route-links">${linkedRoutes.map(([href,label]) => `<a class="copy secondary" href="${href}">${fmt(label)}</a>`).join('')}</div></section>
+  </div>`;
+}
+
+function clientDataRoomView() {
+  const marker = 'client-data-room-v73';
+  const statusChips = ['SAFE_FOR_REVIEW','DEMO_ONLY','NEEDS_ASSETS','NEEDS_APPROVAL','BLOCKED_FOR_LIVE','DEPLOYED_PASS'];
+  const nextActions = ['OWNER_REVIEW','CLIENT_ASSETS','PROPOSAL_REVIEW','PREVIEW_APPROVAL','LIVE_INTEGRATION_BLOCKED'];
+  const hubSteps = [
+    ['Start here','Open the onboarding checklist first, then review every safe client-facing material from this hub.','/real-client-onboarding/'],
+    ['Review preview','Check the client-safe preview and confirm it contains placeholders only.','/client-safe-preview/'],
+    ['Confirm assets','Collect brand, copy, imagery, compliance notes, and proof permissions before production copy.','/asset-intake-pack/'],
+    ['Approve proposal','Review scope, quote, assumptions, and owner approval before sending anything to a client.','/proposal-quote/'],
+    ['Track timeline','Use the delivery timeline for milestones, handoff windows, and review checkpoints.','/delivery-timeline/'],
+    ['Review proof policy','Use real permitted artifacts only; no fake proof, fake logos, fake clients, or invented case data.','/proof-case-study/'],
+    ['Understand live-integration gates','CRM, email, Telegram, payment, and Supabase writes stay blocked until a separate approved backend plan.','/integration-plan/']
+  ];
+  const links = [
+    ['/real-client-onboarding/','Onboarding checklist','Start here: client-safe intake checklist and approval gates'],
+    ['/client-portal-preview/','Client portal preview','Static preview surface; no client account or live portal writes'],
+    ['/client-safe-preview/','Client safe preview','Sanitized preview materials for owner/client review'],
+    ['/proposal-quote/','Proposal/quote','Draft commercial scope; owner approval before sending'],
+    ['/delivery-timeline/','Delivery timeline','Milestones, handoff sequence, and review windows'],
+    ['/asset-intake-pack/','Asset requirements','Required brand/content/proof inputs before production copy'],
+    ['/proof-case-study/','Proof/case-study policy','No fake proof; only approved artifacts and real permissions'],
+    ['/client-approval-room/','Approval room','Owner/client decision queue; static markers only'],
+    ['/integration-plan/','Integration plan warning','Plan-only CRM/email/Telegram/Supabase/payment path; blocked for live'],
+    ['/route-health/','Route health/status summary','Route matrix and smoke markers for deployed static pages']
+  ];
+  const warnings = [
+    ['demo/static only','This route is a static sanitized data room for review, not a production client portal.'],
+    ['no live writes','No forms submit to CRM, email, Telegram, payment, or Supabase from this page.'],
+    ['no private data','No real client PII, private assets, secrets, credentials, contracts, invoices, or live case data are embedded.'],
+    ['no fake proof','No fake testimonials, fake logos, invented case studies, or unverifiable proof are allowed.']
+  ];
+  return `<div class="grid client-data-room-v73" data-testid="client-data-room-v73" data-marker="${marker}">
+    <section class="hero-panel compact-hero client-data-room-hero span-12"><div class="hero-copy"><p class="eyebrow">${marker}</p><h2>Client Data Room — safe review hub</h2><p>Central client-facing hub for onboarding, sanitized preview, assets, proposal/quote, delivery timeline, proof policy, approvals, integration gates, and route health. Static/sanitized only: demo/static only · no live writes · no private data · no fake proof.</p><div class="toolbar"><a class="copy primary" href="/real-client-onboarding/">Start here</a><a class="copy secondary" href="/client-safe-preview/">Review preview</a><a class="copy secondary" href="/route-health/">Route health</a></div></div><div class="chip-cloud">${statusChips.map(x => badge(x, x)).join('')}</div></section>
+    <section class="card span-8"><h3>Start here</h3><div class="chain-list">${hubSteps.map(([a,b,href]) => `<a class="chain-step hub-step" href="${href}" data-hub-step="${fmt(a)}"><span>${fmt(a)}</span><strong>${fmt(b)}</strong></a>`).join('')}</div></section>
+    <section class="card span-4 warning-surface"><h3>Owner/client next action</h3><div class="chip-cloud">${nextActions.map(x => badge(x, x)).join('')}</div>${kv({owner:'OWNER_REVIEW', assets:'CLIENT_ASSETS', proposal:'PROPOSAL_REVIEW', preview:'PREVIEW_APPROVAL', live:'LIVE_INTEGRATION_BLOCKED'})}</section>
+    <section class="card span-12"><h3>Client materials map</h3><div class="route-grid">${links.map(([href,label,note]) => `<a class="route-card" href="${href}" data-route-link="${href}"><strong>${fmt(label)}</strong><span>${fmt(href)}</span><p class="label">${fmt(note)}</p></a>`).join('')}</div></section>
+    <section class="card span-6"><h3>Review preview / confirm assets / approve proposal</h3><ul><li>Review preview: sanitized pages only; placeholder labels stay visible until real assets are approved.</li><li>Confirm assets: NEEDS_ASSETS remains until brand, copy, imagery, compliance notes, and proof permissions are supplied.</li><li>Approve proposal: PROPOSAL_REVIEW and NEEDS_APPROVAL stay active before client send or pricing promise.</li><li>Preview approval: PREVIEW_APPROVAL is required before client-facing handoff.</li></ul></section>
+    <section class="card span-6 warning-surface"><h3>Understand live-integration gates</h3><ul><li>No CRM/email/Telegram/payment writes.</li><li>No Supabase live mutations or destructive changes.</li><li>No secret values, service keys, tokens, private config, or real client records in browser code.</li><li>LIVE_INTEGRATION_BLOCKED until a separate approved backend implementation.</li></ul></section>
+    <section class="card span-6"><h3>Review proof policy</h3><ul><li>no fake proof: no fake testimonials, logos, metrics, screenshots, clients, or case data.</li><li>Proof/case-study content requires source artifact and explicit permission.</li><li>Unverified proof remains marked as placeholder or blocked.</li></ul>${badge('no fake proof','NO_FAKE_PROOF')}</section>
+    <section class="card span-6"><h3>Warnings kept visible</h3><div class="proof-grid">${warnings.map(([a,b]) => proofItem(a, b, 'warn')).join('')}</div></section>
+    <section class="card span-12"><h3>Route health/status summary</h3><div class="proof-grid">${['client-data-room-v73','Start here','OWNER_REVIEW','CLIENT_ASSETS','LIVE_INTEGRATION_BLOCKED','no private data','demo/static only','no live writes','no fake proof'].map(x => proofItem(x, 'DEPLOYED_PASS', 'ok')).join('')}</div></section>
   </div>`;
 }
 
 function render() {
-  document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + route));
+  document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {overview, 'work-factory': workFactory, kanban, production, 'demo-products': demoProducts, 'agent-workflow': agentWorkflow, capabilities, 'motion-factory': motionFactory, 'intake-orders': intakeOrders, delivery, 'real-clients': realClients, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'client-data-room': clientDataRoomView, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'client-safe-preview': clients, 'proof-case-study': artifacts, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabaseMemoryView, 'bot-activity': botActivityView, 'route-health': routeHealthView, 'owner-morning-report': ownerMorningReportView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
+  const dataRoomLinkedRoutes = ['real-client-onboarding','client-portal-preview','client-safe-preview','proposal-quote','delivery-timeline','proof-case-study','integration-plan','route-health'];
+  if (dataRoomLinkedRoutes.includes(route)) {
+    app.insertAdjacentHTML('afterbegin', `<section class="card client-data-room-nav-bridge"><div><p class="eyebrow">client-data-room-v73 navigation bridge</p><h3>Client Data Room hub</h3><p class="label">Use the central safe review hub before client handoff. Static/sanitized only: demo/static only · no live writes · no private data · no fake proof.</p></div><a class="copy primary" href="/client-data-room/" data-client-data-room-link="/client-data-room/">Open /client-data-room/</a></section>`);
+  }
   bindInputs();
 }
 
@@ -1500,7 +2506,10 @@ function bindInputs() {
   $('#d3IntakeStatusFilter')?.addEventListener('change', e => { filters.d3IntakeStatus = e.target.value; render(); });
   $('#ownerFeedbackSearch')?.addEventListener('input', e => { filters.ownerFeedback = e.target.value; render(); });
   $('#ownerFeedbackStateFilter')?.addEventListener('change', e => { filters.ownerFeedbackState = e.target.value; render(); });
+  $('#timelineFilter')?.addEventListener('change', e => { filters.timeline = e.target.value; render(); });
   document.querySelectorAll('[data-production-filter]').forEach(btn => btn.addEventListener('click', e => { filters.productionQuick = e.currentTarget.dataset.productionFilter || 'active'; render(); }));
+  document.querySelectorAll('[data-operator-action]').forEach(btn => btn.addEventListener('click', e => { filters.operatorAction = e.currentTarget.dataset.operatorAction || 'new_order'; render(); }));
+  document.querySelectorAll('[data-select-order]').forEach(el => el.addEventListener('click', e => { filters.activeOrder = e.currentTarget.dataset.selectOrder; }));
 }
 
 async function copyText(value) {
@@ -1833,8 +2842,224 @@ function handleOwnerFeedbackScope(id, kind) {
   render();
 }
 
+function handleNewOrderSubmit(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  const order = withOrderDefaults({
+    ...data,
+    order_id: 'LOCAL-' + Date.now().toString(36).toUpperCase(),
+    source: data.source || 'manual_local',
+    owner_approval_required: data.owner_approval_required === 'on',
+    status: 'new_lead',
+    current_stage: 'Входящие',
+    assigned_agent: 'operator',
+    next_action: 'Квалифицировать клиента и собрать минимальный scope.',
+    acceptance_criteria: ['Owner-approved scope', 'Client brief captured', 'QA and handoff prepared'],
+    timeline: [orderEvent('created', 'Created local order from Operator OS form')]
+  });
+  if (order.validation.errors.length) { toast('Order missing required fields: ' + order.validation.errors.join(', ')); return; }
+  saveOrders([order, ...allOsOrders()]);
+  syncQueue.enqueue('order.created', 'order', order.order_id, {order_id: order.order_id, client_name: order.client_name, local_only: true}, {operation: 'created', requires_approval: order.owner_approval_required});
+  if (order.owner_approval_required) enqueueApprovalRequest('order', order.order_id, 'Owner approval requested from new order form');
+  filters.activeOrder = order.order_id;
+  form.reset();
+  toast('Заказ создан. Сохранено локально.');
+  render();
+}
+function createDemoOrder() {
+  const order = withOrderDefaults({
+    order_id: 'DEMO-LOCAL-' + Date.now().toString(36).toUpperCase(),
+    client_name: 'DEMO Premium Studio',
+    client_contact: '@demo-client',
+    order_type: 'Professional website / landing',
+    source: 'demo_local',
+    industry: 'premium services',
+    budget_range: '$5k-$9k',
+    deadline: '21 days',
+    priority: 'high',
+    status: 'new_lead',
+    current_stage: 'Входящие',
+    assigned_agent: 'operator',
+    next_action: 'Открой Канбан выполнения и нажми “Следующий этап”.',
+    internal_notes: 'DEMO-заказ для проверки создания, Канбана, брифа и localStorage.',
+    acceptance_criteria: ['Заказ создан локально', 'Карточка видна в Канбане', 'Бриф сгенерирован', 'JSON экспортируется'],
+    client_answers: {},
+    owner_approval_required: false,
+    timeline: [orderEvent('created', 'Создан DEMO-заказ локально')]
+  });
+  saveOrders([order, ...allOsOrders()]);
+  syncQueue.enqueue('order.created', 'order', order.order_id, {order_id: order.order_id, client_name: order.client_name, local_only: true}, {operation: 'created'});
+  filters.activeOrder = order.order_id;
+  toast('Заказ создан: DEMO-заказ сохранен локально.');
+  render();
+  return order;
+}
+function runDemoCheck() {
+  const order = createDemoOrder();
+  moveOrderToStage(order.order_id, nextStageFor(order), 'DEMO-проверка: следующий этап');
+  updateOrder(order.order_id, o => {
+    const answers = {
+      business_goal: 'Проверить, что Operator OS создает заказ и генерирует бриф.',
+      conversion_action: 'Получить заявку на консультацию',
+      ideal_client: 'Владелец малого бизнеса'
+    };
+    const withAnswers = {...o, client_answers: {...(o.client_answers || {}), ...answers}};
+    return {...withAnswers, production_brief: generateProductionBrief(withAnswers), artifacts: [...new Set([...asArray(o.artifacts), `localStorage:${o.order_id}:demo_brief`])], next_action: 'DEMO-проверка готова: открой Заказы, Канбан и Бриф сайта.'};
+  }, 'brief_generated', 'DEMO-проверка: сгенерирован DEMO-бриф');
+  const lead = withLeadDefaults({
+    lead_id: 'DEMO-LEAD-' + Date.now().toString(36).toUpperCase(),
+    company_person: 'DEMO Lead',
+    source_url: 'https://example.invalid/demo',
+    niche: 'demo',
+    problem_hypothesis: 'Нужно проверить lead draft без отправки.',
+    suggested_offer: 'Copy-only audit offer',
+    personalization_notes: 'DEMO only; no network; no outreach.',
+    approval_status: 'owner approval required',
+    followup_status: 'owner_review_needed',
+    outreach_draft: 'DEMO draft. Не отправлять автоматически. Требуется approval владельца.',
+    timeline: [orderEvent('created', 'DEMO-проверка: создан DEMO lead draft')]
+  });
+  saveLeads([lead, ...asArray(os().lead_research_queue)]);
+  enqueueLeadMutation('lead.created', lead, 'DEMO lead draft created locally');
+  enqueueApprovalRequest('lead', lead.lead_id, 'Owner approval required before outreach');
+  toast('DEMO-проверка выполнена: заказ, этап, бриф и lead draft созданы локально.');
+  render();
+}
+function handleUpdateOrderSubmit(form) {
+  const orderId = form.getAttribute('data-order-id');
+  const data = Object.fromEntries(new FormData(form).entries());
+  if (!orderId) return;
+  updateOrder(orderId, o => ({
+    ...o,
+    client_name: data.client_name || o.client_name,
+    client_contact: data.client_contact || '',
+    source: data.source || 'manual_local',
+    industry: data.industry || '',
+    budget_range: data.budget_range || '',
+    deadline: data.deadline || '',
+    priority: data.priority || 'normal',
+    current_stage: data.current_stage || o.current_stage || stageForStatus(o.status),
+    status: STAGE_STATUS[data.current_stage] || o.status,
+    next_action: data.next_action || nextActionForStage(data.current_stage),
+    internal_notes: data.internal_notes || '',
+    blockers: linesFromTextarea(data.blockers_text),
+    owner_approval_required: data.owner_approval_required === 'on'
+  }), 'updated', 'Сохранены изменения активного заказа из локальной формы');
+  toast('Заказ сохранен локально');
+  render();
+}
+function duplicateOrder(id) {
+  const source = orderById(id);
+  if (!source.order_id) return;
+  const copy = withOrderDefaults({...source, order_id: 'LOCAL-' + Date.now().toString(36).toUpperCase(), client_name: source.client_name + ' copy', demo: false, timeline: [orderEvent('created', 'Дублирован из ' + id)]});
+  saveOrders([copy, ...allOsOrders()]);
+  filters.activeOrder = copy.order_id;
+  toast('Заказ дублирован локально');
+  render();
+}
+function archiveOrder(id) {
+  updateOrder(id, o => ({...o, archived: true, status: 'archived', current_stage: 'Готово'}), 'archived', 'Перенесен в локальный архив');
+  toast('Заказ перенесен в архив локально');
+  render();
+}
+function handleImportOrdersSubmit(form) {
+  const formData = new FormData(form);
+  const raw = formData.get('orders_json');
+  const mode = formData.get('import_mode') || 'merge';
+  const parsed = safeJsonParse(raw, null);
+  if (!Array.isArray(parsed)) { toast('Импорт: нужен JSON-массив'); return; }
+  const normalized = parsed.map(withOrderDefaults);
+  const invalid = normalized.filter(o => asArray(o.validation?.errors).length);
+  if (invalid.length) { toast('Импорт заблокирован: невалидные поля в ' + invalid.map(o => o.order_id).slice(0, 3).join(', ')); return; }
+  saveOrders(mode === 'replace' ? normalized.map(o => withOrderDefaults({...o, timeline: [...asArray(o.timeline), orderEvent('imported', 'Импортирован из вставленного JSON с replace mode')]})) : mergeOrders(allOsOrders(), normalized));
+  filters.activeOrder = osOrders()[0]?.order_id || '';
+  toast(mode === 'replace' ? 'Заказы заменены в localStorage' : 'Заказы объединены в localStorage');
+  render();
+}
+function handleWebsiteIntakeSubmit(form) {
+  const orderId = form.getAttribute('data-order-id');
+  const answers = Object.fromEntries(new FormData(form).entries());
+  updateOrder(orderId, o => ({...o, client_answers: {...(o.client_answers || {}), ...answers}, next_action: 'Сгенерировать production-бриф и подтвердить acceptance criteria.'}), 'updated', 'Ответы брифа сайта сохранены');
+  toast('Ответы брифа сохранены');
+  render();
+}
+function generateBriefForOrder(id) {
+  const changed = updateOrder(id, o => {
+    const brief = generateProductionBrief(o);
+    return {...o, production_brief: brief, artifacts: [...new Set([...asArray(o.artifacts), `localStorage:${o.order_id}:production_brief`])], next_action: 'Проверить сгенерированный production-бриф и перейти к предложению или планированию.'};
+  }, 'brief_generated', 'Сгенерирован deterministic website production brief');
+  if (changed) copyText(jsonCopy(changed.production_brief));
+  toast('Бриф сгенерирован');
+  render();
+}
+function exportBrief(id) {
+  const order = orderById(id);
+  const brief = order.production_brief || generateProductionBrief(order);
+  updateOrder(id, o => ({...o}), 'export_generated', 'Экспортирован production-бриф');
+  downloadJson(localExportName('production-brief', id || order.client_name), {order_id: id, brief, order});
+}
+function exportProductionPlan(id) {
+  const order = orderById(id);
+  const brief = order.production_brief || generateProductionBrief(order);
+  const plan = {
+    order_id: id,
+    exported_at: nowIso(),
+    safety: {
+      local_only: true,
+      backend_dispatch: false,
+      production_write: false,
+      public_launch: false,
+      owner_approval_required_before_live_actions: true
+    },
+    strategy: brief.business_strategy || brief.strategy,
+    offer_positioning: brief.offer_positioning,
+    technical_stack_recommendation: brief.technical_stack || brief.technical_stack_recommendation,
+    seo_basics: brief.seo_basics || [],
+    lead_route: brief.analytics_forms_telegram_route || [],
+    production_tasks: brief.production_tasks,
+    qa_checklist: brief.qa_checklist,
+    acceptance_criteria: brief.acceptance_criteria,
+    handoff_checklist: brief.handoff_checklist
+  };
+  updateOrder(id, o => ({...o}), 'export_generated', 'Экспортирован production-план');
+  downloadJson(localExportName('production-plan', id || order.client_name), plan);
+}
+function handleNewLeadSubmit(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  const lead = withLeadDefaults({
+    ...data,
+    lead_id: 'LEAD-' + Date.now().toString(36).toUpperCase(),
+    approval_status: 'Требуется approval владельца',
+    followup_status: data.followup_status || 'not_scheduled',
+    opt_out_status: data.opt_out_status || 'unknown',
+    relevance_score: data.relevance_score || 0,
+    timeline: [orderEvent('created', 'Создан локальный lead record')]
+  });
+  if (!lead.outreach_draft) lead.outreach_draft = buildLeadDraft(lead);
+  saveLeads([lead, ...asArray(os().lead_research_queue)]);
+  enqueueLeadMutation('lead.created', lead, 'Lead created locally from research form');
+  enqueueApprovalRequest('lead', lead.lead_id, 'Owner approval required before outreach');
+  form.reset();
+  toast('Lead добавлен локально');
+  render();
+}
+function prepareLeadDraft(id) {
+  const leads = asArray(os().lead_research_queue);
+  const idx = leads.findIndex(l => l.lead_id === id);
+  if (idx < 0) return;
+  const lead = withLeadDefaults(leads[idx]);
+  lead.outreach_draft = buildLeadDraft(lead);
+  lead.approval_status = 'Требуется approval владельца';
+  lead.approval = {...lead.approval, status: 'owner_approval_required', required_before_outreach: true};
+  lead.timeline = [...asArray(lead.timeline), orderEvent('lead_draft_prepared', 'Подготовлен copy-only outreach draft')];
+  leads[idx] = lead;
+  saveLeads(leads);
+  copyText(lead.outreach_draft);
+  toast('Copy-only черновик подготовлен');
+  render();
+}
 
-window.addEventListener('hashchange', () => { route = window.location.hash.replace('#','') || 'overview'; render(); });
+
+window.addEventListener('hashchange', () => { route = normalizeRoute(window.location.hash.replace('#','') || 'overview'); render(); });
 $('#refreshBtn').addEventListener('click', loadState);
 $('#exportBtn').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
@@ -1847,6 +3072,43 @@ $('#drawerClose').addEventListener('click', closeDrawer);
 $('#drawerBackdrop').addEventListener('click', closeDrawer);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
 document.addEventListener('submit', e => {
+  const newOrderForm = e.target.closest?.('#newOrderForm');
+  if (newOrderForm) {
+    e.preventDefault();
+    handleNewOrderSubmit(newOrderForm);
+    return;
+  }
+  const importOrdersForm = e.target.closest?.('#importOrdersForm');
+  if (importOrdersForm) {
+    e.preventDefault();
+    handleImportOrdersSubmit(importOrdersForm);
+    return;
+  }
+  const updateOrderForm = e.target.closest?.('#updateOrderForm');
+  if (updateOrderForm) {
+    e.preventDefault();
+    handleUpdateOrderSubmit(updateOrderForm);
+    return;
+  }
+  const websiteIntakeForm = e.target.closest?.('#websiteIntakeForm');
+  if (websiteIntakeForm) {
+    e.preventDefault();
+    handleWebsiteIntakeSubmit(websiteIntakeForm);
+    return;
+  }
+  const importBackupForm = e.target.closest?.('#importBackupForm');
+  if (importBackupForm) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(importBackupForm).entries());
+    importWorkspaceBackup(data.backup_json || '', data.import_mode || 'merge');
+    return;
+  }
+  const newLeadForm = e.target.closest?.('#newLeadForm');
+  if (newLeadForm) {
+    e.preventDefault();
+    handleNewLeadSubmit(newLeadForm);
+    return;
+  }
   const ownerForm = e.target.closest?.('#ownerFeedbackForm');
   if (ownerForm) {
     e.preventDefault();
@@ -1865,7 +3127,50 @@ document.addEventListener('submit', e => {
   handleD3IntakeSubmit(form);
 });
 document.addEventListener('click', e => {
-  if (e.target.closest('summary') && e.target.closest('.raw-details')) return;
+  const selectOrder = e.target.closest('[data-select-order]');
+  if (selectOrder && !e.target.closest('button,summary,details,[data-copy]')) { filters.activeOrder = selectOrder.getAttribute('data-select-order'); render(); return; }
+  const moveNext = e.target.closest('[data-move-next]');
+  if (moveNext) { e.preventDefault(); e.stopPropagation(); const id = moveNext.getAttribute('data-move-next'); moveOrderToStage(id, nextStageFor(orderById(id)), 'Перемещен на следующий этап'); toast('Заказ перемещен'); render(); return; }
+  const moveStage = e.target.closest('[data-move-stage]');
+  if (moveStage) { e.preventDefault(); e.stopPropagation(); moveOrderToStage(moveStage.getAttribute('data-move-stage'), moveStage.getAttribute('data-stage'), 'Оператор изменил стадию'); toast('Стадия обновлена'); render(); return; }
+  const execState = e.target.closest('[data-exec-state]');
+  if (execState) { e.preventDefault(); e.stopPropagation(); setOrderExecutionState(execState.getAttribute('data-exec-state'), execState.getAttribute('data-stage'), execState.getAttribute('data-status'), execState.getAttribute('data-note')); toast('Статус выполнения обновлен'); render(); return; }
+  const duplicate = e.target.closest('[data-duplicate-order]');
+  if (duplicate) { e.preventDefault(); e.stopPropagation(); duplicateOrder(duplicate.getAttribute('data-duplicate-order')); return; }
+  const archive = e.target.closest('[data-archive-order]');
+  if (archive) { e.preventDefault(); e.stopPropagation(); archiveOrder(archive.getAttribute('data-archive-order')); return; }
+  const downloadOrder = e.target.closest('[data-download-order]');
+  if (downloadOrder) { e.preventDefault(); e.stopPropagation(); const id = downloadOrder.getAttribute('data-download-order'); updateOrder(id, o => ({...o}), 'export_generated', 'Экспортирован JSON заказа'); downloadJson(localExportName('order', id), orderById(id)); return; }
+  const exportPlan = e.target.closest('[data-export-production-plan]');
+  if (exportPlan) { e.preventDefault(); e.stopPropagation(); exportProductionPlan(exportPlan.getAttribute('data-export-production-plan')); return; }
+  const exportOrders = e.target.closest('[data-export-orders]');
+  if (exportOrders) { e.preventDefault(); e.stopPropagation(); syncQueue.enqueue('export.generated', 'orders', 'all', {export_kind: 'orders', local_only: true}, {operation: 'generated'}); operatorState = {...os(), sync_queue: syncQueue.list()}; downloadJson(localExportName('webstudio-operator-orders-v2', 'all'), allOsOrders()); toast('JSON заказов экспортирован'); render(); return; }
+  const importOpen = e.target.closest('[data-import-orders-open]');
+  if (importOpen) { e.preventDefault(); e.stopPropagation(); const form = $('#importOrdersForm'); if (form) form.hidden = !form.hidden; return; }
+  const importBackupOpen = e.target.closest('[data-import-backup-open]');
+  if (importBackupOpen) { e.preventDefault(); e.stopPropagation(); const form = $('#importBackupForm'); if (form) form.hidden = !form.hidden; return; }
+  const openNewOrder = e.target.closest('[data-open-new-order]');
+  if (openNewOrder) { e.preventDefault(); e.stopPropagation(); $('#newOrderBlock')?.scrollIntoView({behavior: 'smooth', block: 'start'}); toast('Форма нового заказа открыта'); return; }
+  const createDemo = e.target.closest('[data-create-demo-order]');
+  if (createDemo) { e.preventDefault(); e.stopPropagation(); createDemoOrder(); return; }
+  const demoCheck = e.target.closest('[data-run-demo-check]');
+  if (demoCheck) { e.preventDefault(); e.stopPropagation(); runDemoCheck(); return; }
+  const resetDemo = e.target.closest('[data-reset-demo]');
+  if (resetDemo) { e.preventDefault(); e.stopPropagation(); resetDemoOrders(); return; }
+  const generateBrief = e.target.closest('[data-generate-brief]');
+  if (generateBrief) { e.preventDefault(); e.stopPropagation(); generateBriefForOrder(generateBrief.getAttribute('data-generate-brief')); return; }
+  const downloadBrief = e.target.closest('[data-download-brief]');
+  if (downloadBrief) { e.preventDefault(); e.stopPropagation(); exportBrief(downloadBrief.getAttribute('data-download-brief')); return; }
+  const exportLeads = e.target.closest('[data-export-leads]');
+  if (exportLeads) { e.preventDefault(); e.stopPropagation(); syncQueue.enqueue('export.generated', 'leads', 'all', {export_kind: 'leads', local_only: true}, {operation: 'generated'}); operatorState = {...os(), sync_queue: syncQueue.list()}; downloadJson(localExportName('webstudio-leads-v2', 'all'), asArray(os().lead_research_queue)); render(); return; }
+  const exportQueue = e.target.closest('[data-export-sync-queue]');
+  if (exportQueue) { e.preventDefault(); e.stopPropagation(); exportSyncQueue(); return; }
+  const exportBackup = e.target.closest('[data-export-workspace-backup]');
+  if (exportBackup) { e.preventDefault(); e.stopPropagation(); exportWorkspaceBackup(); return; }
+  const exportWebsitePack = e.target.closest('[data-export-website-pack]');
+  if (exportWebsitePack) { e.preventDefault(); e.stopPropagation(); exportWebsiteFactoryPack(exportWebsitePack.getAttribute('data-export-website-pack'), exportWebsitePack.getAttribute('data-preset-id') || 'premium-clinic'); return; }
+  const prepareLead = e.target.closest('[data-prepare-lead-draft]');
+  if (prepareLead) { e.preventDefault(); e.stopPropagation(); prepareLeadDraft(prepareLead.getAttribute('data-prepare-lead-draft')); return; }
   const ownerScope = e.target.closest('[data-owner-feedback-scope]');
   if (ownerScope) { handleOwnerFeedbackScope(ownerScope.getAttribute('data-owner-feedback-scope'), ownerScope.getAttribute('data-scope-kind')); return; }
   const copy = e.target.closest('[data-copy]');

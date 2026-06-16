@@ -1,0 +1,29 @@
+{
+  "schema_version": "webstudio.client-safe-preview.v51.state",
+  "status": "PASS_DEPLOYED",
+  "version": "v5.1",
+  "output_root": "/workspace/output/webstudio-client-safe-preview-v51",
+  "base_commit": "5b1499340a247a41ae15d5f2d754e966d990506e",
+  "route": "/client-safe-preview/",
+  "created_at": "2026-06-04T11:32:27.141659+00:00",
+  "safety": {
+    "demo_static_sanitized_only": true,
+    "real_private_client_data": false,
+    "live_upload": false,
+    "live_submission": false,
+    "crm_email_telegram_payment_writes": false,
+    "destructive_supabase_changes": false,
+    "browser_side_secrets": false
+  },
+  "build_smoke": "PASS",
+  "route_smoke": "PASS /client-safe-preview/",
+  "validation": "PASS",
+  "updated_at": "2026-06-04T11:41:55.044595+00:00",
+  "commit_hash": "bf5d3f5d31ab9b0c2c3219e46d2fbaca80cbfb93",
+  "route_url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-safe-preview/",
+  "deploy_status": "PASS",
+  "deploy_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26949448130",
+  "public_pages_smoke": "PASS",
+  "supabase_row_written": true,
+  "supabase_row_id": "096fce6a-4dc5-4462-b4cd-da88e088dcb6"
+}

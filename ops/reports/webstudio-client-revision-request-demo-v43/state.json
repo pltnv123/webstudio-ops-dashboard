@@ -1,0 +1,12 @@
+{
+  "component": "webstudio-client-revision-request-demo",
+  "version": "v4.3",
+  "status": "DEPLOYED",
+  "route": "/revision-request-demo/",
+  "public_url": "https://pltnv123.github.io/webstudio-ops-dashboard/revision-request-demo/",
+  "git_commit": "09942866566ab9a4e6aedd22c168eadb252c4d8e",
+  "actions_run_url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26916607506",
+  "supabase_ops_status_id": "1768aedc-b99b-4cc5-a63c-1e8859dbbb48",
+  "supabase_artifact_id": "2349fc8d-b3d6-4371-a33c-d1456bb1e965",
+  "updated_at": "2026-06-03T22:23:10Z"
+}

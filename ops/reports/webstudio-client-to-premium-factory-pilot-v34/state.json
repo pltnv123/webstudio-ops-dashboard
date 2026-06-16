@@ -1,0 +1,14 @@
+{
+  "status": "PASS_SUPABASE_WRITTEN_HFINALIZE_PENDING",
+  "generated_at": "2026-06-01T14:03:49.285341Z",
+  "output_root": "/workspace/output/webstudio-client-to-premium-factory-pilot-v34",
+  "current_phase": "phase-5-hfinalize",
+  "updated_at": "2026-06-01T15:11:56.700027Z",
+  "phase3_local_commit": "1b5f2b71bb7e0e71f3931540c66d64fb95f19c58",
+  "phase3_portable_snapshot_commit": "b70bdbd65760cf88c80f46967a476d975dc0471f",
+  "latest_pushed_commit": "75b68a9d9bbb620b7226fc5e9da8d7b25f348c0f",
+  "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "premium_factory_route": "https://pltnv123.github.io/webstudio-ops-dashboard/premium-factory-v34/",
+  "final_report_commit": "6a7e420443dae401fc4dbfe97eac5d9171cecdd3",
+  "supabase_rows_written": 5
+}

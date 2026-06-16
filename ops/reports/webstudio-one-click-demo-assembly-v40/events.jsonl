@@ -1,0 +1,8 @@
+{"ts": "2026-06-03T11:19:03Z", "event": "phase.start", "detail": "Continue after V3.9 PASS; no restart from scratch"}
+{"ts": "2026-06-03T11:19:03Z", "event": "implementation.done", "detail": "Added /one-click-demo-assembly/ route, client-facing assembled static preview, state builder, smoke gates"}
+{"ts": "2026-06-03T11:19:03Z", "event": "gates.initial.pass", "detail": "npm run build, npm run smoke, local static marker smoke passed"}
+{"ts": "2026-06-03T11:42:28Z", "event": "github.push.pass", "detail": "f299b717d1015514643ac9c2fc913b026e8a0bce"}
+{"ts": "2026-06-03T11:42:28Z", "event": "github.actions.deploy.pass", "detail": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26882334114"}
+{"ts": "2026-06-03T11:42:28Z", "event": "public.route.smoke.pass", "detail": "https://pltnv123.github.io/webstudio-ops-dashboard/one-click-demo-assembly/"}
+{"ts": "2026-06-03T11:42:28Z", "event": "supabase.ops_row.pass", "detail": "ff9c1de7-3e59-4d6c-a5c4-f9a6313fa2b5"}
+{"ts": "2026-06-03T11:42:28Z", "event": "supabase.artifact_row.pass", "detail": "bae7ddb3-259a-40dc-9990-f1097505a613"}

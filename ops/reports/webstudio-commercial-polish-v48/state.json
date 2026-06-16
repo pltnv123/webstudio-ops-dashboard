@@ -1,0 +1,28 @@
+{
+  "component": "webstudio-commercial-polish",
+  "version": "v4.8",
+  "status": "DEPLOYED",
+  "repo": "pltnv123/webstudio-ops-dashboard",
+  "branch": "webstudio/product-build-v31",
+  "output_root": "/workspace/output/webstudio-commercial-polish-v48",
+  "reports_repo_path": "ops/reports/webstudio-commercial-polish-v48/",
+  "changed_files": ["src/app.js", "src/index.html", "src/styles.css"],
+  "checks": {
+    "node_check": "PASS",
+    "npm_run_build": "PASS",
+    "npm_run_smoke": "PASS",
+    "static_route_smoke": "PASS",
+    "changed_file_secret_scan": "PASS",
+    "git_diff_check": "PASS",
+    "github_actions_deploy": "PASS",
+    "pages_http_smoke": "PASS"
+  },
+  "ui_commit_hash": "c53395c3148c3cebcdcfa6e240cb2a475a61e018",
+  "final_report_commit_hash": "f8a9f07f87ad46e8bc6972624e3d28a6d17e20df",
+  "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "latest_deploy_status": "success",
+  "github_actions_run": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/26944737673",
+  "route_smoke_summary": "local 19/19 PASS; public 8/8 PASS",
+  "supabase_row_written": true,
+  "supabase_row_id": "ea235bd8-1777-4681-b0a2-5a70cc8d3ed1"
+}

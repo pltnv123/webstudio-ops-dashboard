@@ -1,0 +1,16 @@
+{
+  "status": "PARTIAL",
+  "task": "WEBSTUDIO V2.4 — SERVERLESS CONTROL PLANE BASELINE",
+  "pages_url": "https://pltnv123.github.io/webstudio-ops-dashboard/",
+  "latest_deploy_status": "success",
+  "merge_commit": "3336f2e73799a8d77c9fff2b10f372fff102bbb7",
+  "base_branch": "webstudio/product-build-v31",
+  "base_head": "3336f2e73799a8d77c9fff2b10f372fff102bbb7",
+  "default_branch": "main",
+  "default_head": "1dd2deffdccf556c66212297130584abae2c58b3",
+  "default_branch_contains_merge": false,
+  "supabase_row_written": false,
+  "pushed_commit": null,
+  "output_root": "/workspace/output/webstudio-serverless-control-plane-v24",
+  "updated_at": "2026-06-01T02:41:35.721593+00:00"
+}

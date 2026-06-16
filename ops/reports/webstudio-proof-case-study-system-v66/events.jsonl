@@ -1,0 +1,6 @@
+{"ts": "2026-06-08T23:14:59.722056+00:00", "event": "scope_frozen", "version": "v6.6", "stop_gate": "Do not start V6.7"}
+{"ts": "2026-06-08T23:16:46.061746+00:00", "event": "reports_seeded", "ops_reports": "/workspace/projects/webstudio-ops-dashboard.gitcheck/ops/reports/webstudio-proof-case-study-system-v66"}
+{"ts": "2026-06-08T23:20:32.005357+00:00", "event": "local_gates_pass", "route_smoke": true}
+{"event": "remote_push_pass", "commit": "c1aef716bc397016702dc762158a15df9252eb1d", "ts": "2026-06-08T23:32:01.780373+00:00"}
+{"event": "actions_success", "run_id": "27173600680", "url": "https://github.com/pltnv123/webstudio-ops-dashboard/actions/runs/27173600680", "ts": "2026-06-08T23:32:01.780373+00:00"}
+{"event": "public_route_smoke_pass", "url": "https://pltnv123.github.io/webstudio-ops-dashboard/proof-case-study/", "markers": {"proof-case-study-v66": true, "case study outline": true, "allowed proof checklist": true, "no fake proof": true, "testimonial approval policy": true, "READY_FOR_CASE_STUDY": true}, "ts": "2026-06-08T23:32:01.780373+00:00"}
