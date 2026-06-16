@@ -2,11 +2,11 @@
   "task": "WEBSTUDIO V7.2 — Client Portal Data Room",
   "component": "webstudio-client-data-room",
   "version": "v7.2",
-  "status": "LOCAL_VALIDATION_PASS_DEPLOY_PENDING",
+  "status": "DEPLOYED_PASS",
   "route": "/client-data-room/",
   "url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-data-room/",
   "base_commit": "8d5c34f9eb525cceaef1348f7170d418864e6c69",
-  "commit_hash": null,
+  "commit_hash": "4fbd71209161c05e07fe92c7d44d5b19adf4f2a6",
   "safety": [
     "static/sanitized only",
     "no real client data",
@@ -37,12 +37,16 @@
     "secret_scan_diff_added_lines": "PASS"
   },
   "deploy": {
-    "remote_sha": null,
-    "actions": "PENDING",
-    "public_route": "PENDING"
+    "remote_sha": "4fbd71209161c05e07fe92c7d44d5b19adf4f2a6",
+    "actions": "PASS",
+    "actions_run_id": "27637594265",
+    "public_route": "PASS",
+    "url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-data-room/"
   },
   "supabase": {
-    "row_written": false,
-    "status": "PENDING"
-  }
+    "row_written": true,
+    "status": "DEPLOYED_PASS",
+    "row_id": "416fb5ac-7016-4f6d-a11c-873712ebcb4d"
+  },
+  "updated_at": "2026-06-16T18:02:58Z"
 }

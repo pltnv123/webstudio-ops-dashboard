@@ -7,3 +7,5 @@ Commands run:
 - local threaded static HTTP smoke for `/client-data-room/` → PASS
 - `git diff --check` → PASS
 - diff-added-lines secret scan → PASS, 0 findings
+
+Remote/deploy gates after push: PASS. Actions run `27637594265` success. Public route smoke PASS.
