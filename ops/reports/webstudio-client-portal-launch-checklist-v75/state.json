@@ -1,0 +1,19 @@
+{
+  "task": "WEBSTUDIO V7.5 — CLIENT PORTAL LAUNCH CHECKLIST",
+  "component": "webstudio-client-portal-launch-checklist",
+  "version": "v7.5",
+  "status": "LOCAL_VALIDATION_PASS_PENDING_DEPLOY",
+  "repo": "/workspace/tmp/webstudio-v72-work",
+  "route": "/client-portal-launch-checklist/",
+  "url": "https://pltnv123.github.io/webstudio-ops-dashboard/client-portal-launch-checklist/",
+  "required_markers": [
+    "client-portal-launch-checklist-v75",
+    "SAFE_FOR_PILOT_REVIEW",
+    "DO_NOT_ENABLE_LIVE_WRITES",
+    "owner go/no-go",
+    "rollback plan",
+    "controlled pilot"
+  ],
+  "supabase_row_written": false,
+  "created_at": "2026-06-16T20:16:15Z"
+}
