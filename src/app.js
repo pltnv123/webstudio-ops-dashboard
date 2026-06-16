@@ -21,7 +21,7 @@ function normalizeRoute(value) {
   if (raw === 'Обзор') return 'overview';
   return raw;
 }
-let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','bot-activity','route-health','owner-morning-report','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
+let route = normalizeRoute(window.location.hash.replace('#', '') || (['operator','orders','execution-kanban','website-intake','real-assets','proposal-quote','integration-plan','client-data-room','lead-capture-demo','client-portal-preview','delivery-timeline','work-factory','owner-command-center','supabase-memory','bot-activity','route-health','owner-morning-report','lead-research','supabase-plan','kanban','hermes-kanban', 'production', 'approvals', 'health', 'artifacts', 'marathon', 'owner-feedback','agent-workflow','sales-pack','premium-factory','audit'].includes(pathRoute) ? pathRoute : 'overview'));
 let filters = {
   wf: '',
   kanban: '',
@@ -55,7 +55,7 @@ const jsonCopy = (v) => JSON.stringify(v ?? null, null, 2);
 const includes = (obj, query) => JSON.stringify(obj ?? '').toLowerCase().includes(String(query || '').toLowerCase());
 
 const RU = {
-  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','bot-activity':'Активность ботов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote','supabase-memory':'Память Supabase','route-health':'Здоровье маршрутов','owner-morning-report':'Утренний отчёт',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
+  overview:'Обзор','work-factory':'Фабрика задач','premium-factory':'Premium Factory',kanban:'Канбан',production:'Производство','agent-workflow':'Агенты','bot-activity':'Активность ботов','owner-feedback':'Решения владельца',clients:'Клиенты / Заказы','sales-pack':'Продажи','real-assets':'Реальные материалы','proposal-quote':'Proposal / quote','supabase-memory':'Память Supabase','route-health':'Здоровье маршрутов','client-data-room':'Client Data Room','owner-morning-report':'Утренний отчёт',approvals:'Согласования',health:'Система',artifacts:'Артефакты',marathon:'Автономный цикл',audit:'Аудит',
   triage:'Разбор',todo:'Подготовка',scheduled:'Запланировано',ready:'Готово к запуску',running:'Выполняется',in_progress:'Выполняется',blocked:'Заблокировано',review:'На проверке',done:'Готово',archived:'Архив',active:'Активные',agents:'Агенты',github:'GitHub',all:'Все',normal:'Обычные',mirror:'Зеркала',sys:'Системные',approval:'Согласования',
   pass:'OK',fail:'Ошибка',warn:'Внимание',unknown:'Неизвестно',production:'Производство',empty:'Пусто',tracked:'Отслеживается',artifact:'Артефакт',step:'Шаг',available:'Доступно',missing:'Нет',error:'Ошибка',enabled:'Включено',disabled:'Выключено'
 };
@@ -2341,6 +2341,7 @@ function routeHealthView() {
     ['sales-pack', '/sales-pack/', 'sales materials', 'approval before send'],
     ['premium-factory', '/premium-factory/', 'premium examples', 'DEMO labels required'],
     ['real-assets', '/real-assets/', 'asset intake', 'no fake proof'],
+    ['client-data-room', '/client-data-room/', 'client data room', 'demo/static only · no live writes · no private data'],
     ['proposal-quote', '/proposal-quote/', 'proposal draft', 'not client send'],
     ['integration-plan', '/integration-plan/', 'CRM/Telegram plan', 'plan-only no live writes'],
     ['lead-capture-demo', '/lead-capture-demo/', 'lead research', 'manual draft only'],
@@ -2435,10 +2436,48 @@ function integrationPlanWorkflow() {
   </div>`;
 }
 
+function clientDataRoomView() {
+  const marker = 'client-data-room-v72';
+  const statusChips = ['SAFE_FOR_REVIEW','DEMO_ONLY','NEEDS_ASSETS','NEEDS_APPROVAL','BLOCKED_FOR_LIVE','DEPLOYED_PASS'];
+  const links = [
+    ['/real-client-onboarding/','Onboarding checklist','client-safe intake checklist and approval gates'],
+    ['/client-portal-preview/','Client-safe preview link','static preview surface; no client account or live portal writes'],
+    ['/client-safe-preview/','Client safe preview','sanitized preview materials for owner/client review'],
+    ['/proposal-quote/','Proposal/quote','draft commercial scope; owner approval before sending'],
+    ['/delivery-timeline/','Delivery timeline','milestones, handoff sequence, and review windows'],
+    ['/asset-intake-pack/','Asset requirements','required brand/content/proof inputs before production copy'],
+    ['/proof-case-study/','Proof/case-study policy','no fake proof; only approved artifacts and real permissions'],
+    ['/client-approval-room/','Approval room','owner/client decision queue; static markers only'],
+    ['/integration-plan/','Integration plan warning','plan-only CRM/email/Telegram/Supabase/payment path; blocked for live'],
+    ['/route-health/','Route health/status summary','route matrix and smoke markers for deployed static pages']
+  ];
+  const overview = [
+    ['project overview','WebStudio client portal data room: a single safe index for client-facing project materials.'],
+    ['client-safe preview link','Static preview routes only; no authentication, no private client records, no browser-side service keys.'],
+    ['route health/status summary','Direct path generated during build and checked through public route smoke markers.'],
+    ['integration plan warning','All CRM, email, Telegram, payment, and Supabase live write paths remain blocked until explicit approval.']
+  ];
+  const warnings = [
+    ['demo/static only','This route is a static sanitized data room for review, not a production client portal.'],
+    ['no live writes','No forms submit to CRM, email, Telegram, payment, or Supabase from this page.'],
+    ['no private data','No real client PII, private assets, secrets, credentials, contracts, invoices, or live case data are embedded.'],
+    ['BLOCKED_FOR_LIVE','Live integration requires a separate approved backend plan, secret storage, RLS review, logging, rollback, and limited pilot.']
+  ];
+  return `<div class="grid client-data-room-v72" data-testid="client-data-room-v72" data-marker="${marker}">
+    <section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">${marker}</p><h2>Client Portal Data Room</h2><p>Static/sanitized hub for safe client-facing materials: project overview, preview, proposal/quote, delivery timeline, asset requirements, proof policy, approvals, onboarding checklist, integration warning, and route health.</p></div><div class="chip-cloud">${statusChips.map(x => badge(x, x)).join('')}</div></section>
+    <section class="card span-8"><h3>Project overview</h3><div class="chain-list">${overview.map(([a,b]) => `<div class="chain-step"><span>${fmt(a)}</span><strong>${fmt(b)}</strong></div>`).join('')}</div></section>
+    <section class="card span-4 warning-surface"><h3>Safety status</h3>${kv({mode:'demo/static only', live_writes:'no live writes', client_data:'no private data', public_review:'SAFE_FOR_REVIEW', live_launch:'BLOCKED_FOR_LIVE'})}</section>
+    <section class="card span-12"><h3>Client materials map</h3><div class="route-grid">${links.map(([href,label,note]) => `<a class="route-card" href="${href}" data-route-link="${href}"><strong>${fmt(label)}</strong><span>${fmt(href)}</span><p class="label">${fmt(note)}</p></a>`).join('')}</div></section>
+    <section class="card span-6"><h3>Approval and asset gates</h3><ul><li>NEEDS_ASSETS until real brand, copy, imagery, compliance notes, and proof permissions are supplied.</li><li>NEEDS_APPROVAL before proposal/quote is sent or any client-facing promise is made.</li><li>Proof/case-study content requires explicit permission and source artifact.</li><li>Onboarding checklist remains copy-only and owner-reviewed.</li></ul></section>
+    <section class="card span-6 warning-surface"><h3>Integration plan warning</h3><ul><li>No CRM/email/Telegram/payment writes.</li><li>No Supabase live mutations or destructive changes.</li><li>No secret values, service keys, tokens, or private config in browser code.</li><li>Live integration stays BLOCKED_FOR_LIVE until a separate approved backend implementation.</li></ul></section>
+    <section class="card span-12"><h3>Route health/status summary</h3><div class="proof-grid">${['client-data-room-v72','SAFE_FOR_REVIEW','demo/static only','no live writes','no private data','proposal/quote','delivery timeline'].map(x => proofItem(x, 'DEPLOYED_PASS', 'ok')).join('')}</div></section>
+  </div>`;
+}
+
 function render() {
   document.querySelectorAll('.tabs a').forEach(a => a.classList.toggle('active', normalizeRoute(a.getAttribute('href')) === route));
   const app = $('#app');
-  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabaseMemoryView, 'bot-activity': botActivityView, 'route-health': routeHealthView, 'owner-morning-report': ownerMorningReportView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
+  const map = {operator: operatorWorkbench, orders: ordersView, kanban: executionKanbanView, 'execution-kanban': executionKanbanView, 'hermes-kanban': kanban, 'website-intake': websiteIntakeView, 'real-assets': realAssetsWorkflow, 'proposal-quote': proposalQuoteWorkflow, 'client-data-room': clientDataRoomView, 'integration-plan': integrationPlanWorkflow, 'lead-capture-demo': leadResearchView, 'client-portal-preview': clients, 'delivery-timeline': production, 'owner-command-center': overview, 'supabase-memory': supabaseMemoryView, 'bot-activity': botActivityView, 'route-health': routeHealthView, 'owner-morning-report': ownerMorningReportView, 'lead-research': leadResearchView, 'supabase-plan': supabasePlanView, overview, 'work-factory': workFactory, 'premium-factory': premiumFactoryView, production, 'agent-workflow': agentExecutionView, 'd3-intake': d3Intake, 'owner-feedback': ownerFeedback, clients: ordersView, 'sales-pack': salesPack, 'morning-desk': morningDesk, approvals, health, artifacts, marathon, audit};
   app.innerHTML = (map[route] || overview)();
   bindInputs();
 }

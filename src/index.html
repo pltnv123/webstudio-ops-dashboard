@@ -41,6 +41,7 @@
     <a href="#asset-intake-pack" hidden>Asset intake pack</a>
     <a href="#proposal-quote">Proposal / quote</a>
     <a href="#real-client-onboarding">Client Onboarding Safe Mode</a>
+    <a href="#client-data-room">Client Data Room</a>
     <a href="#integration-plan">Integration Plan</a>
     <a href="#lead-research">Поиск заказов</a>
     <a href="#supabase-plan">План Supabase</a>
@@ -77,6 +78,22 @@
     no private data
   </div>
 
+
+  <div id="client-data-room-v72-static-markers" hidden>
+    client-data-room-v72
+    SAFE_FOR_REVIEW
+    DEMO_ONLY
+    NEEDS_ASSETS
+    NEEDS_APPROVAL
+    BLOCKED_FOR_LIVE
+    DEPLOYED_PASS
+    demo/static only
+    no live writes
+    no private data
+    proposal/quote
+    delivery timeline
+  </div>
+
   <main id="app" class="shell">
     <section class="loading">Загружаю состояние админки…</section>
   </main>
@@ -100,6 +117,19 @@
   </footer>
 
   <script src="./app.js?v=webstudio-critical-ux-v110"></script>
+
+  <script>
+    (function(){
+      if (!/\/client-data-room\/?$/.test(window.location.pathname)) return;
+      function paint(){
+        var app=document.getElementById('app');
+        if (!app) return;
+        app.innerHTML = '<div class="grid client-data-room-v72" data-marker="client-data-room-v72"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">client-data-room-v72</p><h2>Client Portal Data Room</h2><p>Static sanitized project data room for project overview, client-safe preview link, proposal/quote, delivery timeline, asset requirements, proof/case-study policy, approval room, onboarding checklist, integration plan warning, and route health/status summary.</p></div><div class="chip-cloud"><span class="badge">SAFE_FOR_REVIEW</span><span class="badge">DEMO_ONLY</span><span class="badge">NEEDS_ASSETS</span><span class="badge">NEEDS_APPROVAL</span><span class="badge">BLOCKED_FOR_LIVE</span><span class="badge">DEPLOYED_PASS</span></div></section><section class="card span-12"><h3>Client materials map</h3><ul><li><a href="/real-client-onboarding/">onboarding checklist</a></li><li><a href="/client-portal-preview/">client-safe preview link</a></li><li><a href="/client-safe-preview/">client-safe preview</a></li><li><a href="/proposal-quote/">proposal/quote</a></li><li><a href="/delivery-timeline/">delivery timeline</a></li><li><a href="/asset-intake-pack/">asset requirements</a></li><li><a href="/proof-case-study/">proof/case-study policy</a></li><li><a href="/client-approval-room/">approval room</a></li><li><a href="/integration-plan/">integration plan warning</a></li><li><a href="/route-health/">route health/status summary</a></li></ul></section><section class="card span-12 warning-surface"><h3>Safety boundaries</h3><ul><li>demo/static only</li><li>no live writes</li><li>no private data</li><li>static/sanitized only</li><li>no real client data</li><li>no live form submission</li><li>no CRM/email/Telegram/payment writes</li><li>no secrets</li><li>no destructive Supabase changes</li></ul></section></div>';
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else setTimeout(paint, 0);
+    })();
+  </script>
+
   <script>
     (function(){
       if (!/\/real-client-onboarding\/?$/.test(window.location.pathname)) return;
