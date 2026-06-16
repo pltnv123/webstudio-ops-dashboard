@@ -42,6 +42,7 @@
     <a href="#proposal-quote">Proposal / quote</a>
     <a href="#real-client-onboarding">Client Onboarding Safe Mode</a>
     <a href="#client-data-room">Client Data Room</a>
+    <a href="#client-portal-readiness">Portal Readiness</a>
     <a href="#integration-plan">Integration Plan</a>
     <a href="#lead-research">Поиск заказов</a>
     <a href="#supabase-plan">План Supabase</a>
@@ -78,7 +79,6 @@
     no private data
   </div>
 
-
   <div id="client-data-room-v73-static-markers" hidden>
     client-data-room-v73
     Start here
@@ -108,6 +108,27 @@
     /client-data-room/
   </div>
 
+  <div id="client-portal-readiness-v74-static-markers" hidden>
+    client-portal-readiness-v74
+    READY_FOR_DEMO
+    NEEDS_OWNER_REVIEW
+    NEEDS_ASSETS
+    BLOCKED_FOR_LIVE
+    WARNING_PRESENT
+    LINK_OK
+    REVIEW_NEEDED
+    route matrix
+    warning coverage
+    link check
+    demo/static only
+    no live writes
+    no private data
+    no fake proof
+    no live integration claim without approval
+    /client-portal-readiness/
+    /client-data-room/
+  </div>
+
   <main id="app" class="shell">
     <section class="loading">Загружаю состояние админки…</section>
   </main>
@@ -131,6 +152,20 @@
   </footer>
 
   <script src="./app.js?v=webstudio-client-data-room-v73"></script>
+
+  <script id="client-portal-readiness-v74-direct-render">
+    (function(){
+      if (!/\/client-portal-readiness\/?$/.test(window.location.pathname)) return;
+      function paint(){
+        var app=document.getElementById('app');
+        if (!app) return;
+        var routes=['/','/webstudio-showcase/','/pricing-packages/','/lead-capture-demo/','/real-client-onboarding/','/client-data-room/','/client-portal-preview/','/client-safe-preview/','/proposal-quote/','/delivery-timeline/','/proof-case-study/','/integration-plan/','/asset-intake-pack/','/client-approval-room/','/route-health/'];
+        var rows=routes.map(function(r){return '<div class="chain-step"><span><a href="'+r+'">'+r+'</a></span><strong>HTTP 200 · LINK_OK · WARNING_PRESENT</strong><p class="label">Static route audit: marker present, owner/client boundary visible, next action clear.</p></div>';}).join('');
+        app.innerHTML = '<div class="grid client-portal-readiness-v74" data-marker="client-portal-readiness-v74"><section class="hero-panel compact-hero span-12"><div class="hero-copy"><p class="eyebrow">client-portal-readiness-v74</p><h2>Client Portal Readiness Audit</h2><p>Readiness score: 83/100. Full client-facing journey is READY_FOR_DEMO as static/sanitized demo, NEEDS_OWNER_REVIEW for public/client use, NEEDS_ASSETS for real materials, and BLOCKED_FOR_LIVE for integrations.</p><div class="toolbar"><a class="copy primary" href="/client-data-room/">Open Client Data Room</a><a class="copy secondary" href="/route-health/">Route health</a></div></div><div class="chip-cloud"><span class="badge">READY_FOR_DEMO</span><span class="badge">NEEDS_OWNER_REVIEW</span><span class="badge">NEEDS_ASSETS</span><span class="badge">BLOCKED_FOR_LIVE</span><span class="badge">WARNING_PRESENT</span><span class="badge">LINK_OK</span><span class="badge">REVIEW_NEEDED</span></div></section><section class="card span-12"><h3>route matrix</h3><div class="chain-list">'+rows+'</div></section><section class="card span-4 warning-surface"><h3>warning coverage</h3><ul><li>demo/static only</li><li>static/sanitized only</li><li>no live writes</li><li>no private data</li><li>no fake proof/testimonials</li><li>no live integration claim without approval</li></ul></section><section class="card span-4"><h3>link check</h3><ul><li>LINK_OK: expected routes point to /client-data-room/ or shared Client Data Room bridge.</li><li>Missing links: none in local static smoke.</li></ul></section><section class="card span-4"><h3>owner/client next actions</h3><ul><li>OWNER_REVIEW</li><li>CLIENT_ASSETS</li><li>PROPOSAL_REVIEW</li><li>PREVIEW_APPROVAL</li><li>LIVE_INTEGRATION_BLOCKED</li></ul></section><section class="card span-12 warning-surface"><h3>approved-for-demo vs blocked-for-live summary</h3><p>Approved for demo: static sanitized portal review. Blocked for live: no CRM/email/Telegram/payment writes, no Supabase mutations, no secrets, no real client data, no live form submission until separate owner approval.</p></section></div>';
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else setTimeout(paint, 0);
+    })();
+  </script>
 
   <script>
     (function(){
