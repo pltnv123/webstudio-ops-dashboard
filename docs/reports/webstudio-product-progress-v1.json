@@ -7,15 +7,60 @@
     "mtime": "2026-05-24T21:28:10Z",
     "sha256": "b3fc1fab3ccfd25853fe8ee0d13838331440d38676edd464eec3bb73bd48141e"
   },
-  "updated_at": "2026-05-24T22:10:41Z",
+  "updated_at": "2026-05-25T12:52:19Z",
   "mode": "safe_local_artifacts_only",
-  "phase": "WebStudio Premium Motion Factory v26 — Production Hardening + Repo Sync",
-  "status": "PASS_LOCAL_READY_REPO_SYNC_PENDING_HOST_RUNNER",
+  "phase": "Product Build v29 — Premium Client-Facing Website Delivery System",
+  "status": "PASS_LOCAL_ARTIFACTS_READY",
   "v10_status": null,
   "v11_status": null,
-  "pr_verification_verdict": null,
-  "pr_url": null,
+  "pr_verification_verdict": "MAINLINE_MERGED",
+  "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
   "items": [
+    {
+      "product_line": "D1",
+      "artifact_type": "delivery_system_v29",
+      "title": "Premium website delivery system",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-premium-website-delivery-system-v29.md",
+      "updated_at": "2026-05-25T12:52:19Z",
+      "readiness_score": 96
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "client_delivery_pipeline_v29",
+      "title": "Client delivery pipeline JSON",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-client-delivery-pipeline-v29.json",
+      "updated_at": "2026-05-25T12:52:19Z",
+      "readiness_score": 96
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "client_delivery_pack_template_v29",
+      "title": "Client delivery pack template",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-client-delivery-pack-template-v29.html",
+      "updated_at": "2026-05-25T12:52:19Z",
+      "readiness_score": 95
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "client_003_delivery_pack_v29",
+      "title": "Client #003 delivery pack",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-client-example-003-delivery-pack-v1.html",
+      "updated_at": "2026-05-25T12:52:19Z",
+      "readiness_score": 94
+    },
+    {
+      "product_line": "D1",
+      "artifact_type": "premium_website_qa_system_v29",
+      "title": "Premium website QA system",
+      "status": "PASS",
+      "path": "/workspace/output/webstudio-premium-website-qa-system-v29.md",
+      "updated_at": "2026-05-25T12:52:19Z",
+      "readiness_score": 95
+    },
     {
       "product_line": "D3",
       "artifact_type": "automation_readiness",
@@ -131,7 +176,13 @@
   "client_simulation": {},
   "system_layer": {},
   "analytics": {},
-  "github_sync": {},
+  "github_sync": {
+    "status": "MAINLINE_MERGED",
+    "pr_1": "MERGED",
+    "default_branch": "main",
+    "default_sha": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
+    "contribution_visibility_note": "GitHub graph may update with 1-24h delay; check private contribution visibility and author email only if still empty later."
+  },
   "qmd_maintenance": {},
   "repo_sync": {
     "worktree": "/workspace/tmp/webstudio-ops-dashboard-pr",
@@ -143,14 +194,28 @@
   "v20_status": null,
   "v21_status": null,
   "premium_motion_factory_v25": "PASS",
-  "premium_motion_factory_v26": "PASS_LOCAL",
+  "premium_motion_factory_v26": {
+    "status": "PASS_REPO_SYNCED_PRODUCTION_HARDENED",
+    "repo_sync": "PASS_VIA_PR_BRANCH",
+    "v26_commit": "dc806425cf5de0aec6e7981968e234821de90979",
+    "pr_latest_commit": "becbd4534e5ed3787e0dad688900b7c741cde541",
+    "auto_push_result": "N/A_THIS_PASS_ALREADY_PUSHED_BY_SUPERSET_BRANCH",
+    "production_generator": "PASS",
+    "batch_render": "PASS_EXISTING_ASSETS_VERIFIED_NO_HEAVY_RERENDER",
+    "poster_auto_pick": "PASS",
+    "reduced_motion_fallback": "PASS",
+    "handoff_pack": "PASS",
+    "d1_d2_d3_motion_bundles": "PASS",
+    "owner_action_required": false,
+    "report": "/workspace/output/webstudio-premium-motion-factory-v26-report.md"
+  },
   "production_generator": "READY",
   "batch_render_workflow": "READY",
   "poster_auto_pick": "PASS",
   "reduced_motion_fallback": "READY",
   "client_handoff_pack": "READY",
   "video_metadata_path": "/workspace/output/webstudio-motion-v26-video-metadata.json",
-  "latest_pr_commit": null,
+  "latest_pr_commit": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
   "report": "/workspace/output/webstudio-client-intake-order-builder-v27-report.md",
   "by_line": {
     "D1": [
@@ -232,5 +297,109 @@
     "D2: motion_bundle_v26 → /workspace/output/webstudio-d2-motion-bundle-v26.md",
     "D1: motion_bundle_v26 → /workspace/output/webstudio-d1-motion-bundle-v26.md"
   ],
-  "v28_status": "CONTINUING_OVERNIGHT"
+  "v28_status": "CONTINUING_OVERNIGHT",
+  "v28_1_status": "PASS",
+  "github_mainline": {
+    "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
+    "branch": "webstudio/hardening-v3-host-completion",
+    "latest_pr_sha": "becbd4534e5ed3787e0dad688900b7c741cde541",
+    "default_branch": "main",
+    "default_branch_sha": "67a31d484677488758c99e30343a08e95463fe9e",
+    "pr_merged": false,
+    "checks_status": "NO_FAILED_CHECKS",
+    "gitguardian": "SUCCESS",
+    "merge_approval_packet": "/workspace/output/github-mainline-merge-approval-packet-v28.md",
+    "owner_action_required": true
+  },
+  "host_runner": {
+    "status": "PASS_AFTER_REQUEUE",
+    "runner_latest": "/workspace/output/host-job-runner/latest.json",
+    "root": "/home/hermes/workspace/.hermes-host-jobs",
+    "allowed_pending_dirs": [
+      "github",
+      "system"
+    ],
+    "reason_original_job_not_processed": "original job was at root and marker was github/autopush-mainline-v28; runner scans github/*.sh/system/*.sh and allowlists marker github/autopush or github/pr-verify"
+  },
+  "iteration_auto_extend": {
+    "max_turns": 240,
+    "auto_extend_iterations": true,
+    "chunk": 120,
+    "max_extensions": 3,
+    "ceiling": 600,
+    "runtime_verification": "PARTIAL: config/source/tests PASS; systemctl service_status unavailable in host job, host snapshot previously active",
+    "report": "/workspace/output/iteration-budget-auto-extend-v28-1-report.md",
+    "recovery_patch": "/workspace/output/iteration-budget-auto-extend-recovery-patch-v28-1.patch",
+    "rollback": "/workspace/output/iteration-budget-auto-extend-rollback-v28-1.md",
+    "runtime_json": "/workspace/output/iteration-budget-auto-extend-v28-1-runtime.json",
+    "checks_pass": true,
+    "config_pass": true,
+    "persistence_status": "RECOVERABLE_PATCH_CREATED_SOURCE_PRESENT_UNCOMMITTED"
+  },
+  "continuation_queue": {
+    "job": "/workspace/.hermes-workqueue/webstudio/pending/webstudio-continuation-v28-overnight-premium-build.json",
+    "status": "pending",
+    "owner_does_not_need_to_type_continue": true
+  },
+  "state_reconciliation_v26_1": {
+    "status": "PASS_RECONCILED_CONTINUE_FROM_V27_V28_MAINLINE_CONTEXT",
+    "system_verdict_v21_7": "PASS_WITH_ISOLATED_OPS_MODEL_QUOTA_WATCH",
+    "product_work_allowed": true,
+    "do_not_return_to_v21_7_ops_hardening": true,
+    "v22_client_showcase": "PASS",
+    "v23_premium_website_factory": "PASS",
+    "v24_hyperframes_runtime": "PASS",
+    "v25_premium_motion_factory": "PASS",
+    "v26_motion_factory_production_hardening": "PASS_REPO_SYNCED_PRODUCTION_HARDENED",
+    "v27_client_intake_order_builder": "PASS_ALREADY_DELIVERED",
+    "latest_pr_commit": "becbd4534e5ed3787e0dad688900b7c741cde541",
+    "default_branch_sha": "67a31d484677488758c99e30343a08e95463fe9e",
+    "gitguardian": "SUCCESS",
+    "host_runner_latest": "NOOP_NO_PENDING_JOBS",
+    "next_phase": "v28_1_mainline_merge_approval_or_continue_product_work_after_mainline_decision",
+    "owner_action_required_for_product_work": false,
+    "owner_action_required_for_mainline_merge": true,
+    "report": "/workspace/output/webstudio-state-reconciliation-v26-1.md"
+  },
+  "github_mainline_v28_1": {
+    "schema": "webstudio-mainline-merge-result-v28.1",
+    "timestamp": "2026-05-25T12:33:00Z",
+    "status": "MAINLINE_MERGED",
+    "reason": "PR #1 is verified merged; current default branch already contains representative PR work. The post-merge verifier observed unchanged SHA because merge had already landed before the final verification pass.",
+    "repo": "pltnv123/webstudio-ops-dashboard",
+    "pr": 1,
+    "pr_url": "https://github.com/pltnv123/webstudio-ops-dashboard/pull/1",
+    "expected_pr_head": "becbd4534e5ed3787e0dad688900b7c741cde541",
+    "pr_head_sha": "becbd4534e5ed3787e0dad688900b7c741cde541",
+    "default_branch": "main",
+    "default_branch_sha_before_owner_decision_known": "67a31d484677488758c99e30343a08e95463fe9e",
+    "default_branch_sha_before_final_verification": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
+    "default_branch_sha_after": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
+    "pr_state_after": "MERGED",
+    "merged_at": "2026-05-25T10:30:22Z",
+    "merged": true,
+    "merge_method": "squash",
+    "checks_status": "NO_FAILED_CHECKS",
+    "main_checks_failed": 0,
+    "main_checks_pending": 0,
+    "secret_findings": 0,
+    "local_conflict": "NO",
+    "deploy_hook_risk": "NONE_VISIBLE",
+    "owner_action_required": false,
+    "main_contains_representative_pr_work": true,
+    "v28_1": "PASS",
+    "next_phase": "Product Build v29 — Premium client-facing website delivery system"
+  },
+  "v26_accepted_pass": true,
+  "v28_1": "PASS",
+  "next_phase": "Product Build v29 — Premium client-facing website delivery system",
+  "v26_status": "PASS",
+  "mainline_status": "MAINLINE_MERGED",
+  "delivery_system_v29": {
+    "status": "PASS",
+    "pipeline": "/workspace/output/webstudio-client-delivery-pipeline-v29.json",
+    "qa_checklist": "/workspace/output/webstudio-premium-website-qa-checklist-v29.json",
+    "client_003": "/workspace/output/webstudio-client-example-003-delivery-pack-v1.html",
+    "owner_action_required": "no_for_local_artifacts_yes_for_live_actions"
+  }
 }

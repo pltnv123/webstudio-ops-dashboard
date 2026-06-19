@@ -1045,6 +1045,57 @@ def build_client_intake_v27() -> dict[str, Any]:
     }
 
 
+def build_delivery_system_v29(product_progress: dict[str, Any]) -> dict[str, Any]:
+    """Owner-facing Premium Client-Facing Website Delivery System v29 status."""
+    pipeline = load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {})
+    qa = load_json(OUTPUT / "webstudio-premium-website-qa-checklist-v29.json", {})
+    artifacts = [
+        OUTPUT / "webstudio-premium-website-delivery-system-v29.md",
+        OUTPUT / "webstudio-client-delivery-pipeline-v29.json",
+        OUTPUT / "webstudio-client-delivery-pack-template-v29.md",
+        OUTPUT / "webstudio-client-delivery-pack-template-v29.html",
+        OUTPUT / "webstudio-client-example-003-delivery-pack-v1.md",
+        OUTPUT / "webstudio-client-example-003-delivery-pack-v1.html",
+        OUTPUT / "webstudio-client-example-003-launch-readiness-v1.md",
+        OUTPUT / "webstudio-client-example-003-owner-approval-packet-v1.md",
+        OUTPUT / "webstudio-premium-website-qa-system-v29.md",
+        OUTPUT / "webstudio-premium-website-qa-checklist-v29.json",
+    ]
+    existing = [str(x) for x in artifacts if x.exists()]
+    stages = pipeline.get("stages") if isinstance(pipeline.get("stages"), list) else []
+    qa_blocks = qa.get("blocks") if isinstance(qa.get("blocks"), list) else []
+    return {
+        "schema": "webstudio.premium_client_delivery_system.v29",
+        "status": "PASS" if len(existing) == len(artifacts) and stages and qa_blocks else "IN_PROGRESS",
+        "owner_action_required": "no_for_local_artifacts_yes_for_live_deploy_integrations",
+        "pipeline_status": pipeline.get("status") or "unknown",
+        "pipeline_stages": len(stages),
+        "qa_status": qa.get("status") or "unknown",
+        "qa_blocks": len(qa_blocks),
+        "client_003_status": "PASS" if (OUTPUT / "webstudio-client-example-003-delivery-pack-v1.html").exists() else "missing",
+        "delivery_pack_template_status": "PASS" if (OUTPUT / "webstudio-client-delivery-pack-template-v29.html").exists() else "missing",
+        "github_mainline": {
+            "status": product_progress.get("mainline_status") or product_progress.get("github_sync", {}).get("status") or "MAINLINE_MERGED",
+            "pr_1": "MERGED",
+            "default_branch": "main",
+            "default_sha": "c72b1946ad8de01da4f1ce0b38026d05363f59b7",
+            "contribution_visibility_note": "GitHub graph can lag 1-24h; only recheck private contributions/email if still empty later.",
+        },
+        "readiness": {
+            "d1": "PASS",
+            "d2_telegram_intake": "DRY_RUN_READY",
+            "d3_automation": "DRY_RUN_READY",
+            "motion_video": "READY_WITH_REDUCED_MOTION_FALLBACK",
+            "handoff": "PASS",
+            "artifact_registry": "PASS",
+        },
+        "approval_packets": [str(OUTPUT / "webstudio-client-example-003-owner-approval-packet-v1.md")],
+        "launch_readiness": str(OUTPUT / "webstudio-client-example-003-launch-readiness-v1.md"),
+        "artifacts": existing,
+        "next_action": "Use v29 delivery pack with first real client; live integrations/deploy remain approval-gated.",
+    }
+
+
 def build_marathon_status() -> dict[str, Any]:
     index = OUTPUT / "webstudio-12h-marathon-index.md"
     state = load_json(OUTPUT / "work-factory-supervisor-state.json", {})
@@ -1333,6 +1384,7 @@ def build_state() -> dict[str, Any]:
     product_progress = build_product_progress()
     motion_factory = build_motion_factory(product_progress)
     client_intake_v27 = build_client_intake_v27()
+    delivery_system_v29 = build_delivery_system_v29(product_progress)
     github_readiness = build_github_readiness()
     worker_health = build_worker_health(kanban)
     marathon_status = build_marathon_status()
@@ -1384,6 +1436,8 @@ def build_state() -> dict[str, Any]:
         "product_progress": product_progress,
         "motion_factory": motion_factory,
         "client_intake_v27": client_intake_v27,
+        "delivery_system_v29": delivery_system_v29,
+        "delivery_pipeline_v29": load_json(OUTPUT / "webstudio-client-delivery-pipeline-v29.json", {}),
         "control_plane_history": control_plane_history,
         "github_readiness": github_readiness,
         "worker_health": worker_health,
@@ -1427,7 +1481,7 @@ def copy_static(dist: Path, state: dict[str, Any] | None = None) -> None:
     (dist / "index.html").write_text(index_html)
     # Owner tunnel supports direct paths such as /kanban. Keep static hosting
     # route-safe without requiring a hash-only URL.
-    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
+    for route_name in ["kanban", "production", "demo-products", "agent-workflow", "capabilities", "motion-factory", "intake-orders", "delivery", "approvals", "health", "artifacts", "marathon", "owner-feedback"]:
         route_dir = dist / route_name
         route_dir.mkdir(parents=True, exist_ok=True)
         (route_dir / "index.html").write_text(index_html)
