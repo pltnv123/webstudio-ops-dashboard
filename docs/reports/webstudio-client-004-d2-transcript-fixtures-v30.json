@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-05-25T13:59:36Z",
+  "client": "004",
+  "scenarios": [
+    {
+      "id": "ideal_implant_lead",
+      "input": "Хочу поставить имплант, есть снимок, удобно вечером",
+      "safe_response": "Предлагаем консультацию и передаём менеджеру; диагноз не ставим.",
+      "handoff": "implant_interest, evening, has_xray:true"
+    },
+    {
+      "id": "veneers_consultation",
+      "input": "Интересуют виниры, хочу красивую улыбку",
+      "safe_response": "Запрос на консультацию по эстетической стоматологии; врач оценит показания очно.",
+      "handoff": "veneers_interest"
+    },
+    {
+      "id": "unclear_request",
+      "input": "Не знаю что нужно, зубы выглядят плохо",
+      "safe_response": "Предлагаем первичную консультацию и уточняем цель/сроки.",
+      "handoff": "unclear_general_consultation"
+    },
+    {
+      "id": "medical_risk_no_diagnosis",
+      "input": "Сильная боль после процедуры, что делать?",
+      "safe_response": "Бот не консультирует по срочным медицинским вопросам; рекомендует связаться с клиникой/врачом.",
+      "handoff": "urgent_medical_risk"
+    },
+    {
+      "id": "handoff_to_manager",
+      "input": "Хочу записаться на субботу",
+      "safe_response": "Передаём контакт и предпочтительное время менеджеру.",
+      "handoff": "booking_request_saturday"
+    }
+  ]
+}

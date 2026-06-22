@@ -1,0 +1,47 @@
+# WebStudio Product Build v30 Report
+
+- generated_at: 2026-05-25T13:59:36Z
+- status: PASS_LOCAL_READY_QA_PENDING
+- phase: Real Client Execution Flow
+- client: Client #004 premium dental clinic Moscow
+
+## Created
+- real-client execution flow md/json
+- Client #004 intake, qualification, package, strategy, delivery plan
+- D1 landing outline/design/proof/HTML preview
+- D2 Telegram flow, fixtures, demo script
+- D3 automation map, CRM readiness, risk gates
+- Motion plan, HyperFrames brief, HTML composition
+- Preview package and artifact/export registries
+
+## GitHub strategy
+- PR #2 is v29 and should stay reviewable.
+- v30 branch: webstudio/product-build-v30.
+- Prefer PR #3 based on `webstudio/product-build-v29`; retarget to main after PR #2 merge.
+
+
+## Kanban v30
+- t_4cb282ef
+- t_be3ffda7
+- t_de8d698e
+- t_a6c10326
+- t_e250c088
+- t_22649d76
+- t_70d47b35
+- updated_at: 2026-05-25T14:07:37Z
+
+
+## Final QA Evidence — 2026-05-25T14:33:43Z
+- py_compile: PASS
+- npm run build: PASS
+- npm run smoke: PASS
+- Ops Cockpit #real-clients browser QA: PASS, console errors 0, screenshot `/home/hermes/.hermes/cache/screenshots/browser_screenshot_e4919946733e44559b4a4e891f038881.png`
+- D1 preview browser QA: PASS, console errors 0, screenshot `/home/hermes/.hermes/cache/screenshots/browser_screenshot_b161e84cab7f44e7a7712cceaf2415d2.png`
+- motion composition browser load: PASS, console errors 0
+- scoped v30 secret scan: PASS / 0 findings
+- JSON validation: PASS
+- Host Runner Auto-Push / PR verify: PASS
+- PR #3: https://github.com/pltnv123/webstudio-ops-dashboard/pull/3
+- PR #3 checks_failed: 0
+- PR #3 checks_pending: 0
+- latest commit: 8bdc1b16c189f2af1decf9fd99019389d9d55bac

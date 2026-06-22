@@ -30,7 +30,7 @@ assert state['safety']['worker_allowed'] is False
 assert state['notification_policy']['mode'] == 'quiet'
 
 # UI must expose all operational sections used by the live cockpit.
-required_routes = ['overview', 'work-factory', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
+required_routes = ['overview', 'work-factory', 'kanban', 'production', 'demo-products', 'agent-workflow', 'capabilities', 'motion-factory', 'intake-orders', 'delivery', 'real-clients', 'd3-intake', 'owner-feedback', 'clients', 'sales-pack', 'morning-desk', 'approvals', 'health', 'artifacts', 'marathon', 'audit']
 for route in required_routes:
     assert f'#{route}' in html, f'missing nav route #{route}'
 
@@ -78,6 +78,10 @@ required_js_symbols = [
     'delivery',
     'Поставка клиенту',
     'Delivery pipeline',
+    'realClients',
+    'Реальные клиенты',
+    'Client #004',
+    'Execution flow progress',
     'Заказы / Intake',
     'Production generator',
     'progressAnalytics',
@@ -98,7 +102,7 @@ for symbol in required_js_symbols:
 assert js.count("$('#d3IntakeSearch')?.addEventListener('input'") == 1, 'duplicate D3 intake search binding'
 
 # Source-of-truth must include the data needed by the dashboard.
-for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening']:
+for key in ['work_factory', 'kanban', 'artifacts', 'health', 'safety', 'd3_intake', 'continuation_controller', 'product_progress', 'motion_factory', 'client_intake_v27', 'delivery_system_v29', 'delivery_pipeline_v29', 'real_client_execution_v30', 'control_plane_history', 'host_autonomy', 'github_readiness', 'system_hardening']:
     assert key in state, f'missing state key {key}'
 ha = state['host_autonomy']
 ce = ha['continuation_engine']
@@ -132,6 +136,14 @@ assert progress['mode'] == 'safe_local_artifacts_only'
 assert {item['product_line'] for item in progress['items']} >= {'D1', 'D2', 'D3'}
 assert isinstance(state['control_plane_history'].get('snapshots', []), list), 'control plane history snapshots must be a list'
 
+
+
+real_client = state['real_client_execution_v30']
+assert real_client['status'] in ['PASS_LOCAL_READY', 'PASS']
+assert real_client['flow_stages'] >= 15
+assert real_client['d1_status'] == 'PASS'
+assert real_client['d2_status'] == 'PASS'
+assert 'real-clients' in html
 
 delivery = state['delivery_system_v29']
 assert delivery['status'] == 'PASS'

@@ -1,0 +1,107 @@
+{
+  "generated_at": "2026-05-25T13:59:36Z",
+  "status": "PASS_LOCAL_READY",
+  "client": "004",
+  "artifacts": [
+    {
+      "kind": "webstudio-client-004-d1-design-direction",
+      "path": "/workspace/output/webstudio-client-004-d1-design-direction-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d1-landing-outline",
+      "path": "/workspace/output/webstudio-client-004-d1-landing-outline-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d1-preview",
+      "path": "/workspace/output/webstudio-client-004-d1-preview-v30.html",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d1-proof-objections-cta",
+      "path": "/workspace/output/webstudio-client-004-d1-proof-objections-cta-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d2-demo-script",
+      "path": "/workspace/output/webstudio-client-004-d2-demo-script-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d2-telegram-intake-flow",
+      "path": "/workspace/output/webstudio-client-004-d2-telegram-intake-flow-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d2-transcript-fixtures",
+      "path": "/workspace/output/webstudio-client-004-d2-transcript-fixtures-v30.json",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d3-automation-map",
+      "path": "/workspace/output/webstudio-client-004-d3-automation-map-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d3-crm-readiness",
+      "path": "/workspace/output/webstudio-client-004-d3-crm-readiness-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-d3-risk-gates",
+      "path": "/workspace/output/webstudio-client-004-d3-risk-gates-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-delivery-plan",
+      "path": "/workspace/output/webstudio-client-004-delivery-plan-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-hyperframes-brief",
+      "path": "/workspace/output/webstudio-client-004-hyperframes-brief-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-intake",
+      "path": "/workspace/output/webstudio-client-004-intake-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-motion-composition",
+      "path": "/workspace/output/webstudio-client-004-motion-composition-v30.html",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-motion-plan",
+      "path": "/workspace/output/webstudio-client-004-motion-plan-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-package-selection",
+      "path": "/workspace/output/webstudio-client-004-package-selection-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-preview-package",
+      "path": "/workspace/output/webstudio-client-004-preview-package-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-qualification",
+      "path": "/workspace/output/webstudio-client-004-qualification-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-report",
+      "path": "/workspace/output/webstudio-client-004-report-v30.md",
+      "status": "ready"
+    },
+    {
+      "kind": "webstudio-client-004-strategy-brief",
+      "path": "/workspace/output/webstudio-client-004-strategy-brief-v30.md",
+      "status": "ready"
+    }
+  ]
+}

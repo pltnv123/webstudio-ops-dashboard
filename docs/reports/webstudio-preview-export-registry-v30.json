@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-05-25T13:59:36Z",
+  "status": "PASS_LOCAL_READY",
+  "packages": [
+    {
+      "client": "004",
+      "preview_package": "/workspace/output/webstudio-client-004-preview-package-v30.md",
+      "registry": "/workspace/output/webstudio-client-004-artifact-registry-v30.json",
+      "d1_preview": "/workspace/output/webstudio-client-004-d1-preview-v30.html",
+      "d2_flow": "/workspace/output/webstudio-client-004-d2-telegram-intake-flow-v30.md",
+      "d3_map": "/workspace/output/webstudio-client-004-d3-automation-map-v30.md",
+      "motion": "/workspace/output/webstudio-client-004-motion-composition-v30.html",
+      "qa_report": "/workspace/output/webstudio-client-004-report-v30.md",
+      "approval": "owner approval required before live deploy/integrations/client send"
+    }
+  ]
+}
